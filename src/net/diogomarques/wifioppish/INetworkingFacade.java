@@ -1,6 +1,6 @@
 package net.diogomarques.wifioppish;
 
-public interface INetworking {
+public interface INetworkingFacade {
 
 	public static interface OnSendListener {
 		public void onMessageSent(String msg);

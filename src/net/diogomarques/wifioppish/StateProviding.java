@@ -6,14 +6,14 @@ import android.os.Handler;
 public class StateProviding extends State {
 
 	public StateProviding(Context context, Handler handler,
-			Preferences preferences, INetworking networking) {
+			Preferences preferences, INetworkingFacade networking) {
 		super(context, handler, preferences, networking);
 	}
 
 	@Override
 	public void start() {
 		writeToConsole("entered providing state");
-		mNetworking.setOnReceiveListener(new INetworking.OnReceiveListener() {
+		mNetworking.setOnReceiveListener(new INetworkingFacade.OnReceiveListener() {
 			@Override
 			public void onReceiveTimeout(boolean forced) {
 				// t_pro reached
@@ -42,10 +42,7 @@ public class StateProviding extends State {
 	}
 
 	private void gotoScanning() {
-		// TODO Auto-generated method stub
-
-
-
+		new StateScanning(mContext, mConsoleHandler, mPreferences, mNetworking).start();
 	}
 
 }

@@ -3,6 +3,7 @@ package net.diogomarques.wifioppish;
 import android.content.Context;
 
 // TODO use Android's preferences instead of hard-coded params & create prefs activity
+// TODO times should not be fixed but instead have come variation to prevent locking & collisions
 public class Preferences {
 
 	private Context mContext;

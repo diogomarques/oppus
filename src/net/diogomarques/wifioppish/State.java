@@ -10,12 +10,12 @@ public abstract class State {
 
 	protected Preferences mPreferences;
 
-	protected INetworking mNetworking;
+	protected INetworkingFacade mNetworking;
 	
 	protected Handler mConsoleHandler;
 
 	public State(Context context, Handler handler, Preferences preferences,
-			INetworking networking) {
+			INetworkingFacade networking) {
 		mContext = context;
 		mConsoleHandler = handler;
 		mPreferences = preferences;

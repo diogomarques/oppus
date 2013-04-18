@@ -21,18 +21,19 @@ import android.util.Log;
  * Networking façade for interaction with softAP functionality & message passing
  * (UDP)
  * 
- * @author dmarques
+ * @author Diogo Marques <diogohomemmarques@gmail.com>
  * 
+ * TODO: too many concerns in one place
  */
-public class DefaultNetworking implements INetworking {
+public class AndroidNetworkingFacade implements INetworkingFacade {
 
-	private static final String TAG = DefaultNetworking.class.getSimpleName();
+	private static final String TAG = AndroidNetworkingFacade.class.getSimpleName();
 
 	/**
 	 * Listener for message sending-related events.
 	 */
 	private OnSendListener mSendListener;
-	
+
 	/**
 	 * Listener for message receiving-related events.
 	 */
@@ -72,7 +73,7 @@ public class DefaultNetworking implements INetworking {
 	 * @param preferences
 	 *            a preferences repo
 	 */
-	public DefaultNetworking(Context context, Preferences preferences) {
+	public AndroidNetworkingFacade(Context context, Preferences preferences) {
 		this.mContext = context;
 		this.mPreferences = preferences;
 		mSocket = null;
@@ -203,7 +204,7 @@ public class DefaultNetworking implements INetworking {
 	}
 
 	/* Message passing UDP */
-	
+
 	@Override
 	public void send(String msg) {
 		try {
@@ -279,7 +280,7 @@ public class DefaultNetworking implements INetworking {
 		}
 
 	}
-	
+
 	private DatagramSocket getBroadcastSocket() {
 		// Acquire multicast lock if not already acquired
 		if (mLock == null || !mLock.isHeld()) {
@@ -299,7 +300,7 @@ public class DefaultNetworking implements INetworking {
 		}
 		return mSocket;
 	}
-	
+
 	public void releaseBroadcastSocket() {
 		if (mSocket != null && !mSocket.isClosed())
 			mSocket.close();
@@ -309,12 +310,22 @@ public class DefaultNetworking implements INetworking {
 		mLock = null;
 	}
 
-//	// TODO: is this really needed? everyone in range is supposed to have got
-//	// it.
-//	private void relayPacket(DatagramPacket packet) {
-//		Log.w(TAG, "Relaying message");
-//		String msg = new String(packet.getData());
-//		send(msg);
-//	}
+	// // TODO: is this really needed? everyone in range is supposed to have got
+	// // it.
+	// private void relayPacket(DatagramPacket packet) {
+	// Log.w(TAG, "Relaying message");
+	// String msg = new String(packet.getData());
+	// send(msg);
+	// }
+
+	// STATION MODE STUFF
+	// TODO scan for wifi for X time
+	// set enabled
+	// start scanning (add lock?)
+	// add timer
+	// every 5s check to see if emergencyAP is available
+	// is so, connect and call callback
+	
+	
 
 }

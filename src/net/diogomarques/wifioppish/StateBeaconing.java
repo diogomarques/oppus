@@ -9,7 +9,7 @@ import android.os.Handler;
 public class StateBeaconing extends State {
 
 	public StateBeaconing(Context context, Handler handler,
-			Preferences preferences, INetworking networking) {
+			Preferences preferences, INetworkingFacade networking) {
 		super(context, handler, preferences, networking);
 	}
 
@@ -18,31 +18,31 @@ public class StateBeaconing extends State {
 		writeToConsole("entered beaconing state");
 		writeToConsole("(re) starting AP");
 		mNetworking.startWifiAP();
-		mNetworking.setOnReceiveListener(new INetworking.OnReceiveListener() {
+		mNetworking.setOnReceiveListener(new INetworkingFacade.OnReceiveListener() {
 			@Override
 			public void onReceiveTimeout(boolean forced) {
 				writeToConsole("t_beac timeout, stopping AP");
-				// stop ap and go to scanning				
+				// stop ap and go to scanning
 				mNetworking.stopWifiAP();
 				gotoScanning();
 			}
+
 			@Override
-
-
 			public void onMessageReceived(String msg) {
 				writeToConsole("message received: " + msg);
-				gotoProviding();				
-			}			
+				gotoProviding();
+			}
 		});
 		mNetworking.receiveFirst(mPreferences.getTBeac());
 	}
 
 	private void gotoProviding() {
-		new StateProviding(mContext, mConsoleHandler, mPreferences, mNetworking).start();
+		new StateProviding(mContext, mConsoleHandler, mPreferences, mNetworking)
+				.start();
 	}
 
 	private void gotoScanning() {
-		// TODO Auto-generated method stub
-
+		new StateScanning(mContext, mConsoleHandler, mPreferences, mNetworking)
+				.start();
 	}
 }

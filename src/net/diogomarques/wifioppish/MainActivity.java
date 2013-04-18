@@ -1,5 +1,8 @@
 package net.diogomarques.wifioppish;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import android.app.Activity;
 import android.content.Context;
 import android.os.AsyncTask;
@@ -18,7 +21,7 @@ public class MainActivity extends Activity {
 	Button btSend, btStart;
 	Context mContext;
 	Preferences mPreferences;
-	INetworking mNetworking;
+	INetworkingFacade mNetworking;
 	Handler mHandler;
 	
 
@@ -28,7 +31,7 @@ public class MainActivity extends Activity {
 		setContentView(R.layout.activity_main);
 		mContext = this;
 		mPreferences = new Preferences(mContext);
-		mNetworking = new DefaultNetworking(mContext, mPreferences);
+		mNetworking = new AndroidNetworkingFacade(mContext, mPreferences);
 		console = (TextView) findViewById(R.id.console);
 		btSend = (Button) findViewById(R.id.buttonSend);
 		btStart = (Button) findViewById(R.id.buttonStart);
@@ -61,8 +64,8 @@ public class MainActivity extends Activity {
 
 	protected void processSend() {
 
-		final INetworking networking = mNetworking;
-		networking.setOnSendListener(new INetworking.OnSendListener() {
+		final INetworkingFacade networking = mNetworking;
+		networking.setOnSendListener(new INetworkingFacade.OnSendListener() {
 
 			@Override
 			public void onSendError(String errorMsg) {
@@ -113,11 +116,13 @@ public class MainActivity extends Activity {
 	}
 	
 	private void addTextToConsole(final String txt) {
+		
 		console.post(new Runnable() {
 			
 			@Override
 			public void run() {
-				console.setText(console.getText().toString() + "\n" + txt);
+				String now = SimpleDateFormat.getTimeInstance().format(new Date());
+				console.setText(console.getText().toString() + "\n" + now + " " + txt);
 				
 			}
 		});		
