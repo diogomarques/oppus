@@ -1,5 +1,6 @@
 package net.diogomarques.wifioppish;
 
+
 public class StateScanning extends State {
 
 	public StateScanning(IEnvironment environment, IPreferences preferences,
@@ -9,8 +10,20 @@ public class StateScanning extends State {
 
 	@Override
 	public void start() {
-		// TODO
-
+		environment.notifyEnv("entered scanning state");
+		networking.setOnAccessPointScanListener(new INetworkingFacade.OnAccessPointScanListener() {
+			
+			@Override
+			public void onScanTimeout() {
+				environment.notifyEnv("t_scan timeout");
+				new StateBeaconing(environment, preferences, networking).start();				
+			}
+			
+			@Override
+			public void onEmergencyAPConnected() {
+				environment.notifyEnv("connected to AP!");
+				new StateStation(environment, preferences, networking).start();
+			}
+		});
 	}
-
 }

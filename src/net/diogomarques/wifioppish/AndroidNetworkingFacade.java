@@ -15,6 +15,7 @@ import android.content.Context;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiManager;
 import android.net.wifi.WifiManager.MulticastLock;
+import android.os.CountDownTimer;
 import android.util.Log;
 
 /**
@@ -38,6 +39,11 @@ public class AndroidNetworkingFacade implements INetworkingFacade {
 	 * Listener for message receiving-related events.
 	 */
 	private OnReceiveListener mReceiveListener;
+	
+	/**
+	 * Listener for AP scanning events.
+	 */
+	private OnAccessPointScanListener mAccessPointScanListener;
 
 	/**
 	 * The original softAP configuration, saved to restore after execution
@@ -310,6 +316,41 @@ public class AndroidNetworkingFacade implements INetworkingFacade {
 		mLock = null;
 	}
 
+	@Override
+	public OnAccessPointScanListener getOnAccessPointListener() {		
+		return mAccessPointScanListener;
+	}
+
+	@Override
+	public void setOnAccessPointScanListener(OnAccessPointScanListener listener) {
+		this.mAccessPointScanListener = listener;
+		
+	}
+
+	@Override
+	public void scanForAP(int timeoutMilis, int scanPeriod) {
+		WifiManager manager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
+		// activate WiFi, otherwise other methods may behave strangely, e.g. returning nulls
+		manager.setWifiEnabled(true);
+		// every scanPeriod, start an assync task and scan
+		CountDownTimer timer = new CountDownTimer(timeoutMilis, scanPeriod) {
+			
+			@Override
+			public void onTick(long millisUntilFinished) {
+				// TODO Auto-generated method stub
+				// if found at any time, break timer an call callback
+				
+			}
+			
+			@Override
+			public void onFinish() {
+				// if not found, call timeout callback
+				mAccessPointScanListener.onScanTimeout();
+			}
+		};	
+		timer.start();
+	}
+
 	// // TODO: is this really needed? everyone in range is supposed to have got
 	// // it.
 	// private void relayPacket(DatagramPacket packet) {
@@ -318,13 +359,7 @@ public class AndroidNetworkingFacade implements INetworkingFacade {
 	// send(msg);
 	// }
 
-	// STATION MODE STUFF
-	// TODO scan for wifi for X time
-	// set enabled
-	// start scanning (add lock?)
-	// add timer
-	// every 5s check to see if emergencyAP is available
-	// is so, connect and call callback
+	
 	
 	
 
