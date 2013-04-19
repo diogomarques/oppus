@@ -20,25 +20,22 @@ public class MainActivity extends Activity {
 	TextView console;
 	Button btSend, btStart;
 	Context mContext;
-	Preferences mPreferences;
+	AndroidPreferences mPreferences;
 	INetworkingFacade mNetworking;
 	Handler mHandler;
-	
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 		mContext = this;
-		mPreferences = new Preferences(mContext);
+		mPreferences = new AndroidPreferences(mContext);
 		mNetworking = new AndroidNetworkingFacade(mContext, mPreferences);
 		console = (TextView) findViewById(R.id.console);
 		btSend = (Button) findViewById(R.id.buttonSend);
 		btStart = (Button) findViewById(R.id.buttonStart);
-		
-		
-		
-		mHandler = new Handler() {			
+
+		mHandler = new Handler() {
 			@Override
 			public void handleMessage(Message msg) {
 				String txt = (String) msg.obj;
@@ -69,7 +66,7 @@ public class MainActivity extends Activity {
 
 			@Override
 			public void onSendError(String errorMsg) {
-				
+
 				addTextToConsole("send error: " + errorMsg);
 			}
 
@@ -87,26 +84,25 @@ public class MainActivity extends Activity {
 		}.start();
 	}
 
-	
-
 	protected void processStart() {
 		new AsyncTask<Void, Void, Void>() {
 
 			@Override
-			protected void onPostExecute(Void result) {				
+			protected void onPostExecute(Void result) {
 				btStart.setEnabled(true);
 			}
 
 			@Override
-			protected void onPreExecute() {					
+			protected void onPreExecute() {
 				btStart.setEnabled(false);
 			}
 
 			@Override
 			protected Void doInBackground(Void... params) {
 
-				StateBeaconing beaconing = new StateBeaconing(mContext, mHandler,
-						mPreferences, mNetworking);
+				StateBeaconing beaconing = new StateBeaconing(
+						new AndroidEnvironment(mHandler), mPreferences,
+						mNetworking);
 				beaconing.start();
 				return null;
 
@@ -114,18 +110,20 @@ public class MainActivity extends Activity {
 		}.execute();
 
 	}
-	
+
 	private void addTextToConsole(final String txt) {
-		
+
 		console.post(new Runnable() {
-			
+
 			@Override
 			public void run() {
-				String now = SimpleDateFormat.getTimeInstance().format(new Date());
-				console.setText(console.getText().toString() + "\n" + now + " " + txt);
-				
+				String now = SimpleDateFormat.getTimeInstance().format(
+						new Date());
+				console.setText(console.getText().toString() + "\n" + now + " "
+						+ txt);
+
 			}
-		});		
+		});
 	}
 
 	@Override

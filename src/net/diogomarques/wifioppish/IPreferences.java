@@ -1,25 +1,13 @@
 package net.diogomarques.wifioppish;
 
-import android.content.Context;
-
-// TODO use Android's preferences instead of hard-coded params & create prefs activity
-// TODO times should not be fixed but instead have come variation to prevent locking & collisions
-public class Preferences {
-
-	private Context mContext;
-
-	public Preferences(Context context) {
-		mContext = context;
-	}
+public interface IPreferences {
 
 	/**
-	 * Get port to use in UDP broadcasts.
+	 * Get port to use in broadcasts.
 	 * 
 	 * @return a port number
 	 */
-	public int getPort() {
-		return 33333;
-	}
+	public int getPort();
 
 	/**
 	 * Get t_beac.
@@ -31,10 +19,7 @@ public class Preferences {
 	 * 
 	 * @return t_beac
 	 */
-	public int getTBeac() {
-		// FIXME use recommended t
-		return 10000;
-	}
+	public int getTBeac();
 
 	/**
 	 * Get t_pro.
@@ -46,10 +31,7 @@ public class Preferences {
 	 * 
 	 * @return t_pro
 	 */
-	public int getTPro() {
-		// FIXME use recommended t
-		return 5000;
-	}
+	public int getTPro();
 
 	/**
 	 * Get t_scan.
@@ -61,10 +43,7 @@ public class Preferences {
 	 * 
 	 * @return t_scan
 	 */
-	public int getTScan() {
-		// FIXME use recommended t
-		return 5000;
-	}
+	public int getTScan();
 
 	/**
 	 * Get t_con.
@@ -76,10 +55,7 @@ public class Preferences {
 	 * 
 	 * @return t_con
 	 */
-	public int getTCon() {
-		// FIXME use recommended t
-		return 5000;
-	}
+	public int getTCon();
 
 	/**
 	 * Get the interval between scans when in scanning state.
@@ -91,21 +67,12 @@ public class Preferences {
 	 * 
 	 * @return the scanning period in ms
 	 */
-	public int scanPeriod() {
-		return 5000;
-	}
+	public int getScanPeriod();
 
-	public String getBroadcastAddress() {
-		// TODO get from dhcp info
-		return "192.168.43.255";
-	}
+	public String getBroadcastAddress();
 
-	public String getWifiSSID() {
-		return "emergencyAP";
-	}
+	public String getWifiSSID();
 
-	public String getWifiPSK() {
-		return "\"emergency\"";
-	}
+	public String getWifiPSK();
 
 }

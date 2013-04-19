@@ -53,7 +53,7 @@ public class AndroidNetworkingFacade implements INetworkingFacade {
 	 * Dependencies.
 	 */
 	private Context mContext;
-	private Preferences mPreferences;
+	private IPreferences mPreferences;
 
 	/**
 	 * Single instance of lock
@@ -73,7 +73,7 @@ public class AndroidNetworkingFacade implements INetworkingFacade {
 	 * @param preferences
 	 *            a preferences repo
 	 */
-	public AndroidNetworkingFacade(Context context, Preferences preferences) {
+	public AndroidNetworkingFacade(Context context, IPreferences preferences) {
 		this.mContext = context;
 		this.mPreferences = preferences;
 		mSocket = null;

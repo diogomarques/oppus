@@ -1,48 +1,48 @@
 package net.diogomarques.wifioppish;
 
-import android.content.Context;
-import android.os.Handler;
-
 public class StateProviding extends State {
 
-	public StateProviding(Context context, Handler handler,
-			Preferences preferences, INetworkingFacade networking) {
-		super(context, handler, preferences, networking);
+	public StateProviding(IEnvironment environment, IPreferences preferences,
+			INetworkingFacade networking) {
+		super(environment, preferences, networking);
 	}
 
 	@Override
 	public void start() {
-		writeToConsole("entered providing state");
-		mNetworking.setOnReceiveListener(new INetworkingFacade.OnReceiveListener() {
-			@Override
-			public void onReceiveTimeout(boolean forced) {
-				// t_pro reached
-				if (forced) {
-					writeToConsole("t_pro timeout, stopping AP");
-					mNetworking.stopWifiAP();
-					gotoScanning();
-				}
-				// no connections
-				else {
-					writeToConsole("no connections to provide for");
-					gotoBeaconing();
-				}
-			}
-			@Override
-			public void onMessageReceived(String msg) {
-				writeToConsole("message received: " + msg);			
-			}			
-		});
-		mNetworking.receive(mPreferences.getTBeac());
-		
+		environment.notifyEnv("entered providing state");
+		networking
+				.setOnReceiveListener(new INetworkingFacade.OnReceiveListener() {
+					@Override
+					public void onReceiveTimeout(boolean forced) {
+						// t_pro reached
+						if (forced) {
+							environment.notifyEnv("t_pro timeout, stopping AP");
+							networking.stopWifiAP();
+							gotoScanning();
+						}
+						// no connections
+						else {
+							environment
+									.notifyEnv("no connections to provide for");
+							gotoBeaconing();
+						}
+					}
+
+					@Override
+					public void onMessageReceived(String msg) {
+						environment.notifyEnv("message received: " + msg);
+					}
+				});
+		networking.receive(preferences.getTBeac());
+
 	}
-	
+
 	private void gotoBeaconing() {
-		new StateBeaconing(mContext, mConsoleHandler, mPreferences, mNetworking).start();
+		new StateBeaconing(environment, preferences, networking).start();
 	}
 
 	private void gotoScanning() {
-		new StateScanning(mContext, mConsoleHandler, mPreferences, mNetworking).start();
+		new StateScanning(environment, preferences, networking).start();
 	}
 
 }

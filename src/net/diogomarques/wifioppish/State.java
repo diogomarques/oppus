@@ -1,31 +1,20 @@
 package net.diogomarques.wifioppish;
 
-import android.content.Context;
-import android.os.Handler;
-import android.os.Message;
-
 public abstract class State {
 
-	protected Context mContext;
+	protected IPreferences preferences;
 
-	protected Preferences mPreferences;
-
-	protected INetworkingFacade mNetworking;
+	protected INetworkingFacade networking;
 	
-	protected Handler mConsoleHandler;
+	protected IEnvironment environment;
 
-	public State(Context context, Handler handler, Preferences preferences,
-			INetworkingFacade networking) {
-		mContext = context;
-		mConsoleHandler = handler;
-		mPreferences = preferences;
-		mNetworking = networking;
+	public State(IEnvironment environment, IPreferences preferences,
+			INetworkingFacade networking) {		
+		this.environment = environment;
+		this.preferences = preferences;
+		this.networking = networking;
 	}
-	
-	public void writeToConsole(String txt) {
-		mConsoleHandler.sendMessage(Message.obtain(mConsoleHandler, 0, txt));		
-	}
-	
+
 	public abstract void start();
 
 }
