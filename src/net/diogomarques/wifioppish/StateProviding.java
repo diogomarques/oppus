@@ -1,48 +1,42 @@
 package net.diogomarques.wifioppish;
 
-public class StateProviding extends State {
+import net.diogomarques.wifioppish.IEnvironment.State;
 
-	public StateProviding(IEnvironment environment, IPreferences preferences,
-			INetworkingFacade networking) {
-		super(environment, preferences, networking);
+public class StateProviding extends AState {
+
+	public StateProviding(IEnvironment environment) {
+		super(environment);
 	}
 
 	@Override
 	public void start() {
-		environment.notifyEnv("entered providing state");
+		environment.sendMessage("entered providing state");
 		networking
 				.setOnReceiveListener(new INetworkingFacade.OnReceiveListener() {
 					@Override
 					public void onReceiveTimeout(boolean forced) {
 						// t_pro reached
 						if (forced) {
-							environment.notifyEnv("t_pro timeout, stopping AP");
+							environment
+									.sendMessage("t_pro timeout, stopping AP");
 							networking.stopWifiAP();
-							gotoScanning();
+							environment.gotoState(State.Scanning);
 						}
 						// no connections
 						else {
 							environment
-									.notifyEnv("no connections to provide for");
-							gotoBeaconing();
+									.sendMessage("no connections to provide for");
+							environment.gotoState(State.Beaconing);
 						}
 					}
 
 					@Override
 					public void onMessageReceived(String msg) {
-						environment.notifyEnv("message received: " + msg);
+						environment.sendMessage("message received: " + msg);
 					}
 				});
 		networking.receive(preferences.getTBeac());
 
-	}
-
-	private void gotoBeaconing() {
-		new StateBeaconing(environment, preferences, networking).start();
-	}
-
-	private void gotoScanning() {
-		new StateScanning(environment, preferences, networking).start();
 	}
 
 }

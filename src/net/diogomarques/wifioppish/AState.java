@@ -1,6 +1,6 @@
 package net.diogomarques.wifioppish;
 
-public abstract class State {
+public abstract class AState {
 
 	protected IPreferences preferences;
 
@@ -8,11 +8,10 @@ public abstract class State {
 	
 	protected IEnvironment environment;
 
-	public State(IEnvironment environment, IPreferences preferences,
-			INetworkingFacade networking) {		
+	public AState(IEnvironment environment) {		
 		this.environment = environment;
-		this.preferences = preferences;
-		this.networking = networking;
+		this.preferences = environment.getPreferences();
+		this.networking = environment.getNetworkingFacade();
 	}
 
 	public abstract void start();

@@ -1,30 +1,30 @@
 package net.diogomarques.wifioppish;
 
-public class StateScanning extends State {
+import net.diogomarques.wifioppish.IEnvironment.State;
 
-	public StateScanning(IEnvironment environment, IPreferences preferences,
-			INetworkingFacade networking) {
-		super(environment, preferences, networking);
+public class StateScanning extends AState {
+
+	public StateScanning(IEnvironment environment) {
+		super(environment);
 	}
 
 	@Override
 	public void start() {
-		environment.notifyEnv("entered scanning state");
+		environment.sendMessage("entered scanning state");
 		networking
 				.setOnAccessPointScanListener(new INetworkingFacade.OnAccessPointScanListener() {
 
 					@Override
 					public void onScanTimeout() {
-						environment.notifyEnv("t_scan timeout");
-						new StateBeaconing(environment, preferences, networking)
-								.start();
+						environment.sendMessage("t_scan timeout");
+						environment.gotoState(State.Beaconing);
+						;
 					}
 
 					@Override
 					public void onEmergencyAPConnected() {
-						environment.notifyEnv("connected to AP!");
-						new StateStation(environment, preferences, networking)
-								.start();
+						environment.sendMessage("connected to AP!");
+						environment.gotoState(State.Station);
 					}
 				});
 		networking.scanForAP(preferences.getTScan(),

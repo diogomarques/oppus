@@ -100,10 +100,10 @@ public class MainActivity extends Activity {
 			@Override
 			protected Void doInBackground(Void... params) {
 
-				StateBeaconing beaconing = new StateBeaconing(
-						new AndroidEnvironment(mHandler), mPreferences,
-						mNetworking);
-				beaconing.start();
+				IEnvironment environment = new AndroidEnvironment(mHandler,
+						mNetworking, mPreferences);
+				environment.prepare();
+				environment.gotoState(IEnvironment.State.Scanning);
 				return null;
 
 			}

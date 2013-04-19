@@ -9,15 +9,12 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiManager;
 import android.net.wifi.WifiManager.MulticastLock;
-import android.os.CountDownTimer;
 import android.util.Log;
 
 /**
@@ -86,6 +83,13 @@ public class AndroidNetworkingFacade implements INetworkingFacade {
 		this.mPreferences = preferences;
 		mSocket = null;
 		mLock = null;
+	}
+	
+	@Override
+	public void clearListeners() {
+		mSendListener = null;
+		mReceiveListener = null;
+		mAccessPointScanListener = null;
 	}
 
 	@Override
@@ -360,6 +364,8 @@ public class AndroidNetworkingFacade implements INetworkingFacade {
 		// if found at any time, break timer an call callback
 				
 	}
+
+	
 
 	// // TODO: is this really needed? everyone in range is supposed to have got
 	// // it.

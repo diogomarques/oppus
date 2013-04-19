@@ -1,10 +1,9 @@
 package net.diogomarques.wifioppish;
 
-public class StateStation extends State {
+public class StateStation extends AState {
 
-	public StateStation(IEnvironment environment, IPreferences preferences,
-			INetworkingFacade networking) {
-		super(environment, preferences, networking);
+	public StateStation(IEnvironment environment) {
+		super(environment);
 	}
 
 	@Override

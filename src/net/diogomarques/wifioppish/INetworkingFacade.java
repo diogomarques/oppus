@@ -19,6 +19,8 @@ public interface INetworkingFacade {
 		public void onScanTimeout();
 		public void onEmergencyAPConnected();
 	}
+	
+	public void clearListeners();
 
 	public OnReceiveListener getOnReceiveListener();
 
