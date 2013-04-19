@@ -9,8 +9,10 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiManager;
@@ -261,7 +263,7 @@ public class AndroidNetworkingFacade implements INetworkingFacade {
 				// force finish, even if new connections are happening
 				if (new Date().getTime() > (now + timeoutMilis)) {
 					mReceiveListener.onReceiveTimeout(true);
-					return;
+					break;
 				}
 
 				DatagramSocket socket = getBroadcastSocket();
@@ -326,29 +328,37 @@ public class AndroidNetworkingFacade implements INetworkingFacade {
 		this.mAccessPointScanListener = listener;
 		
 	}
+	
+	
 
 	@Override
 	public void scanForAP(int timeoutMilis, int scanPeriod) {
-		WifiManager manager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
 		// activate WiFi, otherwise other methods may behave strangely, e.g. returning nulls
+		WifiManager manager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);		
 		manager.setWifiEnabled(true);
+		// TODO: prepare receiver for scans
+		
+		
 		// every scanPeriod, start an assync task and scan
-		CountDownTimer timer = new CountDownTimer(timeoutMilis, scanPeriod) {
-			
-			@Override
-			public void onTick(long millisUntilFinished) {
-				// TODO Auto-generated method stub
-				// if found at any time, break timer an call callback
-				
-			}
-			
-			@Override
-			public void onFinish() {
-				// if not found, call timeout callback
+		long startTime = new Date().getTime();		
+		while(true) {
+			long tick = new Date().getTime(); 
+			if(tick > startTime + timeoutMilis) {
 				mAccessPointScanListener.onScanTimeout();
+				break;
 			}
-		};	
-		timer.start();
+			while(true) {
+				if (new Date().getTime() > tick + scanPeriod) {
+					// TODO scan
+					manager.startScan();
+					// break both cycles to avoid further scans
+					return; 
+				}				
+			}
+		}
+		
+		// if found at any time, break timer an call callback
+				
 	}
 
 	// // TODO: is this really needed? everyone in range is supposed to have got

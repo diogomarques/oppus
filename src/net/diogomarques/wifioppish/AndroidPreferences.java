@@ -61,7 +61,7 @@ public class AndroidPreferences implements IPreferences {
 	 */
 	@Override
 	public int getScanPeriod() {
-		return 5000;
+		return 1000;
 	}
 
 	/* (non-Javadoc)
