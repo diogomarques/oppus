@@ -10,8 +10,13 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.Date;
+import java.util.List;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.net.wifi.ScanResult;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiManager;
 import android.net.wifi.WifiManager.MulticastLock;
@@ -23,11 +28,12 @@ import android.util.Log;
  * 
  * @author Diogo Marques <diogohomemmarques@gmail.com>
  * 
- * TODO: too many concerns in one place
+ *         TODO: too many concerns in one place
  */
 public class AndroidNetworkingFacade implements INetworkingFacade {
 
-	private static final String TAG = AndroidNetworkingFacade.class.getSimpleName();
+	private static final String TAG = AndroidNetworkingFacade.class
+			.getSimpleName();
 
 	/**
 	 * Listener for message sending-related events.
@@ -38,7 +44,7 @@ public class AndroidNetworkingFacade implements INetworkingFacade {
 	 * Listener for message receiving-related events.
 	 */
 	private OnReceiveListener mReceiveListener;
-	
+
 	/**
 	 * Listener for AP scanning events.
 	 */
@@ -84,7 +90,7 @@ public class AndroidNetworkingFacade implements INetworkingFacade {
 		mSocket = null;
 		mLock = null;
 	}
-	
+
 	@Override
 	public void clearListeners() {
 		mSendListener = null;
@@ -323,49 +329,69 @@ public class AndroidNetworkingFacade implements INetworkingFacade {
 	}
 
 	@Override
-	public OnAccessPointScanListener getOnAccessPointListener() {		
+	public OnAccessPointScanListener getOnAccessPointListener() {
 		return mAccessPointScanListener;
 	}
 
 	@Override
 	public void setOnAccessPointScanListener(OnAccessPointScanListener listener) {
 		this.mAccessPointScanListener = listener;
-		
+
 	}
-	
-	
 
 	@Override
 	public void scanForAP(int timeoutMilis, int scanPeriod) {
-		// activate WiFi, otherwise other methods may behave strangely, e.g. returning nulls
-		WifiManager manager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);		
+		// activate WiFi, otherwise other methods may behave strangely, e.g.
+		// returning nulls
+		WifiManager manager = (WifiManager) mContext
+				.getSystemService(Context.WIFI_SERVICE);
 		manager.setWifiEnabled(true);
-		// TODO: prepare receiver for scans
-		
-		
-		// every scanPeriod, start an assync task and scan
-		long startTime = new Date().getTime();		
-		while(true) {
-			long tick = new Date().getTime(); 
-			if(tick > startTime + timeoutMilis) {
+		// start receiver for scans
+		BroadcastReceiver scanReceiver = buildScanResultsReceiver(manager);
+		mContext.registerReceiver(scanReceiver, new IntentFilter(
+				WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
+		// every scanPeriod, scan
+		long startTime = new Date().getTime();
+		while (true) {
+			long tick = new Date().getTime();
+			if (tick > startTime + timeoutMilis) {
 				mAccessPointScanListener.onScanTimeout();
 				break;
 			}
-			while(true) {
+			while (true) {
 				if (new Date().getTime() > tick + scanPeriod) {
-					// TODO scan
 					manager.startScan();
 					// break both cycles to avoid further scans
-					return; 
-				}				
+					return;
+				}
 			}
 		}
-		
-		// if found at any time, break timer an call callback
-				
 	}
 
-	
+	private BroadcastReceiver buildScanResultsReceiver(final WifiManager manager) {
+		BroadcastReceiver receiver = new BroadcastReceiver() {
+
+			@Override
+			public void onReceive(Context context, Intent intent) {
+				List<ScanResult> results = manager.getScanResults();
+				// Best signal check:
+				// http://marakana.com/forums/android/examples/40.html
+				ScanResult bestSignal = null;
+				for (ScanResult result : results) {
+					if (result.SSID.equals(mPreferences.getWifiSSID()))
+						if (bestSignal == null
+								|| WifiManager.compareSignalLevel(
+										bestSignal.level, result.level) < 0)
+							bestSignal = result;
+				}
+				if (bestSignal != null) {
+					// TODO: connect
+					mAccessPointScanListener.onEmergencyAPConnected();
+				}
+			}
+		};
+		return receiver;
+	}
 
 	// // TODO: is this really needed? everyone in range is supposed to have got
 	// // it.
@@ -374,9 +400,5 @@ public class AndroidNetworkingFacade implements INetworkingFacade {
 	// String msg = new String(packet.getData());
 	// send(msg);
 	// }
-
-	
-	
-	
 
 }
