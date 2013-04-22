@@ -57,8 +57,10 @@ public class AndroidEnvironment implements IEnvironment {
 			break;
 		case Scanning:
 			next = scanning;
+			break;
 		case Station:
 			next = station;
+			break;
 		}
 		next.start();
 	}

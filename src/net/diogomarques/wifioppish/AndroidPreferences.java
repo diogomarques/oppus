@@ -12,7 +12,9 @@ public class AndroidPreferences implements IPreferences {
 		mContext = context;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see net.diogomarques.wifioppish.IPreferences#getPort()
 	 */
 	@Override
@@ -20,7 +22,9 @@ public class AndroidPreferences implements IPreferences {
 		return 33333;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see net.diogomarques.wifioppish.IPreferences#getTBeac()
 	 */
 	@Override
@@ -29,7 +33,9 @@ public class AndroidPreferences implements IPreferences {
 		return 10000;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see net.diogomarques.wifioppish.IPreferences#getTPro()
 	 */
 	@Override
@@ -38,7 +44,9 @@ public class AndroidPreferences implements IPreferences {
 		return 5000;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see net.diogomarques.wifioppish.IPreferences#getTScan()
 	 */
 	@Override
@@ -47,7 +55,9 @@ public class AndroidPreferences implements IPreferences {
 		return 5000;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see net.diogomarques.wifioppish.IPreferences#getTCon()
 	 */
 	@Override
@@ -56,7 +66,9 @@ public class AndroidPreferences implements IPreferences {
 		return 5000;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see net.diogomarques.wifioppish.IPreferences#scanPeriod()
 	 */
 	@Override
@@ -64,7 +76,9 @@ public class AndroidPreferences implements IPreferences {
 		return 1000;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see net.diogomarques.wifioppish.IPreferences#getBroadcastAddress()
 	 */
 	@Override
@@ -73,7 +87,9 @@ public class AndroidPreferences implements IPreferences {
 		return "192.168.43.255";
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see net.diogomarques.wifioppish.IPreferences#getWifiSSID()
 	 */
 	@Override
@@ -81,7 +97,9 @@ public class AndroidPreferences implements IPreferences {
 		return "emergencyAP";
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see net.diogomarques.wifioppish.IPreferences#getWifiPSK()
 	 */
 	@Override

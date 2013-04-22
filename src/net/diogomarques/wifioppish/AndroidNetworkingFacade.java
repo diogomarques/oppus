@@ -340,21 +340,38 @@ public class AndroidNetworkingFacade implements INetworkingFacade {
 	}
 
 	@Override
-	public void scanForAP(int timeoutMilis, int scanPeriod) {
+	public void scanForAP(int timeoutMilis, int scanPeriod) {		
+		// TODO wake & wifi locks may be needed. check.
+		// best case, a lock WifiManager.WIFI_MODE_SCAN_ONLY will suffice
+		// worst case, set wifi to never sleep:
+		// <uses-permission android:name="android.permission.WRITE_SETTINGS"/>
+		// Settings.System.putInt(getContentResolver(),
+		// Settings.System.WIFI_SLEEP_POLICY,
+		// Settings.System.WIFI_SLEEP_POLICY_NEVER);
+
 		// activate WiFi, otherwise other methods may behave strangely, e.g.
 		// returning nulls
 		WifiManager manager = (WifiManager) mContext
 				.getSystemService(Context.WIFI_SERVICE);
+		
+		// TODO check if this always works. enabling takes some time, but can be
+		// checked by the receiver, using the WIFI_STATE_ENABLED extra
 		manager.setWifiEnabled(true);
+				
+
 		// start receiver for scans
 		BroadcastReceiver scanReceiver = buildScanResultsReceiver(manager);
 		mContext.registerReceiver(scanReceiver, new IntentFilter(
 				WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
 		// every scanPeriod, scan
 		long startTime = new Date().getTime();
+		Log.w("", "startTime: " + startTime);
 		while (true) {
 			long tick = new Date().getTime();
+			Log.w("", "tick: " + tick);
 			if (tick > startTime + timeoutMilis) {
+				Log.w("", "Scan timeout");
+				mContext.unregisterReceiver(scanReceiver);
 				mAccessPointScanListener.onScanTimeout();
 				break;
 			}
@@ -385,7 +402,10 @@ public class AndroidNetworkingFacade implements INetworkingFacade {
 							bestSignal = result;
 				}
 				if (bestSignal != null) {
-					// TODO: connect
+					int netId = manager.addNetwork(getWifiConfiguration());
+					manager.saveConfiguration();
+					manager.enableNetwork(netId, true);
+					mContext.unregisterReceiver(this);
 					mAccessPointScanListener.onEmergencyAPConnected();
 				}
 			}
