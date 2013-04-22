@@ -340,7 +340,7 @@ public class AndroidNetworkingFacade implements INetworkingFacade {
 	}
 
 	@Override
-	public void scanForAP(int timeoutMilis, int scanPeriod) {		
+	public void scanForAP(int timeoutMilis, int scanPeriod) {
 		// TODO wake & wifi locks may be needed. check.
 		// best case, a lock WifiManager.WIFI_MODE_SCAN_ONLY will suffice
 		// worst case, set wifi to never sleep:
@@ -353,11 +353,10 @@ public class AndroidNetworkingFacade implements INetworkingFacade {
 		// returning nulls
 		WifiManager manager = (WifiManager) mContext
 				.getSystemService(Context.WIFI_SERVICE);
-		
+
 		// TODO check if this always works. enabling takes some time, but can be
 		// checked by the receiver, using the WIFI_STATE_ENABLED extra
 		manager.setWifiEnabled(true);
-				
 
 		// start receiver for scans
 		BroadcastReceiver scanReceiver = buildScanResultsReceiver(manager);
@@ -365,24 +364,41 @@ public class AndroidNetworkingFacade implements INetworkingFacade {
 				WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
 		// every scanPeriod, scan
 		long startTime = new Date().getTime();
+		int countScans = 0;
 		Log.w("", "startTime: " + startTime);
 		while (true) {
 			long tick = new Date().getTime();
 			Log.w("", "tick: " + tick);
 			if (tick > startTime + timeoutMilis) {
 				Log.w("", "Scan timeout");
-				mContext.unregisterReceiver(scanReceiver);
+				safeUnregisterReceiver(scanReceiver);
 				mAccessPointScanListener.onScanTimeout();
 				break;
 			}
 			while (true) {
 				if (new Date().getTime() > tick + scanPeriod) {
+					Log.w("", "Scan " + countScans++);
 					manager.startScan();
-					// break both cycles to avoid further scans
-					return;
+					break;
 				}
 			}
 		}
+	}
+
+	/*
+	 * There is not API for checking if a receiver is registered. This is a
+	 * workaround.
+	 */
+	private boolean safeUnregisterReceiver(BroadcastReceiver receiver) {
+		boolean sucess = false;
+		try {
+			mContext.unregisterReceiver(receiver);
+			sucess = true;
+		} catch (IllegalArgumentException exception) {
+			sucess = false;
+			Log.w("", "Trying to unregister a receiver that isn't registered.");
+		}
+		return sucess;
 	}
 
 	private BroadcastReceiver buildScanResultsReceiver(final WifiManager manager) {
@@ -405,7 +421,7 @@ public class AndroidNetworkingFacade implements INetworkingFacade {
 					int netId = manager.addNetwork(getWifiConfiguration());
 					manager.saveConfiguration();
 					manager.enableNetwork(netId, true);
-					mContext.unregisterReceiver(this);
+					safeUnregisterReceiver(this);
 					mAccessPointScanListener.onEmergencyAPConnected();
 				}
 			}
