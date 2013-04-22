@@ -313,6 +313,7 @@ public class AndroidNetworkingFacade implements INetworkingFacade {
 				mSocket = new DatagramSocket(mPreferences.getPort());
 				mSocket.setBroadcast(true);
 			} catch (SocketException e) {
+				
 				Log.e(TAG, e.getMessage());
 			}
 		}
@@ -338,6 +339,8 @@ public class AndroidNetworkingFacade implements INetworkingFacade {
 		this.mAccessPointScanListener = listener;
 
 	}
+	
+	private volatile boolean connectedToAP = false;
 
 	@Override
 	public void scanForAP(int timeoutMilis, int scanPeriod) {
@@ -364,11 +367,9 @@ public class AndroidNetworkingFacade implements INetworkingFacade {
 				WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
 		// every scanPeriod, scan
 		long startTime = new Date().getTime();
-		int countScans = 0;
-		Log.w("", "startTime: " + startTime);
-		while (true) {
-			long tick = new Date().getTime();
-			Log.w("", "tick: " + tick);
+		// int countScans = 0;		
+		while (!connectedToAP) {
+			long tick = new Date().getTime();			
 			if (tick > startTime + timeoutMilis) {
 				Log.w("", "Scan timeout");
 				safeUnregisterReceiver(scanReceiver);
@@ -377,7 +378,7 @@ public class AndroidNetworkingFacade implements INetworkingFacade {
 			}
 			while (true) {
 				if (new Date().getTime() > tick + scanPeriod) {
-					Log.w("", "Scan " + countScans++);
+					//Log.w("", "Scan " + countScans++);
 					manager.startScan();
 					break;
 				}
@@ -422,6 +423,7 @@ public class AndroidNetworkingFacade implements INetworkingFacade {
 					manager.saveConfiguration();
 					manager.enableNetwork(netId, true);
 					safeUnregisterReceiver(this);
+					connectedToAP = true;
 					mAccessPointScanListener.onEmergencyAPConnected();
 				}
 			}
