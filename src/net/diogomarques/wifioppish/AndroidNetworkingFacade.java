@@ -11,6 +11,7 @@ import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -340,7 +341,7 @@ public class AndroidNetworkingFacade implements INetworkingFacade {
 
 	}
 	
-	private volatile boolean connectedToAP = false;
+	
 
 	@Override
 	public void scanForAP(int timeoutMilis, int scanPeriod) {
@@ -351,24 +352,50 @@ public class AndroidNetworkingFacade implements INetworkingFacade {
 		// Settings.System.putInt(getContentResolver(),
 		// Settings.System.WIFI_SLEEP_POLICY,
 		// Settings.System.WIFI_SLEEP_POLICY_NEVER);
+		
+		// control flag to prevent scan after connection
+		final AtomicBoolean connected = new AtomicBoolean(false);		
 
 		// activate WiFi, otherwise other methods may behave strangely, e.g.
 		// returning nulls
-		WifiManager manager = (WifiManager) mContext
-				.getSystemService(Context.WIFI_SERVICE);
-
 		// TODO check if this always works. enabling takes some time, but can be
 		// checked by the receiver, using the WIFI_STATE_ENABLED extra
+		final WifiManager manager = (WifiManager) mContext
+				.getSystemService(Context.WIFI_SERVICE);
 		manager.setWifiEnabled(true);
 
 		// start receiver for scans
-		BroadcastReceiver scanReceiver = buildScanResultsReceiver(manager);
+		BroadcastReceiver scanReceiver =  new BroadcastReceiver() {
+
+			@Override
+			public void onReceive(Context context, Intent intent) {
+				List<ScanResult> results = manager.getScanResults();
+				// Best signal check:
+				// http://marakana.com/forums/android/examples/40.html
+				ScanResult bestSignal = null;
+				for (ScanResult result : results) {
+					if (result.SSID.equals(mPreferences.getWifiSSID()))
+						if (bestSignal == null
+								|| WifiManager.compareSignalLevel(
+										bestSignal.level, result.level) < 0)
+							bestSignal = result;
+				}
+				if (bestSignal != null) {
+					int netId = manager.addNetwork(getWifiConfiguration());
+					manager.saveConfiguration();
+					manager.enableNetwork(netId, true);
+					safeUnregisterReceiver(this);
+					connected.set(true);
+					mAccessPointScanListener.onEmergencyAPConnected();
+				}
+			}
+		};;
 		mContext.registerReceiver(scanReceiver, new IntentFilter(
 				WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
 		// every scanPeriod, scan
 		long startTime = new Date().getTime();
 		// int countScans = 0;		
-		while (!connectedToAP) {
+		while (!connected.get()) {
 			long tick = new Date().getTime();			
 			if (tick > startTime + timeoutMilis) {
 				Log.w("", "Scan timeout");
@@ -400,35 +427,6 @@ public class AndroidNetworkingFacade implements INetworkingFacade {
 			Log.w("", "Trying to unregister a receiver that isn't registered.");
 		}
 		return sucess;
-	}
-
-	private BroadcastReceiver buildScanResultsReceiver(final WifiManager manager) {
-		BroadcastReceiver receiver = new BroadcastReceiver() {
-
-			@Override
-			public void onReceive(Context context, Intent intent) {
-				List<ScanResult> results = manager.getScanResults();
-				// Best signal check:
-				// http://marakana.com/forums/android/examples/40.html
-				ScanResult bestSignal = null;
-				for (ScanResult result : results) {
-					if (result.SSID.equals(mPreferences.getWifiSSID()))
-						if (bestSignal == null
-								|| WifiManager.compareSignalLevel(
-										bestSignal.level, result.level) < 0)
-							bestSignal = result;
-				}
-				if (bestSignal != null) {
-					int netId = manager.addNetwork(getWifiConfiguration());
-					manager.saveConfiguration();
-					manager.enableNetwork(netId, true);
-					safeUnregisterReceiver(this);
-					connectedToAP = true;
-					mAccessPointScanListener.onEmergencyAPConnected();
-				}
-			}
-		};
-		return receiver;
 	}
 
 	// // TODO: is this really needed? everyone in range is supposed to have got
