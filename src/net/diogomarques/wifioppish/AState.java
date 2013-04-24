@@ -14,6 +14,6 @@ public abstract class AState {
 		this.networking = environment.getNetworkingFacade();
 	}
 
-	public abstract void start();
+	public abstract void start(int timeout);
 
 }

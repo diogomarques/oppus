@@ -314,7 +314,7 @@ public class AndroidNetworkingFacade implements INetworkingFacade {
 				mSocket = new DatagramSocket(mPreferences.getPort());
 				mSocket.setBroadcast(true);
 			} catch (SocketException e) {
-				
+
 				Log.e(TAG, e.getMessage());
 			}
 		}
@@ -340,11 +340,9 @@ public class AndroidNetworkingFacade implements INetworkingFacade {
 		this.mAccessPointScanListener = listener;
 
 	}
-	
-	
 
 	@Override
-	public void scanForAP(int timeoutMilis, int scanPeriod) {
+	public void scanForAP(int timeoutMilis) {
 		// TODO wake & wifi locks may be needed. check.
 		// best case, a lock WifiManager.WIFI_MODE_SCAN_ONLY will suffice
 		// worst case, set wifi to never sleep:
@@ -352,9 +350,9 @@ public class AndroidNetworkingFacade implements INetworkingFacade {
 		// Settings.System.putInt(getContentResolver(),
 		// Settings.System.WIFI_SLEEP_POLICY,
 		// Settings.System.WIFI_SLEEP_POLICY_NEVER);
-		
+
 		// control flag to prevent scan after connection
-		final AtomicBoolean connected = new AtomicBoolean(false);		
+		final AtomicBoolean connected = new AtomicBoolean(false);
 
 		// activate WiFi, otherwise other methods may behave strangely, e.g.
 		// returning nulls
@@ -365,7 +363,7 @@ public class AndroidNetworkingFacade implements INetworkingFacade {
 		manager.setWifiEnabled(true);
 
 		// start receiver for scans
-		BroadcastReceiver scanReceiver =  new BroadcastReceiver() {
+		BroadcastReceiver scanReceiver = new BroadcastReceiver() {
 
 			@Override
 			public void onReceive(Context context, Intent intent) {
@@ -389,14 +387,17 @@ public class AndroidNetworkingFacade implements INetworkingFacade {
 					mAccessPointScanListener.onEmergencyAPConnected();
 				}
 			}
-		};;
+		};
+		;
 		mContext.registerReceiver(scanReceiver, new IntentFilter(
 				WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
-		// every scanPeriod, scan
+		// scan immediately one time - fast reconnect
+		// "In this case nevertheless, the node will not scan for t_scan seconds (which might be very long) but immediately try to ﬁnd a new AP or becomes one within a few seconds (fast reconnect)."
+		manager.startScan();
+		// every scanPeriod, scan again
 		long startTime = new Date().getTime();
-		// int countScans = 0;		
 		while (!connected.get()) {
-			long tick = new Date().getTime();			
+			long tick = new Date().getTime();
 			if (tick > startTime + timeoutMilis) {
 				Log.w("", "Scan timeout");
 				safeUnregisterReceiver(scanReceiver);
@@ -404,8 +405,8 @@ public class AndroidNetworkingFacade implements INetworkingFacade {
 				break;
 			}
 			while (true) {
-				if (new Date().getTime() > tick + scanPeriod) {
-					//Log.w("", "Scan " + countScans++);
+				if (new Date().getTime() > tick + mPreferences.getScanPeriod()) {
+					// Log.w("", "Scan " + countScans++);
 					manager.startScan();
 					break;
 				}

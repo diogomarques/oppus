@@ -44,6 +44,6 @@ public interface INetworkingFacade {
 
 	public void receive(int timeoutMilis);
 	
-	public void scanForAP(int timeoutMilis, int scanPeriod);
+	public void scanForAP(int timeoutMilis);
 
 }

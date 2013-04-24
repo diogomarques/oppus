@@ -7,7 +7,7 @@ public class StateStation extends AState {
 	}
 
 	@Override
-	public void start() {
+	public void start(int timeout) {
 		// TODO Auto-generated method stub
 
 	}

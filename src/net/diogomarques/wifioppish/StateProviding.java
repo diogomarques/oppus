@@ -9,7 +9,7 @@ public class StateProviding extends AState {
 	}
 
 	@Override
-	public void start() {
+	public void start(int timeout) {
 		environment.sendMessage("entered providing state");
 		networking
 				.setOnReceiveListener(new INetworkingFacade.OnReceiveListener() {
@@ -35,7 +35,7 @@ public class StateProviding extends AState {
 						environment.sendMessage("message received: " + msg);
 					}
 				});
-		networking.receive(preferences.getTBeac());
+		networking.receive(timeout);
 
 	}
 

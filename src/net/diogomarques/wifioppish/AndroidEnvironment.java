@@ -51,18 +51,21 @@ public class AndroidEnvironment implements IEnvironment {
 		switch (state) {
 		case Beaconing:
 			next = beaconing;
+			next.start(preferences.getTBeac());
 			break;
 		case Providing:
 			next = providing;
+			next.start(preferences.getTPro());
 			break;
 		case Scanning:
 			next = scanning;
+			next.start(preferences.getTScan());
 			break;
 		case Station:
 			next = station;
+			next.start(preferences.getTCon());
 			break;
-		}
-		next.start();
+		}		
 	}
 
 }

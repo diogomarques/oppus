@@ -9,7 +9,7 @@ public class StateScanning extends AState {
 	}
 
 	@Override
-	public void start() {
+	public void start(int timeout) {
 		environment.sendMessage("entered scanning state");
 		networking
 				.setOnAccessPointScanListener(new INetworkingFacade.OnAccessPointScanListener() {
@@ -27,7 +27,6 @@ public class StateScanning extends AState {
 						environment.gotoState(State.Station);
 					}
 				});
-		networking.scanForAP(preferences.getTScan(),
-				preferences.getScanPeriod());
+		networking.scanForAP(timeout);
 	}
 }

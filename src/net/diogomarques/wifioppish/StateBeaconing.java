@@ -12,7 +12,7 @@ public class StateBeaconing extends AState {
 	}
 
 	@Override
-	public void start() {
+	public void start(int timeout) {
 		environment.sendMessage("entered beaconing state");
 		environment.sendMessage("(re) starting AP");
 		networking.startWifiAP();
@@ -32,6 +32,6 @@ public class StateBeaconing extends AState {
 						environment.gotoState(State.Providing);
 					}
 				});
-		networking.receiveFirst(preferences.getTBeac());
+		networking.receiveFirst(timeout);
 	}
 }
