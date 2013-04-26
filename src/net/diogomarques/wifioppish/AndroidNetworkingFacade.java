@@ -124,7 +124,7 @@ public class AndroidNetworkingFacade implements INetworkingFacade {
 	@Override
 	public void startWifiAP() {
 		saveApConfiguration();
-		setSoftAPEnabled(getWifiConfiguration(), true);
+		setSoftAPEnabled(getWifiSoftAPConfiguration(), true);
 	}
 
 	@Override
@@ -137,7 +137,7 @@ public class AndroidNetworkingFacade implements INetworkingFacade {
 				.getSystemService(Context.WIFI_SERVICE);
 		try {
 			// Disable emergency access point
-			setSoftAPEnabled(getWifiConfiguration(), false);
+			setSoftAPEnabled(getWifiSoftAPConfiguration(), false);
 			// Reset configuration
 			setSoftAPEnabled(fOriginalApConfiguration, false); // hack
 			Method mSetWifiApConfiguration = manager.getClass().getMethod(
@@ -184,7 +184,7 @@ public class AndroidNetworkingFacade implements INetworkingFacade {
 
 	}
 
-	private WifiConfiguration getWifiConfiguration() {
+	private WifiConfiguration getWifiSoftAPConfiguration() {
 		WifiConfiguration wc = new WifiConfiguration();
 		wc.SSID = mPreferences.getWifiSSID();
 		wc.preSharedKey = mPreferences.getWifiPassword();
@@ -378,10 +378,23 @@ public class AndroidNetworkingFacade implements INetworkingFacade {
 					}
 				}
 				if (bestSignal != null) {
-					Log.w(TAG, "Settled for AP with signal  " + bestSignal.level);
-					int netId = manager.addNetwork(getWifiConfiguration());
-					manager.saveConfiguration();
-					manager.enableNetwork(netId, true);
+					Log.w(TAG, "Settled for AP with signal  "
+							+ bestSignal.level);
+					WifiConfiguration configuration = getWifiSoftAPConfiguration();
+					configuration.SSID = "\"" + configuration.SSID + "\"";
+					configuration.preSharedKey = "\""
+							+ configuration.preSharedKey + "\"";
+					int netId = manager.addNetwork(configuration);
+					Log.w(TAG, "addNetwork -> netId = " + netId);
+					if (netId == -1) {
+						throw new IllegalStateException("Add network error.");
+					}
+					boolean disconnect = manager.disconnect();
+					Log.w(TAG, "disconnect -> " + disconnect);
+					boolean enableNetwork = manager.enableNetwork(netId, true);
+					Log.w(TAG, "enableNetwork -> " + enableNetwork);
+					boolean reconnect = manager.reconnect();
+					Log.w(TAG, "reconnect -> " + reconnect);
 					safeUnregisterReceiver(this);
 					connected.set(true);
 					mAccessPointScanListener.onEmergencyAPConnected();
