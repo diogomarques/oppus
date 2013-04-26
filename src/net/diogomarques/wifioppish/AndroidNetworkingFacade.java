@@ -187,15 +187,11 @@ public class AndroidNetworkingFacade implements INetworkingFacade {
 	private WifiConfiguration getWifiConfiguration() {
 		WifiConfiguration wc = new WifiConfiguration();
 		wc.SSID = mPreferences.getWifiSSID();
-		wc.preSharedKey = mPreferences.getWifiSSID();
-		wc.hiddenSSID = true;
-		wc.status = WifiConfiguration.Status.ENABLED;
-		wc.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.TKIP);
-		wc.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.CCMP);
+		wc.preSharedKey = mPreferences.getWifiPassword();
+		wc.allowedGroupCiphers.clear();
 		wc.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.WPA_PSK);
-		wc.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.TKIP);
-		wc.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.CCMP);
-		wc.allowedProtocols.set(WifiConfiguration.Protocol.RSN);
+		wc.allowedPairwiseCiphers.clear();
+		wc.allowedProtocols.clear();
 		return wc;
 	}
 
@@ -372,13 +368,17 @@ public class AndroidNetworkingFacade implements INetworkingFacade {
 				// http://marakana.com/forums/android/examples/40.html
 				ScanResult bestSignal = null;
 				for (ScanResult result : results) {
-					if (result.SSID.equals(mPreferences.getWifiSSID()))
+					if (result.SSID.equals(mPreferences.getWifiSSID())) {
+						Log.w(TAG, "Found " + mPreferences.getWifiSSID()
+								+ " AP, signal " + result.level);
 						if (bestSignal == null
 								|| WifiManager.compareSignalLevel(
 										bestSignal.level, result.level) < 0)
 							bestSignal = result;
+					}
 				}
 				if (bestSignal != null) {
+					Log.w(TAG, "Settled for AP with signal  " + bestSignal.level);
 					int netId = manager.addNetwork(getWifiConfiguration());
 					manager.saveConfiguration();
 					manager.enableNetwork(netId, true);

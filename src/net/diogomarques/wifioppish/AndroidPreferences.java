@@ -30,7 +30,7 @@ public class AndroidPreferences implements IPreferences {
 	@Override
 	public int getTBeac() {
 		// FIXME use recommended t
-		return 10000;
+		return 1000 * 60 * 5;
 	}
 
 	/*
@@ -41,7 +41,7 @@ public class AndroidPreferences implements IPreferences {
 	@Override
 	public int getTPro() {
 		// FIXME use recommended t
-		return 5000;
+		return 1000 * 60 * 5;
 	}
 
 	/*
@@ -103,8 +103,8 @@ public class AndroidPreferences implements IPreferences {
 	 * @see net.diogomarques.wifioppish.IPreferences#getWifiPSK()
 	 */
 	@Override
-	public String getWifiPSK() {
-		return "\"emergency\"";
+	public String getWifiPassword() {
+		return "emergency";
 	}
 
 }

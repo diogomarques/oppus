@@ -73,6 +73,6 @@ public interface IPreferences {
 
 	public String getWifiSSID();
 
-	public String getWifiPSK();
+	public String getWifiPassword();
 
 }
