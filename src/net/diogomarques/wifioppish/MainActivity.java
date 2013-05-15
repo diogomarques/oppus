@@ -2,6 +2,7 @@ package net.diogomarques.wifioppish;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import android.app.Activity;
 import android.content.Context;
@@ -17,17 +18,21 @@ import android.widget.TextView;
 public class MainActivity extends Activity {
 
 	protected static final String MSG_CONSOLE = "msgConsole";
+	// TODO get console line from ui prefs
+	private static final int DEFAULT_CONSOLE_LINES = 20;
 	TextView console;
 	Button btSend, btStart;
 	Context mContext;
 	AndroidPreferences mPreferences;
 	INetworkingFacade mNetworking;
 	Handler mHandler;
+	LinkedBlockingQueue<String> mConsoleBuffer;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+		mConsoleBuffer = new LinkedBlockingQueue<String>(DEFAULT_CONSOLE_LINES);
 		mContext = this;
 		mPreferences = new AndroidPreferences(mContext);
 		mNetworking = new AndroidNetworkingFacade(mContext, mPreferences);
@@ -57,6 +62,21 @@ public class MainActivity extends Activity {
 			}
 		});
 
+	}
+
+	protected String getCurrentBuffer() {
+		StringBuilder builder = new StringBuilder();
+		for (String line : mConsoleBuffer) {
+			builder.append(line + "\n");
+		}
+		return builder.toString();
+	}
+
+	protected void addToBuffer(String line) {
+		if (mConsoleBuffer.remainingCapacity() < 1)
+			mConsoleBuffer.poll();
+		String now = SimpleDateFormat.getTimeInstance().format(new Date());
+		mConsoleBuffer.offer(now + " " + line);
 	}
 
 	protected void processSend() {
@@ -117,10 +137,8 @@ public class MainActivity extends Activity {
 
 			@Override
 			public void run() {
-				String now = SimpleDateFormat.getTimeInstance().format(
-						new Date());
-				console.setText(console.getText().toString() + "\n" + now + " "
-						+ txt);
+				addToBuffer(txt);
+				console.setText(getCurrentBuffer());
 
 			}
 		});

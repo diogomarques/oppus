@@ -12,7 +12,7 @@ public interface IEnvironment {
 
 	public abstract void prepare();
 
-	public abstract IPreferences getPreferences();
+	public abstract IDomainPreferences getPreferences();
 
 	public abstract INetworkingFacade getNetworkingFacade();
 }

@@ -4,7 +4,7 @@ import android.content.Context;
 
 // TODO use Android's preferences instead of hard-coded params & create prefs activity
 // TODO times should not be fixed but instead have variation to prevent locking & collisions
-public class AndroidPreferences implements IPreferences {
+public class AndroidPreferences implements IDomainPreferences {
 
 	private Context mContext;
 

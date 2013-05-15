@@ -2,7 +2,7 @@ package net.diogomarques.wifioppish;
 
 public abstract class AState {
 
-	protected IPreferences preferences;
+	protected IDomainPreferences preferences;
 
 	protected INetworkingFacade networking;
 	

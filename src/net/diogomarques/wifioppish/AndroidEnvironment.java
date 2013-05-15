@@ -7,14 +7,14 @@ public class AndroidEnvironment implements IEnvironment {
 
 	private final Handler mHandler;
 	private final INetworkingFacade networkingFacade;
-	private final IPreferences preferences;
+	private final IDomainPreferences preferences;
 	private StateBeaconing beaconing;
 	private StateProviding providing;
 	private StateScanning scanning;
 	private StateStation station;
 
 	public AndroidEnvironment(Handler consoleHandler,
-			INetworkingFacade networkingFacade, IPreferences preferences) {
+			INetworkingFacade networkingFacade, IDomainPreferences preferences) {
 		this.mHandler = consoleHandler;
 		this.networkingFacade = networkingFacade;
 		this.preferences = preferences;
@@ -26,7 +26,7 @@ public class AndroidEnvironment implements IEnvironment {
 	}
 
 	@Override
-	public IPreferences getPreferences() {
+	public IDomainPreferences getPreferences() {
 		return preferences;
 	}
 
