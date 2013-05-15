@@ -1,5 +1,6 @@
 package net.diogomarques.wifioppish;
 
+import net.diogomarques.wifioppish.IEnvironment.State;
 import android.content.Context;
 
 // TODO use Android's preferences instead of hard-coded params & create prefs activity
@@ -105,6 +106,11 @@ public class AndroidPreferences implements IDomainPreferences {
 	@Override
 	public String getWifiPassword() {
 		return "emergency";
+	}
+
+	@Override
+	public State getStartState() {
+		return IEnvironment.State.Scanning;
 	}
 
 }

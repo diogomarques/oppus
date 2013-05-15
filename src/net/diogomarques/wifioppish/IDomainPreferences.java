@@ -1,5 +1,7 @@
 package net.diogomarques.wifioppish;
 
+import net.diogomarques.wifioppish.IEnvironment.State;
+
 public interface IDomainPreferences {
 
 	/**
@@ -69,10 +71,14 @@ public interface IDomainPreferences {
 	 */
 	public int getScanPeriod();
 
+	// TODo: javadocs and respective inheritance
+	
 	public String getBroadcastAddress();
 
 	public String getWifiSSID();
 
 	public String getWifiPassword();
+
+	public abstract State getStartState();
 
 }
