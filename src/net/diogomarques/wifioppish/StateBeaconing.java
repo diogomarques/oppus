@@ -13,6 +13,7 @@ public class StateBeaconing extends AState {
 
 	@Override
 	public void start(int timeout) {
+		final INetworkingFacade networking = environment.getNetworkingFacade();
 		environment.sendMessage("entered beaconing state");
 		environment.sendMessage("(re) starting AP");
 		networking.startWifiAP();		

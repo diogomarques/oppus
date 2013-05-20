@@ -22,7 +22,7 @@ public class AndroidNetworkingFacade implements INetworkingFacade {
 	 * Dependencies.
 	 */
 	private final Context mContext;
-	private final IDomainPreferences mPreferences;
+	private final IEnvironment mEnvironment;
 	private final SoftAPDelegate mSoftAP;
 	private final WiFi mWiFi;
 	private final UDPDelegate mUdp;
@@ -30,14 +30,14 @@ public class AndroidNetworkingFacade implements INetworkingFacade {
 	public static AndroidNetworkingFacade createInstance(Context context,
 			IEnvironment environment) {
 		return new AndroidNetworkingFacade(context, environment,
-				new SoftAPDelegate(context), new WiFi(context, environment.getPreferences()),
-				new UDPDelegate(context, environment.getPreferences()));
+				new SoftAPDelegate(context), new WiFi(context, environment),
+				new UDPDelegate(context, environment));
 	}
 
 	private AndroidNetworkingFacade(Context context, IEnvironment environment,
 			SoftAPDelegate softAP, WiFi wiFi, UDPDelegate udp) {
 		this.mContext = context;
-		this.mPreferences = environment.getPreferences();
+		this.mEnvironment = environment;
 		this.mSoftAP = softAP;
 		this.mWiFi = wiFi;
 		this.mUdp = udp;
@@ -54,9 +54,10 @@ public class AndroidNetworkingFacade implements INetworkingFacade {
 	}
 
 	public WifiConfiguration getWifiSoftAPConfiguration() {
+		IDomainPreferences preferences = mEnvironment.getPreferences();
 		WifiConfiguration wc = new WifiConfiguration();
-		wc.SSID = mPreferences.getWifiSSID();
-		wc.preSharedKey = mPreferences.getWifiPassword();
+		wc.SSID = preferences.getWifiSSID();
+		wc.preSharedKey = preferences.getWifiPassword();
 		wc.allowedGroupCiphers.clear();
 		wc.allowedKeyManagement.set(KeyMgmt.WPA_PSK);
 		wc.allowedPairwiseCiphers.clear();
@@ -66,7 +67,7 @@ public class AndroidNetworkingFacade implements INetworkingFacade {
 
 	@Override
 	public void send(String msg, OnSendListener listener) {
-		mUdp.send( msg, listener);
+		mUdp.send(msg, listener);
 	}
 
 	@Override
@@ -82,8 +83,7 @@ public class AndroidNetworkingFacade implements INetworkingFacade {
 	@Override
 	public void scanForAP(int timeoutMilis,
 			final OnAccessPointScanListener listener) {
-		mWiFi.scanForAP(timeoutMilis,
-				listener, this);
-		
+		mWiFi.scanForAP(timeoutMilis, listener, this);
+
 	}
 }

@@ -12,6 +12,7 @@ public class StateStation extends AState {
 
 	@Override
 	public void start(int timeout) {
+		final INetworkingFacade networking = environment.getNetworkingFacade();
 		
 		// TODO: adjust period
 		int period = 1000;

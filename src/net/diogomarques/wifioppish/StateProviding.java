@@ -10,6 +10,7 @@ public class StateProviding extends AState {
 
 	@Override
 	public void start(int timeout) {
+		final INetworkingFacade networking = environment.getNetworkingFacade();
 		environment.sendMessage("entered providing state");
 
 		networking.receive(timeout, new INetworkingFacade.OnReceiveListener() {

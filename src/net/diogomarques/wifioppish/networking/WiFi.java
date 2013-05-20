@@ -6,6 +6,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import net.diogomarques.wifioppish.AndroidNetworkingFacade;
 import net.diogomarques.wifioppish.IDomainPreferences;
+import net.diogomarques.wifioppish.IEnvironment;
 import net.diogomarques.wifioppish.INetworkingFacade.OnAccessPointScanListener;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -22,11 +23,11 @@ public class WiFi {
 
 	/* Dependencies */
 	private final Context mContext;
-	private final IDomainPreferences mPreferences;
+	private final IEnvironment mEnvironment;
 
-	public WiFi(Context context, IDomainPreferences preferences) {
+	public WiFi(Context context, IEnvironment environment) {
 		mContext = context;
-		mPreferences = preferences;
+		mEnvironment = environment;
 	}
 
 	/*
@@ -48,6 +49,7 @@ public class WiFi {
 	public void scanForAP(int timeoutMilis,
 			final OnAccessPointScanListener listener,
 			final AndroidNetworkingFacade androidNetworkingFacade) {
+		final IDomainPreferences preferences = mEnvironment.getPreferences();
 
 		// TODO wake & wifi locks may be needed. check.
 		// best case, a lock WifiManager.WIFI_MODE_SCAN_ONLY will suffice
@@ -78,8 +80,8 @@ public class WiFi {
 				// http://marakana.com/forums/android/examples/40.html
 				ScanResult bestSignal = null;
 				for (ScanResult result : results) {
-					if (result.SSID.equals(mPreferences.getWifiSSID())) {
-						Log.w(TAG, "Found " + mPreferences.getWifiSSID()
+					if (result.SSID.equals(preferences.getWifiSSID())) {
+						Log.w(TAG, "Found " + preferences.getWifiSSID()
 								+ " AP, signal " + result.level);
 						if (bestSignal == null
 								|| WifiManager.compareSignalLevel(
@@ -119,7 +121,7 @@ public class WiFi {
 		// "In this case nevertheless, the node will not scan for t_scan seconds (which might be very long) but immediately try to ﬁnd a new AP or becomes one within a few seconds (fast reconnect)."
 		manager.startScan();
 		// every scanPeriod, scan again
-		// TODO: user countdown timer		
+		// TODO: user countdown timer
 		long startTime = new Date().getTime();
 		while (!connected.get()) {
 			long tick = new Date().getTime();
@@ -130,7 +132,7 @@ public class WiFi {
 				break;
 			}
 			while (true) {
-				if (new Date().getTime() > tick + mPreferences.getScanPeriod()) {
+				if (new Date().getTime() > tick + preferences.getScanPeriod()) {
 					manager.startScan();
 					break;
 				}

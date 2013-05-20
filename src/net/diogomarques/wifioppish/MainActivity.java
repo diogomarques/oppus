@@ -5,7 +5,6 @@ import java.util.Date;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import android.app.Activity;
-import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -22,9 +21,6 @@ public class MainActivity extends Activity {
 	private static final int DEFAULT_CONSOLE_LINES = 20;
 	TextView console;
 	Button btSend, btStart;
-	Context mContext;
-	AndroidPreferences mPreferences;
-	INetworkingFacade mNetworking;
 	IEnvironment mEnvironment;
 	Handler mHandler;
 	LinkedBlockingQueue<String> mConsoleBuffer;
@@ -33,15 +29,7 @@ public class MainActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-		mConsoleBuffer = new LinkedBlockingQueue<String>(DEFAULT_CONSOLE_LINES);
-		mContext = this;
-		mPreferences = new AndroidPreferences(mContext);
-		mEnvironment = new AndroidEnvironment(mHandler,
-				mNetworking, mPreferences);
-		mEnvironment.prepare();
-		mNetworking = AndroidNetworkingFacade.createInstance(mContext, mEnvironment);
-		// stop wifi AP that might be left open on abnormal app exit
-		mNetworking.stopWifiAP();
+		mConsoleBuffer = new LinkedBlockingQueue<String>(DEFAULT_CONSOLE_LINES);		
 		console = (TextView) findViewById(R.id.console);
 		btSend = (Button) findViewById(R.id.buttonSend);
 		btStart = (Button) findViewById(R.id.buttonStart);
@@ -67,6 +55,12 @@ public class MainActivity extends Activity {
 				processSend();
 			}
 		});
+		
+		mEnvironment = AndroidEnvironment.createInstance(this, mHandler);
+		
+		// stop wifi AP that might be left open on abnormal app exit
+		mEnvironment.getNetworkingFacade().stopWifiAP();
+
 
 	}
 
@@ -84,10 +78,11 @@ public class MainActivity extends Activity {
 		String now = SimpleDateFormat.getTimeInstance().format(new Date());
 		mConsoleBuffer.offer(now + " " + line);
 	}
-
+	
+	// TODO: remove
 	protected void processSend() {
 
-		final INetworkingFacade networking = mNetworking;		
+		final INetworkingFacade networking = mEnvironment.getNetworkingFacade();		
 		new Thread() {
 			@Override
 			public void run() {

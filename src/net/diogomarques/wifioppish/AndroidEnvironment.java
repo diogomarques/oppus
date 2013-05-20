@@ -1,24 +1,97 @@
 package net.diogomarques.wifioppish;
 
+import android.content.Context;
 import android.os.Handler;
 import android.os.Message;
 
 public class AndroidEnvironment implements IEnvironment {
+	
 
-	private final Handler mHandler;
-	private final INetworkingFacade networkingFacade;
-	private final IDomainPreferences preferences;
+	private Handler mHandler;
+	private INetworkingFacade networkingFacade;
+	private IDomainPreferences preferences;
 	private StateBeaconing beaconing;
 	private StateProviding providing;
 	private StateScanning scanning;
 	private StateStation station;
+	
+	void setHandler(Handler mHandler) {
+		this.mHandler = mHandler;
+	}
 
-	public AndroidEnvironment(Handler consoleHandler,
-			INetworkingFacade networkingFacade, IDomainPreferences preferences) {
-		this.mHandler = consoleHandler;
+	void setNetworkingFacade(INetworkingFacade networkingFacade) {
 		this.networkingFacade = networkingFacade;
+	}
+
+	void setPreferences(IDomainPreferences preferences) {
 		this.preferences = preferences;
 	}
+
+	void setBeaconingState(StateBeaconing beaconing) {
+		this.beaconing = beaconing;
+	}
+
+	void setProvidingState(StateProviding providing) {
+		this.providing = providing;
+	}
+
+	void setScanningState(StateScanning scanning) {
+		this.scanning = scanning;
+	}
+
+	void setStationState(StateStation station) {
+		this.station = station;
+	}
+
+	/**
+	 * Use factory instead.
+	 * 
+	 * @param mHandler
+	 * @param networkingFacade
+	 * @param preferences
+	 * @param beaconing
+	 * @param providing
+	 * @param scanning
+	 * @param station
+	 */
+	public AndroidEnvironment(Handler mHandler,
+			INetworkingFacade networkingFacade, IDomainPreferences preferences,
+			StateBeaconing beaconing, StateProviding providing,
+			StateScanning scanning, StateStation station) {
+		super();
+		this.mHandler = mHandler;
+		this.networkingFacade = networkingFacade;
+		this.preferences = preferences;
+		this.beaconing = beaconing;
+		this.providing = providing;
+		this.scanning = scanning;
+		this.station = station;
+	}
+	
+	private AndroidEnvironment() {
+		
+	}
+	
+	public static IEnvironment createInstance(Context c, Handler handler) {
+		AndroidEnvironment environment = new AndroidEnvironment();
+		// states
+		StateBeaconing beaconing = new StateBeaconing(environment);
+		StateProviding providing = new StateProviding(environment);
+		StateScanning scanning = new StateScanning(environment);
+		StateStation station = new StateStation(environment);
+		INetworkingFacade networkingFacade = AndroidNetworkingFacade.createInstance(c, environment);		
+		IDomainPreferences preferences = new AndroidPreferences(c);		
+		// networking
+		environment.setHandler(handler);
+		environment.setNetworkingFacade(networkingFacade);
+		environment.setPreferences(preferences);
+		environment.setBeaconingState(beaconing);
+		environment.setProvidingState(providing);
+		environment.setScanningState(scanning);
+		environment.setStationState(station);
+		return environment;
+	}
+
 
 	@Override
 	public INetworkingFacade getNetworkingFacade() {
@@ -29,16 +102,7 @@ public class AndroidEnvironment implements IEnvironment {
 	public IDomainPreferences getPreferences() {
 		return preferences;
 	}
-
-	// TODO stuff that should be done in a factory
-	@Override
-	public void prepare() {
-		beaconing = new StateBeaconing(this);
-		providing = new StateProviding(this);
-		scanning = new StateScanning(this);
-		station = new StateStation(this);
-	}
-
+	
 	@Override
 	public void sendMessage(String msg) {
 		mHandler.sendMessage(Message.obtain(mHandler, 0, msg));

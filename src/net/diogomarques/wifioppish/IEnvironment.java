@@ -10,8 +10,6 @@ public interface IEnvironment {
 	
 	public void gotoState(State state);
 
-	public abstract void prepare();
-
 	public abstract IDomainPreferences getPreferences();
 
 	public abstract INetworkingFacade getNetworkingFacade();
