@@ -29,27 +29,11 @@ import android.util.Log;
  * 
  * @author Diogo Marques <diogohomemmarques@gmail.com>
  * 
- *         TODO: too many concerns in one place
  */
 public class AndroidNetworkingFacade implements INetworkingFacade {
 
 	private static final String TAG = AndroidNetworkingFacade.class
 			.getSimpleName();
-
-	/**
-	 * Listener for message sending-related events.
-	 */
-	private OnSendListener mSendListener;
-
-	/**
-	 * Listener for message receiving-related events.
-	 */
-	private OnReceiveListener mReceiveListener;
-
-	/**
-	 * Listener for AP scanning events.
-	 */
-	private OnAccessPointScanListener mAccessPointScanListener;
 
 	/**
 	 * The original softAP configuration, saved to restore after execution
@@ -90,33 +74,6 @@ public class AndroidNetworkingFacade implements INetworkingFacade {
 		this.mPreferences = preferences;
 		mSocket = null;
 		mLock = null;
-	}
-
-	@Override
-	public void clearListeners() {
-		mSendListener = null;
-		mReceiveListener = null;
-		mAccessPointScanListener = null;
-	}
-
-	@Override
-	public OnSendListener getOnSendListener() {
-		return mSendListener;
-	}
-
-	@Override
-	public void setOnSendListener(OnSendListener listener) {
-		mSendListener = listener;
-	}
-
-	@Override
-	public OnReceiveListener getOnReceiveListener() {
-		return mReceiveListener;
-	}
-
-	@Override
-	public void setOnReceiveListener(OnReceiveListener listener) {
-		mReceiveListener = listener;
 	}
 
 	/* SOFT AP STUFF MANAGEMENT */
@@ -221,22 +178,22 @@ public class AndroidNetworkingFacade implements INetworkingFacade {
 	/* Message passing UDP */
 
 	@Override
-	public void send(String msg) {
+	public void send(String msg, OnSendListener listener) {
 		try {
 			DatagramPacket packet = new DatagramPacket(msg.getBytes(),
 					msg.length(), InetAddress.getByName(mPreferences
 							.getBroadcastAddress()), mPreferences.getPort());
 			getBroadcastSocket().send(packet);
-			mSendListener.onMessageSent(msg);
+			listener.onMessageSent(msg);
 		} catch (UnknownHostException e) {
-			mSendListener.onSendError("Unknown host");
+			listener.onSendError("Unknown host");
 		} catch (IOException e) {
-			mSendListener.onSendError("Network unavailable");
+			listener.onSendError("Network unavailable");
 		}
 	}
 
 	@Override
-	public void receiveFirst(int timeoutMilis) {
+	public void receiveFirst(int timeoutMilis, OnReceiveListener listener) {
 		byte[] buffer = new byte[1024];
 		DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
 		try {
@@ -250,18 +207,18 @@ public class AndroidNetworkingFacade implements INetworkingFacade {
 							+ packet.getAddress().getHostAddress() + ":"
 							+ packet.getPort());
 			releaseBroadcastSocket();
-			mReceiveListener.onMessageReceived(new String(buffer));
+			listener.onMessageReceived(new String(buffer));
 		} catch (SocketTimeoutException e) {
 			// t_beac timed out, go to scanning
 			releaseBroadcastSocket();
-			mReceiveListener.onReceiveTimeout(false);
+			listener.onReceiveTimeout(false);
 		} catch (IOException e) {
 			Log.e(TAG, e.getMessage());
 		}
 	}
 
 	@Override
-	public void receive(int timeoutMilis) {
+	public void receive(int timeoutMilis, OnReceiveListener listener) {
 		long now = new Date().getTime();
 		byte[] buffer = new byte[1024];
 		DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
@@ -269,7 +226,7 @@ public class AndroidNetworkingFacade implements INetworkingFacade {
 			while (true) {
 				// force finish, even if new connections are happening
 				if (new Date().getTime() > (now + timeoutMilis)) {
-					mReceiveListener.onReceiveTimeout(true);
+					listener.onReceiveTimeout(true);
 					break;
 				}
 
@@ -283,13 +240,13 @@ public class AndroidNetworkingFacade implements INetworkingFacade {
 								+ packet.getAddress().getHostAddress() + ":"
 								+ packet.getPort());
 				releaseBroadcastSocket();
-				mReceiveListener.onMessageReceived(new String(buffer));
+				listener.onMessageReceived(new String(buffer));
 
 			}
 		} catch (SocketTimeoutException e) {
 			// no connections received
 			releaseBroadcastSocket();
-			mReceiveListener.onReceiveTimeout(false);
+			listener.onReceiveTimeout(false);
 		} catch (IOException e) {
 			Log.e(TAG, e.getMessage());
 		}
@@ -327,18 +284,7 @@ public class AndroidNetworkingFacade implements INetworkingFacade {
 	}
 
 	@Override
-	public OnAccessPointScanListener getOnAccessPointListener() {
-		return mAccessPointScanListener;
-	}
-
-	@Override
-	public void setOnAccessPointScanListener(OnAccessPointScanListener listener) {
-		this.mAccessPointScanListener = listener;
-
-	}
-
-	@Override
-	public void scanForAP(int timeoutMilis) {
+	public void scanForAP(int timeoutMilis, final OnAccessPointScanListener listener) {
 		// TODO wake & wifi locks may be needed. check.
 		// best case, a lock WifiManager.WIFI_MODE_SCAN_ONLY will suffice
 		// worst case, set wifi to never sleep:
@@ -397,7 +343,7 @@ public class AndroidNetworkingFacade implements INetworkingFacade {
 					Log.w(TAG, "reconnect -> " + reconnect);
 					safeUnregisterReceiver(this);
 					connected.set(true);
-					mAccessPointScanListener.onEmergencyAPConnected();
+					listener.onEmergencyAPConnected();
 				}
 			}
 		};
@@ -414,7 +360,7 @@ public class AndroidNetworkingFacade implements INetworkingFacade {
 			if (tick > startTime + timeoutMilis) {
 				Log.w("", "Scan timeout");
 				safeUnregisterReceiver(scanReceiver);
-				mAccessPointScanListener.onScanTimeout();
+				listener.onScanTimeout();
 				break;
 			}
 			while (true) {

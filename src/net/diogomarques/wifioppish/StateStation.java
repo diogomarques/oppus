@@ -33,8 +33,8 @@ public class StateStation extends AState {
 						environment.sendMessage("message successfully sent");	
 					}
 				};
-				networking.setOnSendListener(listener);
-				networking.send("alive");				
+				
+				networking.send("alive", listener);				
 			}
 			
 			@Override

@@ -2,7 +2,6 @@ package net.diogomarques.wifioppish;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Timer;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import android.app.Activity;
@@ -84,25 +83,24 @@ public class MainActivity extends Activity {
 
 	protected void processSend() {
 
-		final INetworkingFacade networking = mNetworking;
-		networking.setOnSendListener(new INetworkingFacade.OnSendListener() {
-
-			@Override
-			public void onSendError(String errorMsg) {
-
-				addTextToConsole("send error: " + errorMsg);
-			}
-
-			@Override
-			public void onMessageSent(String msg) {
-				addTextToConsole("message sent: " + msg);
-
-			}
-		});
+		final INetworkingFacade networking = mNetworking;		
 		new Thread() {
 			@Override
 			public void run() {
-				networking.send("hello");
+				networking.send("hello", new INetworkingFacade.OnSendListener() {
+					
+					@Override
+					public void onSendError(String errorMsg) {
+						// TODO Auto-generated method stub
+						
+					}
+					
+					@Override
+					public void onMessageSent(String msg) {
+						// TODO Auto-generated method stub
+						
+					}
+				});
 			};
 		}.start();
 	}

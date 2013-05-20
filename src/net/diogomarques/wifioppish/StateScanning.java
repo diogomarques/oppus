@@ -10,23 +10,21 @@ public class StateScanning extends AState {
 
 	@Override
 	public void start(int timeout) {
-		environment.sendMessage("entered scanning state");
-		networking
-				.setOnAccessPointScanListener(new INetworkingFacade.OnAccessPointScanListener() {
+		environment.sendMessage("entered scanning state");		
+		networking.scanForAP(timeout, new INetworkingFacade.OnAccessPointScanListener() {
 
-					@Override
-					public void onScanTimeout() {
-						environment.sendMessage("t_scan timeout");
-						environment.gotoState(State.Beaconing);
-						;
-					}
+			@Override
+			public void onScanTimeout() {
+				environment.sendMessage("t_scan timeout");
+				environment.gotoState(State.Beaconing);
+				;
+			}
 
-					@Override
-					public void onEmergencyAPConnected() {
-						environment.sendMessage("connected to AP!");
-						environment.gotoState(State.Station);
-					}
-				});
-		networking.scanForAP(timeout);
+			@Override
+			public void onEmergencyAPConnected() {
+				environment.sendMessage("connected to AP!");
+				environment.gotoState(State.Station);
+			}
+		});
 	}
 }

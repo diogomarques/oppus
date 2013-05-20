@@ -45,8 +45,7 @@ public class AndroidEnvironment implements IEnvironment {
 	}
 
 	@Override
-	public void gotoState(State state) {
-		networkingFacade.clearListeners();
+	public void gotoState(State state) {		
 		AState next = null;
 		switch (state) {
 		case Beaconing:

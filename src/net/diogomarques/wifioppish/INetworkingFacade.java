@@ -9,41 +9,27 @@ public interface INetworkingFacade {
 	}
 
 	public static interface OnReceiveListener {
-		
 		public void onReceiveTimeout(boolean forced);
 
 		public void onMessageReceived(String msg);
 	}
-	
+
 	public static interface OnAccessPointScanListener {
 		public void onScanTimeout();
+
 		public void onEmergencyAPConnected();
 	}
-	
-	public void clearListeners();
-
-	public OnReceiveListener getOnReceiveListener();
-
-	public void setOnReceiveListener(OnReceiveListener listener);
-
-	public OnSendListener getOnSendListener();
-
-	public void setOnSendListener(OnSendListener listener);
-	
-	public OnAccessPointScanListener getOnAccessPointListener();
-	
-	public void setOnAccessPointScanListener(OnAccessPointScanListener listener);
 
 	public void startWifiAP();
 
 	public void stopWifiAP();
 
-	public void send(String string);
+	public void send(String string, OnSendListener listener);
 
-	public void receiveFirst(int timeoutMilis);
+	void receiveFirst(int timeoutMilis, OnReceiveListener listener);
 
-	public void receive(int timeoutMilis);
-	
-	public void scanForAP(int timeoutMilis);
+	void receive(int timeoutMilis, OnReceiveListener listener);
+
+	void scanForAP(int timeoutMilis, OnAccessPointScanListener listener);
 
 }

@@ -11,31 +11,28 @@ public class StateProviding extends AState {
 	@Override
 	public void start(int timeout) {
 		environment.sendMessage("entered providing state");
-		networking
-				.setOnReceiveListener(new INetworkingFacade.OnReceiveListener() {
-					@Override
-					public void onReceiveTimeout(boolean forced) {
-						// t_pro reached
-						if (forced) {
-							environment
-									.sendMessage("t_pro timeout, stopping AP");
-							networking.stopWifiAP();
-							environment.gotoState(State.Scanning);
-						}
-						// no connections
-						else {
-							environment
-									.sendMessage("no connections to provide for");
-							environment.gotoState(State.Beaconing);
-						}
-					}
 
-					@Override
-					public void onMessageReceived(String msg) {
-						environment.sendMessage("message received: " + msg);
-					}
-				});
-		networking.receive(timeout);
+		networking.receive(timeout, new INetworkingFacade.OnReceiveListener() {
+			@Override
+			public void onReceiveTimeout(boolean forced) {
+				// t_pro reached
+				if (forced) {
+					environment.sendMessage("t_pro timeout, stopping AP");
+					networking.stopWifiAP();
+					environment.gotoState(State.Scanning);
+				}
+				// no connections
+				else {
+					environment.sendMessage("no connections to provide for");
+					environment.gotoState(State.Beaconing);
+				}
+			}
+
+			@Override
+			public void onMessageReceived(String msg) {
+				environment.sendMessage("message received: " + msg);
+			}
+		});
 
 	}
 
