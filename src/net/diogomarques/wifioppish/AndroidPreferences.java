@@ -52,7 +52,7 @@ public class AndroidPreferences implements IDomainPreferences {
 	 */
 	@Override
 	public int getTScan() {
-		// FIXME use recommended t
+		// FIXME use recommended t 
 		return 1000 * 30;
 	}
 
@@ -74,7 +74,7 @@ public class AndroidPreferences implements IDomainPreferences {
 	 */
 	@Override
 	public int getScanPeriod() {
-		return 1000;
+		return 1000; 
 	}
 
 	/*

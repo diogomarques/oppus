@@ -15,7 +15,7 @@ public class StateStation extends AState {
 		
 		// TODO: adjust period
 		int period = 1000;
-		CountDownTimer timer = new CountDownTimer(environment.getPreferences().getTCon(), period) {
+		new CountDownTimer(environment.getPreferences().getTCon(), period) {
 			
 			@Override
 			public void onTick(long arg0) {
@@ -24,6 +24,7 @@ public class StateStation extends AState {
 					@Override
 					public void onSendError(String errorMsg) {
 						environment.sendMessage("send error: " + errorMsg);	
+						cancel();
 						environment.gotoState(State.Scanning);
 					}
 					
