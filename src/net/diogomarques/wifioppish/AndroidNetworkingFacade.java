@@ -1,8 +1,6 @@
 package net.diogomarques.wifioppish;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -13,12 +11,16 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import net.diogomarques.wifioppish.networking.SoftAPDelegate;
+import net.diogomarques.wifioppish.networking.UDP;
+import net.diogomarques.wifioppish.networking.WiFi;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiConfiguration;
+import android.net.wifi.WifiConfiguration.KeyMgmt;
 import android.net.wifi.WifiManager;
 import android.net.wifi.WifiManager.MulticastLock;
 import android.util.Log;
@@ -35,21 +37,14 @@ public class AndroidNetworkingFacade implements INetworkingFacade {
 	private static final String TAG = AndroidNetworkingFacade.class
 			.getSimpleName();
 
-	/**
-	 * The original softAP configuration, saved to restore after execution
-	 */
-	private WifiConfiguration fOriginalApConfiguration;
-
-	/**
-	 * The original wi-fi state, saved to restore after execution
-	 */
-	private boolean fOriginalIsWifiEnabled; // true if enabled
-
 	/*
 	 * Dependencies.
 	 */
-	private Context mContext;
-	private IDomainPreferences mPreferences;
+	private final Context mContext;
+	private final IDomainPreferences mPreferences;
+	private final SoftAPDelegate mSoftAP;
+	private final WiFi mWiFi;
+	private final UDP mUdp;
 
 	/**
 	 * Single instance of lock
@@ -61,118 +56,41 @@ public class AndroidNetworkingFacade implements INetworkingFacade {
 	 */
 	private DatagramSocket mSocket;
 
-	/**
-	 * Constructor.
-	 * 
-	 * @param context
-	 *            the caller's context
-	 * @param preferences
-	 *            a preferences repo
-	 */
-	public AndroidNetworkingFacade(Context context, IDomainPreferences preferences) {
-		this.mContext = context;
-		this.mPreferences = preferences;
-		mSocket = null;
-		mLock = null;
+	public static AndroidNetworkingFacade createInstance(Context context,
+			IEnvironment environment) {
+		return new AndroidNetworkingFacade(context, environment,
+				new SoftAPDelegate(context), new WiFi(context),
+				new UDP(context));
 	}
 
-	/* SOFT AP STUFF MANAGEMENT */
+	private AndroidNetworkingFacade(Context context, IEnvironment environment,
+			SoftAPDelegate softAP, WiFi wiFi, UDP udp) {
+		this.mContext = context;
+		this.mPreferences = environment.getPreferences();
+		this.mSoftAP = softAP;
+		this.mWiFi = wiFi;
+		this.mUdp = udp;
+	}
 
 	@Override
 	public void startWifiAP() {
-		saveApConfiguration();
-		setSoftAPEnabled(getWifiSoftAPConfiguration(), true);
+		mSoftAP.startWifiAP(this);
 	}
 
 	@Override
 	public void stopWifiAP() {
-		restoreWifiState();
+		mSoftAP.stopWifiAP(this);
 	}
 
-	private void restoreWifiState() {
-		WifiManager manager = (WifiManager) mContext
-				.getSystemService(Context.WIFI_SERVICE);
-		try {
-			// Disable emergency access point
-			setSoftAPEnabled(getWifiSoftAPConfiguration(), false);
-			// Reset configuration
-			setSoftAPEnabled(fOriginalApConfiguration, false); // hack
-			Method mSetWifiApConfiguration = manager.getClass().getMethod(
-					"setWifiApConfiguration", WifiConfiguration.class);
-			mSetWifiApConfiguration.invoke(manager, fOriginalApConfiguration);
-		} catch (SecurityException e) {
-			e.printStackTrace();
-		} catch (IllegalArgumentException e) {
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
-		} catch (InvocationTargetException e) {
-			e.printStackTrace();
-		} catch (NoSuchMethodException e) {
-			e.printStackTrace();
-		}
-
-		// Re-enable wi-fi if it was originally enabled
-		if (fOriginalIsWifiEnabled)
-			manager.setWifiEnabled(true);
-
-	}
-
-	private void setSoftAPEnabled(WifiConfiguration cfg, boolean enable) {
-		WifiManager manager = (WifiManager) mContext
-				.getSystemService(Context.WIFI_SERVICE);
-		if (enable == true)
-			manager.setWifiEnabled(false); // Stop wi-fi station mode
-		try {
-			Method mSetWifiApEnabled = manager.getClass().getMethod(
-					"setWifiApEnabled", WifiConfiguration.class, boolean.class);
-			mSetWifiApEnabled.invoke(manager, cfg, enable);
-		} catch (SecurityException e) {
-			e.printStackTrace();
-		} catch (NoSuchMethodException e) {
-			e.printStackTrace();
-		} catch (IllegalArgumentException e) {
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
-		} catch (InvocationTargetException e) {
-			e.printStackTrace();
-		}
-
-	}
-
-	private WifiConfiguration getWifiSoftAPConfiguration() {
+	public WifiConfiguration getWifiSoftAPConfiguration() {
 		WifiConfiguration wc = new WifiConfiguration();
 		wc.SSID = mPreferences.getWifiSSID();
 		wc.preSharedKey = mPreferences.getWifiPassword();
 		wc.allowedGroupCiphers.clear();
-		wc.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.WPA_PSK);
+		wc.allowedKeyManagement.set(KeyMgmt.WPA_PSK);
 		wc.allowedPairwiseCiphers.clear();
 		wc.allowedProtocols.clear();
 		return wc;
-	}
-
-	private void saveApConfiguration() {
-		WifiManager manager = (WifiManager) mContext
-				.getSystemService(Context.WIFI_SERVICE);
-		fOriginalIsWifiEnabled = manager.isWifiEnabled();
-		try {
-			Method mGetWifiApConfiguration = manager.getClass().getMethod(
-					"getWifiApConfiguration");
-			// Save this configuration for later
-			fOriginalApConfiguration = (WifiConfiguration) mGetWifiApConfiguration
-					.invoke(manager, (Object[]) null);
-		} catch (SecurityException e) {
-			e.printStackTrace();
-		} catch (NoSuchMethodException e) {
-			e.printStackTrace();
-		} catch (IllegalArgumentException e) {
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
-		} catch (InvocationTargetException e) {
-			e.printStackTrace();
-		}
 	}
 
 	/* Message passing UDP */
@@ -231,7 +149,7 @@ public class AndroidNetworkingFacade implements INetworkingFacade {
 				}
 
 				DatagramSocket socket = getBroadcastSocket();
-				
+
 				// blocks for t_beac
 				socket.setSoTimeout(timeoutMilis);
 				socket.receive(packet);
@@ -284,7 +202,8 @@ public class AndroidNetworkingFacade implements INetworkingFacade {
 	}
 
 	@Override
-	public void scanForAP(int timeoutMilis, final OnAccessPointScanListener listener) {
+	public void scanForAP(int timeoutMilis,
+			final OnAccessPointScanListener listener) {
 		// TODO wake & wifi locks may be needed. check.
 		// best case, a lock WifiManager.WIFI_MODE_SCAN_ONLY will suffice
 		// worst case, set wifi to never sleep:

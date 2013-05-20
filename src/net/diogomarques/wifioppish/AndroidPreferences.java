@@ -2,6 +2,8 @@ package net.diogomarques.wifioppish;
 
 import net.diogomarques.wifioppish.IEnvironment.State;
 import android.content.Context;
+import android.net.wifi.WifiConfiguration;
+import android.net.wifi.WifiConfiguration.KeyMgmt;
 
 // TODO use Android's preferences instead of hard-coded params & create prefs activity
 // TODO times should not be fixed but instead have variation to prevent locking & collisions
@@ -111,6 +113,17 @@ public class AndroidPreferences implements IDomainPreferences {
 	@Override
 	public State getStartState() {
 		return IEnvironment.State.Scanning;
+	}
+	
+	public WifiConfiguration getWifiSoftAPConfiguration() {
+		WifiConfiguration wc = new WifiConfiguration();
+		wc.SSID = getWifiSSID();
+		wc.preSharedKey = getWifiPassword();
+		wc.allowedGroupCiphers.clear();
+		wc.allowedKeyManagement.set(KeyMgmt.WPA_PSK);
+		wc.allowedPairwiseCiphers.clear();
+		wc.allowedProtocols.clear();
+		return wc;
 	}
 
 }

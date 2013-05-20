@@ -30,6 +30,6 @@ public interface INetworkingFacade {
 
 	void receive(int timeoutMilis, OnReceiveListener listener);
 
-	void scanForAP(int timeoutMilis, OnAccessPointScanListener listener);
+	void scanForAP(int timeoutMilis, OnAccessPointScanListener listener);	
 
 }

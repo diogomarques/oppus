@@ -25,6 +25,7 @@ public class MainActivity extends Activity {
 	Context mContext;
 	AndroidPreferences mPreferences;
 	INetworkingFacade mNetworking;
+	IEnvironment mEnvironment;
 	Handler mHandler;
 	LinkedBlockingQueue<String> mConsoleBuffer;
 
@@ -35,7 +36,10 @@ public class MainActivity extends Activity {
 		mConsoleBuffer = new LinkedBlockingQueue<String>(DEFAULT_CONSOLE_LINES);
 		mContext = this;
 		mPreferences = new AndroidPreferences(mContext);
-		mNetworking = new AndroidNetworkingFacade(mContext, mPreferences);
+		mEnvironment = new AndroidEnvironment(mHandler,
+				mNetworking, mPreferences);
+		mEnvironment.prepare();
+		mNetworking = AndroidNetworkingFacade.createInstance(mContext, mEnvironment);
 		// stop wifi AP that might be left open on abnormal app exit
 		mNetworking.stopWifiAP();
 		console = (TextView) findViewById(R.id.console);
@@ -123,11 +127,8 @@ public class MainActivity extends Activity {
 
 			@Override
 			protected Void doInBackground(Void... params) {
-
-				IEnvironment environment = new AndroidEnvironment(mHandler,
-						mNetworking, mPreferences);
-				environment.prepare();
-				environment.gotoState(IEnvironment.State.Scanning);
+				
+				mEnvironment.gotoState(IEnvironment.State.Scanning);
 				return null;
 
 			}
