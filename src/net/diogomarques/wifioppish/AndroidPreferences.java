@@ -31,7 +31,7 @@ public class AndroidPreferences implements IDomainPreferences {
 	@Override
 	public int getTBeac() {
 		// FIXME use recommended t
-		return 1000 * 60 * 5;
+		return 1000 * 30;
 	}
 
 	/*
@@ -42,7 +42,7 @@ public class AndroidPreferences implements IDomainPreferences {
 	@Override
 	public int getTPro() {
 		// FIXME use recommended t
-		return 1000 * 60 * 5;
+		return 1000 * 30;
 	}
 
 	/*
@@ -53,7 +53,7 @@ public class AndroidPreferences implements IDomainPreferences {
 	@Override
 	public int getTScan() {
 		// FIXME use recommended t
-		return 5000;
+		return 1000 * 30;
 	}
 
 	/*
@@ -64,7 +64,7 @@ public class AndroidPreferences implements IDomainPreferences {
 	@Override
 	public int getTCon() {
 		// FIXME use recommended t
-		return 5000;
+		return 1000 * 30;
 	}
 
 	/*

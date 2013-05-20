@@ -2,6 +2,7 @@ package net.diogomarques.wifioppish;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Timer;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import android.app.Activity;
@@ -36,6 +37,8 @@ public class MainActivity extends Activity {
 		mContext = this;
 		mPreferences = new AndroidPreferences(mContext);
 		mNetworking = new AndroidNetworkingFacade(mContext, mPreferences);
+		// stop wifi AP that might be left open on abnormal app exit
+		mNetworking.stopWifiAP();
 		console = (TextView) findViewById(R.id.console);
 		btSend = (Button) findViewById(R.id.buttonSend);
 		btStart = (Button) findViewById(R.id.buttonStart);
@@ -105,6 +108,9 @@ public class MainActivity extends Activity {
 	}
 
 	protected void processStart() {
+
+		
+
 		new AsyncTask<Void, Void, Void>() {
 
 			@Override

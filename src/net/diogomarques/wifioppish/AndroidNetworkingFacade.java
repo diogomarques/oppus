@@ -274,9 +274,9 @@ public class AndroidNetworkingFacade implements INetworkingFacade {
 				}
 
 				DatagramSocket socket = getBroadcastSocket();
-				socket.setSoTimeout(timeoutMilis);
-
+				
 				// blocks for t_beac
+				socket.setSoTimeout(timeoutMilis);
 				socket.receive(packet);
 				Log.w(TAG,
 						"Received packet! " + new String(buffer) + " from "

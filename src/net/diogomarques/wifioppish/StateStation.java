@@ -1,5 +1,9 @@
 package net.diogomarques.wifioppish;
 
+import net.diogomarques.utils.CountDownTimer;
+import net.diogomarques.wifioppish.IEnvironment.State;
+import net.diogomarques.wifioppish.INetworkingFacade.OnSendListener;
+
 public class StateStation extends AState {
 
 	public StateStation(IEnvironment environment) {
@@ -8,8 +12,36 @@ public class StateStation extends AState {
 
 	@Override
 	public void start(int timeout) {
-		// TODO Auto-generated method stub
-
+		
+		// TODO: adjust period
+		int period = 1000;
+		CountDownTimer timer = new CountDownTimer(environment.getPreferences().getTCon(), period) {
+			
+			@Override
+			public void onTick(long arg0) {
+				OnSendListener listener = new OnSendListener() {
+					
+					@Override
+					public void onSendError(String errorMsg) {
+						environment.sendMessage("send error: " + errorMsg);	
+						environment.gotoState(State.Scanning);
+					}
+					
+					@Override
+					public void onMessageSent(String msg) {
+						environment.sendMessage("message successfully sent");	
+					}
+				};
+				networking.setOnSendListener(listener);
+				networking.send("alive");				
+			}
+			
+			@Override
+			public void onFinish() {
+				environment.gotoState(State.Scanning);
+				
+			}
+		}.start();
 	}
 
 }
