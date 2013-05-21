@@ -18,7 +18,7 @@ public class MainActivity extends Activity {
 
 	protected static final String MSG_CONSOLE = "msgConsole";
 	// TODO get console line from ui prefs
-	private static final int DEFAULT_CONSOLE_LINES = 20;
+	private static final int DEFAULT_CONSOLE_LINES = 15;
 	TextView console;
 	Button btSend, btStart;
 	IEnvironment mEnvironment;

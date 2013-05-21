@@ -14,34 +14,9 @@ public class AndroidEnvironment implements IEnvironment {
 	private StateProviding providing;
 	private StateScanning scanning;
 	private StateStation station;
+	private State current;
 	
-	void setHandler(Handler mHandler) {
-		this.mHandler = mHandler;
-	}
-
-	void setNetworkingFacade(INetworkingFacade networkingFacade) {
-		this.networkingFacade = networkingFacade;
-	}
-
-	void setPreferences(IDomainPreferences preferences) {
-		this.preferences = preferences;
-	}
-
-	void setBeaconingState(StateBeaconing beaconing) {
-		this.beaconing = beaconing;
-	}
-
-	void setProvidingState(StateProviding providing) {
-		this.providing = providing;
-	}
-
-	void setScanningState(StateScanning scanning) {
-		this.scanning = scanning;
-	}
-
-	void setStationState(StateStation station) {
-		this.station = station;
-	}
+	
 
 	/**
 	 * Use factory instead.
@@ -72,6 +47,39 @@ public class AndroidEnvironment implements IEnvironment {
 		
 	}
 	
+	@Override
+	public State getCurrentState() {
+		return current;
+	}
+	
+	void setHandler(Handler mHandler) {
+		this.mHandler = mHandler;
+	}
+
+	void setNetworkingFacade(INetworkingFacade networkingFacade) {
+		this.networkingFacade = networkingFacade;
+	}
+
+	void setPreferences(IDomainPreferences preferences) {
+		this.preferences = preferences;
+	}
+
+	void setBeaconingState(StateBeaconing beaconing) {
+		this.beaconing = beaconing;
+	}
+
+	void setProvidingState(StateProviding providing) {
+		this.providing = providing;
+	}
+
+	void setScanningState(StateScanning scanning) {
+		this.scanning = scanning;
+	}
+
+	void setStationState(StateStation station) {
+		this.station = station;
+	}
+	
 	public static IEnvironment createInstance(Context c, Handler handler) {
 		AndroidEnvironment environment = new AndroidEnvironment();
 		// states
@@ -91,6 +99,14 @@ public class AndroidEnvironment implements IEnvironment {
 		environment.setStationState(station);
 		return environment;
 	}
+	
+	public String getSerializedBuffer() {
+		return "stub buffer"; // TODO: stub
+	}
+	
+	public void addToBuffer(String serializedMessages) {
+		
+	}
 
 
 	@Override
@@ -109,8 +125,8 @@ public class AndroidEnvironment implements IEnvironment {
 	}
 
 	@Override
-	public void gotoState(State state) {		
-		// TODO now creates new instances; delete if no effect on bugs
+	public void gotoState(State state) {
+		current = state;
 		AState next = null;
 		switch (state) {
 		case Beaconing:
@@ -131,5 +147,4 @@ public class AndroidEnvironment implements IEnvironment {
 			break;
 		}		
 	}
-
 }

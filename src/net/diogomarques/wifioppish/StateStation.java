@@ -24,7 +24,7 @@ public class StateStation extends AState {
 					
 					@Override
 					public void onSendError(String errorMsg) {
-						environment.sendMessage("send error: " + errorMsg);	
+						environment.sendMessage("send error: " + errorMsg + "[" + environment.getCurrentState().name() + "]");	
 						cancel();
 						environment.gotoState(State.Scanning);
 					}

@@ -21,11 +21,11 @@ import android.util.Log;
 public class UDPDelegate {
 
 	private static final String TAG = UDPDelegate.class.getSimpleName();
-	
+
 	private static int MAX_UDP_DATAGRAM_SIZE = 65536;
-	
+
 	// TODO: move to msg serializer
-	public static String MSG_EOT = String.valueOf(0x0004);	
+	public static String MSG_EOT = String.valueOf(0x0004);
 
 	/**
 	 * Single instance of lock
@@ -56,16 +56,28 @@ public class UDPDelegate {
 			getBroadcastSocket().send(packet);
 			listener.onMessageSent(msg);
 		} catch (UnknownHostException e) {
-			listener.onSendError("Unknown host");
-		} catch (IOException e) {
-			listener.onSendError("Network unavailable");
+			listener.onSendError("Unknown host\n\t" + e.getMessage());
+		} catch (SocketException e) {
+			// Connection to softAP not available
+			Log.w(TAG, e.getMessage(), e);
+			listener.onSendError("lost connection to AP\n\t" + e.getMessage());
+		}
+		catch (IOException e) {
+			// wtf - e comes up null sometimes
+			if (e != null) {
+				Log.e(TAG, e.getMessage(), e);
+				listener.onSendError(e.getMessage());
+				
+			} else { 
+				listener.onSendError("Freak IO exception\n\t" + e.getMessage());
+			}
 		}
 	}
-	
+
 	private String getMessageIn(byte[] buffer) {
 		String msg = new String(buffer);
 		msg = msg.substring(0, msg.indexOf(MSG_EOT));
-		return msg;		
+		return msg;
 	}
 
 	public void receiveFirst(int timeoutMilis, OnReceiveListener listener) {
@@ -77,7 +89,7 @@ public class UDPDelegate {
 
 			// blocks for t_beac
 			socket.receive(packet);
-			String received = getMessageIn(buffer);			
+			String received = getMessageIn(buffer);
 			Log.w(TAG,
 					"Received packet! " + received + " from "
 							+ packet.getAddress().getHostAddress() + ":"
@@ -90,7 +102,7 @@ public class UDPDelegate {
 			listener.onReceiveTimeout(false);
 		} catch (IOException e) {
 			Log.e(TAG, e.getMessage());
-			
+
 		}
 	}
 
@@ -118,7 +130,7 @@ public class UDPDelegate {
 								+ packet.getAddress().getHostAddress() + ":"
 								+ packet.getPort());
 				releaseBroadcastSocket();
-				listener.onMessageReceived(received); 
+				listener.onMessageReceived(received);
 
 			}
 		} catch (SocketTimeoutException e) {

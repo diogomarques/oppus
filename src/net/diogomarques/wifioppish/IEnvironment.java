@@ -1,5 +1,7 @@
 package net.diogomarques.wifioppish;
 
+import net.diogomarques.wifioppish.IEnvironment.State;
+
 public interface IEnvironment {
 	
 	public enum State {
@@ -13,4 +15,6 @@ public interface IEnvironment {
 	public abstract IDomainPreferences getPreferences();
 
 	public abstract INetworkingFacade getNetworkingFacade();
+
+	public State getCurrentState();
 }
