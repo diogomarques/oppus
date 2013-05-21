@@ -110,6 +110,7 @@ public class AndroidEnvironment implements IEnvironment {
 
 	@Override
 	public void gotoState(State state) {		
+		// TODO now creates new instances; delete if no effect on bugs
 		AState next = null;
 		switch (state) {
 		case Beaconing:

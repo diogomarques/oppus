@@ -1,6 +1,8 @@
 package net.diogomarques.wifioppish.networking;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -76,6 +78,11 @@ public class WiFi {
 			@Override
 			public void onReceive(Context context, Intent intent) {
 				List<ScanResult> results = manager.getScanResults();
+				// quick fix: getScanResults sometimes returns null, breaking
+				// the for-each
+				if (results == null) {
+					results = new ArrayList<ScanResult>(0);
+				}
 				// Best signal check:
 				// http://marakana.com/forums/android/examples/40.html
 				ScanResult bestSignal = null;
@@ -88,7 +95,7 @@ public class WiFi {
 										bestSignal.level, result.level) < 0)
 							bestSignal = result;
 					}
-				}
+				} 
 				if (bestSignal != null) {
 					Log.w(TAG, "Settled for AP with signal  "
 							+ bestSignal.level);

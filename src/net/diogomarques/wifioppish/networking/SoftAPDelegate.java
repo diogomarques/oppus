@@ -83,21 +83,20 @@ public class SoftAPDelegate {
 			// Disable emergency access point
 			setSoftAPEnabled(
 					androidNetworkingFacade.getWifiSoftAPConfiguration(), false);
-			// Reset configuration
-			setSoftAPEnabled(fOriginalApConfiguration, false); // hack
-			Method mSetWifiApConfiguration = manager.getClass().getMethod(
-					"setWifiApConfiguration", WifiConfiguration.class);
-			mSetWifiApConfiguration.invoke(manager, fOriginalApConfiguration);
+//			setSoftAPEnabled(fOriginalApConfiguration, false); // hack
+//			Method mSetWifiApConfiguration = manager.getClass().getMethod(
+//					"setWifiApConfiguration", WifiConfiguration.class);
+//			mSetWifiApConfiguration.invoke(manager, fOriginalApConfiguration);
 		} catch (SecurityException e) {
 			Log.e(TAG, e.getMessage(), e);
 		} catch (IllegalArgumentException e) {
 			Log.e(TAG, e.getMessage(), e);
-		} catch (IllegalAccessException e) {
-			Log.e(TAG, e.getMessage(), e);
-		} catch (InvocationTargetException e) {
-			Log.e(TAG, e.getMessage(), e);
-		} catch (NoSuchMethodException e) {
-			Log.e(TAG, e.getMessage(), e);
+//		} catch (IllegalAccessException e) {
+//			Log.e(TAG, e.getMessage(), e);
+//		} catch (InvocationTargetException e) {
+//			Log.e(TAG, e.getMessage(), e);
+//		} catch (NoSuchMethodException e) {
+//			Log.e(TAG, e.getMessage(), e);
 		}
 
 		// Re-enable wi-fi if it was originally enabled

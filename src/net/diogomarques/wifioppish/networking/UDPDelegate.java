@@ -22,7 +22,10 @@ public class UDPDelegate {
 
 	private static final String TAG = UDPDelegate.class.getSimpleName();
 	
-	private static int MAX_UDP_PACKET_SIZE = 65536;
+	private static int MAX_UDP_DATAGRAM_SIZE = 65536;
+	
+	// TODO: move to msg serializer
+	public static String MSG_EOT = String.valueOf(0x0004);	
 
 	/**
 	 * Single instance of lock
@@ -44,6 +47,7 @@ public class UDPDelegate {
 	}
 
 	public void send(String msg, OnSendListener listener) {
+		msg = msg + MSG_EOT;
 		IDomainPreferences preferences = mEnvironment.getPreferences();
 		try {
 			DatagramPacket packet = new DatagramPacket(msg.getBytes(),
@@ -57,9 +61,15 @@ public class UDPDelegate {
 			listener.onSendError("Network unavailable");
 		}
 	}
+	
+	private String getMessageIn(byte[] buffer) {
+		String msg = new String(buffer);
+		msg = msg.substring(0, msg.indexOf(MSG_EOT));
+		return msg;		
+	}
 
 	public void receiveFirst(int timeoutMilis, OnReceiveListener listener) {
-		byte[] buffer = new byte[MAX_UDP_PACKET_SIZE];
+		byte[] buffer = new byte[MAX_UDP_DATAGRAM_SIZE];
 		DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
 		try {
 			DatagramSocket socket = getBroadcastSocket();
@@ -67,7 +77,7 @@ public class UDPDelegate {
 
 			// blocks for t_beac
 			socket.receive(packet);
-			String received = new String(buffer,  "UTF-8");
+			String received = getMessageIn(buffer);			
 			Log.w(TAG,
 					"Received packet! " + received + " from "
 							+ packet.getAddress().getHostAddress() + ":"
@@ -80,12 +90,13 @@ public class UDPDelegate {
 			listener.onReceiveTimeout(false);
 		} catch (IOException e) {
 			Log.e(TAG, e.getMessage());
+			
 		}
 	}
 
 	public void receive(int timeoutMilis, OnReceiveListener listener) {
 		long now = new Date().getTime();
-		byte[] buffer = new byte[MAX_UDP_PACKET_SIZE];
+		byte[] buffer = new byte[MAX_UDP_DATAGRAM_SIZE];
 		DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
 		try {
 			// TODO: user countdowntimer and call receive first
@@ -101,13 +112,13 @@ public class UDPDelegate {
 				// blocks for t_beac
 				socket.setSoTimeout(timeoutMilis);
 				socket.receive(packet);
-				String received = new String(buffer,  "UTF-8");
+				String received = getMessageIn(buffer);
 				Log.w(TAG,
 						"Received packet! " + received + " from "
 								+ packet.getAddress().getHostAddress() + ":"
 								+ packet.getPort());
 				releaseBroadcastSocket();
-				listener.onMessageReceived(received);
+				listener.onMessageReceived(received); 
 
 			}
 		} catch (SocketTimeoutException e) {

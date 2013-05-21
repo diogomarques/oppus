@@ -40,6 +40,7 @@ public class StateStation extends AState {
 			
 			@Override
 			public void onFinish() {
+				environment.sendMessage("t_con finished, exiting station mode");	
 				environment.gotoState(State.Scanning);
 				
 			}
