@@ -12,6 +12,7 @@ public class StateStation extends AState {
 
 	@Override
 	public void start(int timeout) {
+		environment.sendMessage("entered station state");	
 		final INetworkingFacade networking = environment.getNetworkingFacade();
 		
 		// TODO: adjust period
