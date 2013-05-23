@@ -4,32 +4,22 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity" >
 
+    <Button
+        android:id="@+id/buttonStart"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="20dp"
+        android:text="@string/start_sm" /> 
+
     <TextView
         android:id="@+id/console"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true"
-        android:layout_marginLeft="16dp"
-        android:layout_marginTop="17dp"
+        android:layout_below="@+id/buttonStart"
+        android:layout_marginLeft="20dp"
         android:text="" />
-
-    <Button
-        android:id="@+id/buttonSend"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
-        android:layout_alignTop="@+id/console"
-        android:layout_marginRight="16dp"
-        android:text="Send packet" />
-
-    <Button
-        android:id="@+id/buttonStart"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignRight="@+id/buttonSend"
-        android:layout_below="@+id/buttonSend"
-        android:layout_marginTop="21dp"
-        android:text="Start SM" />
 
 </RelativeLayout>

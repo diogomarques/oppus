@@ -23,14 +23,17 @@ import android.widget.TextView;
  * 
  */
 public class MainActivity extends Activity {
-	
+
+	/**
+	 * An handler that prints received messages to the console.
+	 */
 	static class ConsoleHandler extends Handler {
 		final WeakReference<MainActivity> mActivity;
-		
-		public ConsoleHandler(MainActivity act) {
+
+		ConsoleHandler(MainActivity act) {
 			mActivity = new WeakReference<MainActivity>(act);
 		}
-		
+
 		@Override
 		public void handleMessage(Message msg) {
 			String txt = (String) msg.obj;
@@ -38,12 +41,12 @@ public class MainActivity extends Activity {
 				mActivity.get().addTextToConsole(txt);
 		}
 	}
-	
+
 	// TODO choose console lines according to screen size
 	private static final int DEFAULT_CONSOLE_LINES = 15;
-	
+
 	TextView console;
-	Button btSend, btStart;
+	Button btStart;
 	IEnvironment mEnvironment;
 	ConsoleHandler mHandler;
 	LinkedBlockingQueue<String> mConsoleBuffer;
@@ -52,33 +55,24 @@ public class MainActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+		// build state
 		mConsoleBuffer = new LinkedBlockingQueue<String>(DEFAULT_CONSOLE_LINES);
 		mHandler = new ConsoleHandler(this);
-		console = (TextView) findViewById(R.id.console);
-		btSend = (Button) findViewById(R.id.buttonSend);
-		btStart = (Button) findViewById(R.id.buttonStart);		
+		mEnvironment = AndroidEnvironment.createInstance(this, mHandler);
+		// stop wifi AP that might be left open on abnormal app exit
+		mEnvironment.getNetworkingFacade().stopAccessPoint();
+		// setup views
+		console = (TextView) findViewById(R.id.console);		
+		btStart = (Button) findViewById(R.id.buttonStart);
 		btStart.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
 				processStart();
 			}
-		});
-
-		btSend.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				processSend();
-			}
-		});
-
-		mEnvironment = AndroidEnvironment.createInstance(this, mHandler);
-
-		// stop wifi AP that might be left open on abnormal app exit
-		mEnvironment.getNetworkingFacade().stopAccessPoint();
-
+		});		
 	}
 
-	protected String getCurrentBuffer() {
+	String getCurrentBuffer() {
 		StringBuilder builder = new StringBuilder();
 		for (String line : mConsoleBuffer) {
 			builder.append(line + "\n");
@@ -86,37 +80,11 @@ public class MainActivity extends Activity {
 		return builder.toString();
 	}
 
-	protected void addToBuffer(String line) {
+	void addToBufferWithTimestamp(String line) {
 		if (mConsoleBuffer.remainingCapacity() < 1)
 			mConsoleBuffer.poll();
 		String now = SimpleDateFormat.getTimeInstance().format(new Date());
 		mConsoleBuffer.offer(now + " " + line);
-	}
-
-	// TODO: remove
-	protected void processSend() {
-
-		final INetworkingFacade networking = mEnvironment.getNetworkingFacade();
-		new Thread() {
-			@Override
-			public void run() {
-				networking.send("hello",
-						new INetworkingFacade.OnSendListener() {
-
-							@Override
-							public void onSendError(String errorMsg) {
-								// TODO Auto-generated method stub
-
-							}
-
-							@Override
-							public void onMessageSent(String msg) {
-								// TODO Auto-generated method stub
-
-							}
-						});
-			};
-		}.start();
 	}
 
 	protected void processStart() {
@@ -125,7 +93,7 @@ public class MainActivity extends Activity {
 
 			@Override
 			protected void onPostExecute(Void result) {
-				btStart.setEnabled(true);
+				
 			}
 
 			@Override
@@ -150,7 +118,7 @@ public class MainActivity extends Activity {
 
 			@Override
 			public void run() {
-				addToBuffer(txt);
+				addToBufferWithTimestamp(txt);
 				console.setText(getCurrentBuffer());
 
 			}
