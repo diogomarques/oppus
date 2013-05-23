@@ -14,6 +14,7 @@ import net.diogomarques.wifioppish.IEnvironment;
 import net.diogomarques.wifioppish.INetworkingFacade.OnReceiveListener;
 import net.diogomarques.wifioppish.INetworkingFacade.OnSendListener;
 import android.content.Context;
+import android.net.DhcpInfo;
 import android.net.wifi.WifiManager;
 import android.net.wifi.WifiManager.MulticastLock;
 import android.util.Log;
@@ -46,13 +47,30 @@ public class UDPDelegate {
 		mEnvironment = environment;
 	}
 
+	private InetAddress getBroadcastAddress() throws UnknownHostException {
+		WifiManager mWifi = (WifiManager) mContext
+				.getSystemService(Context.WIFI_SERVICE);
+		// from
+		// http://code.google.com/p/boxeeremote
+		DhcpInfo dhcp = mWifi.getDhcpInfo();
+	    if (dhcp == null) {
+	      Log.d(TAG, "Could not get dhcp info");
+	      return null;
+	    }
+
+	    int broadcast = (dhcp.ipAddress & dhcp.netmask) | ~dhcp.netmask;
+	    byte[] quads = new byte[4];
+	    for (int k = 0; k < 4; k++)
+	      quads[k] = (byte) ((broadcast >> k * 8) & 0xFF);
+	    return InetAddress.getByAddress(quads);
+	}
+
 	public void send(String msg, OnSendListener listener) {
 		msg = msg + MSG_EOT;
 		IDomainPreferences preferences = mEnvironment.getPreferences();
 		try {
 			DatagramPacket packet = new DatagramPacket(msg.getBytes(),
-					msg.length(), InetAddress.getByName(preferences
-							.getBroadcastAddress()), preferences.getPort());
+					msg.length(), getBroadcastAddress(), preferences.getPort());
 			getBroadcastSocket().send(packet);
 			listener.onMessageSent(msg);
 		} catch (UnknownHostException e) {
@@ -61,14 +79,13 @@ public class UDPDelegate {
 			// Connection to softAP not available
 			Log.w(TAG, e.getMessage(), e);
 			listener.onSendError("lost connection to AP\n\t" + e.getMessage());
-		}
-		catch (IOException e) {
+		} catch (IOException e) {
 			// wtf - e comes up null sometimes
 			if (e != null) {
 				Log.e(TAG, e.getMessage(), e);
 				listener.onSendError(e.getMessage());
-				
-			} else { 
+
+			} else {
 				listener.onSendError("Freak IO exception\n\t" + e.getMessage());
 			}
 		}
