@@ -4,122 +4,91 @@ import java.util.Random;
 
 import net.diogomarques.wifioppish.IEnvironment.State;
 import android.content.Context;
-import android.net.wifi.WifiConfiguration;
-import android.net.wifi.WifiConfiguration.KeyMgmt;
 
-// TODO use Android's preferences instead of hard-coded params & create prefs activity
+/**
+ * Android-specific domain parameters.
+ * 
+ * TODO: use Android's shared preferences instead of hard-coded params & create
+ * prefs activity. use recommended params in trifunovic et al. as default.
+ * 
+ * @author Diogo Marques <diogohomemmarques@gmail.com>
+ * 
+ */
 public class AndroidPreferences implements IDomainPreferences {
 
 	private Context mContext;
 
-	public AndroidPreferences(Context context) {
-		mContext = context;
+	/**
+	 * Constructor.
+	 * 
+	 * @param ctx
+	 *            the current context.
+	 */
+	public AndroidPreferences(Context ctx) {
+		mContext = ctx;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see net.diogomarques.wifioppish.IPreferences#getPort()
-	 */
+	protected Context getContext() {
+		return mContext;
+	}
+
 	@Override
 	public int getPort() {
 		return 33333;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see net.diogomarques.wifioppish.IPreferences#getTBeac()
-	 */
 	@Override
 	public int getTBeac() {
-		// FIXME use recommended t
-		int t_beac =  1000 * 30;
-		return getBoundedRandom(t_beac, 0.5);
+		int t_beac = 1000 * 30;
+		return getRandomTime(t_beac);		
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see net.diogomarques.wifioppish.IPreferences#getTPro()
-	 */
 	@Override
 	public int getTPro() {
-		// FIXME use recommended t
-		int t_pro =  1000 * 30;
-		return getBoundedRandom(t_pro, 0.5);
+		int t_pro = 1000 * 30;
+		return getRandomTime(t_pro);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see net.diogomarques.wifioppish.IPreferences#getTScan()
-	 */
 	@Override
 	public int getTScan() {
-		// FIXME use recommended / prefs
 		int t_scan = 1000 * 30;
-		return getBoundedRandom(t_scan, 0.5);
+		return getRandomTime(t_scan);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see net.diogomarques.wifioppish.IPreferences#getTCon()
-	 */
 	@Override
 	public int getTCon() {
-		// FIXME use recommended t
-		int t_con =  1000 * 30;
-		return getBoundedRandom(t_con, 0.5);
-	}
-	
-	private int getBoundedRandom(int center, double deltaPercent) {
-		if (center < 0 || deltaPercent > 1.0 || deltaPercent < 0.0)
-			throw new IllegalArgumentException(
-					"center < 0 || delta > 1.0 || delta < 0.0");
-		int min = (int) (center * (1 - deltaPercent));
-		int result = (int) (min + (center - min) * 2
-				* new Random().nextDouble());
-		return result;
+		int t_con = 1000 * 30;
+		return getRandomTime(t_con);
 	}
 
-	/*
-	 * (non-Javadoc)
+	/**
+	 * Return a random uniform value between the given minimum and a maximum set
+	 * at 3 the times the minimum.
+	 * <p>
+	 * <blockquote>"The respective maximum times are always 3 times the min
+	 * times." (p. 39)<footer>Trifunovic et al, 2011, <a
+	 * href="http://202.194.20.8/proc/MOBICOM2011/chants/p37.pdf"
+	 * >PDF</a></footer></blockquote>
 	 * 
-	 * @see net.diogomarques.wifioppish.IPreferences#scanPeriod()
+	 * @param minTime
+	 *            the minimum time
+	 * @return a randomly distributed value between minTime and 3 * minTime
 	 */
+	protected int getRandomTime(int minTime) {
+		int dif = 3 * minTime - minTime;
+		return (int) (new Random().nextDouble() * dif + minTime);
+	}
+
 	@Override
 	public int getScanPeriod() {
 		return 1000;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see net.diogomarques.wifioppish.IPreferences#getBroadcastAddress()
-	 */
-	@Override
-	public String getBroadcastAddress() {
-		// TODO get from dhcp info
-		return "192.168.43.255";
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see net.diogomarques.wifioppish.IPreferences#getWifiSSID()
-	 */
 	@Override
 	public String getWifiSSID() {
 		return "emergencyAP";
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see net.diogomarques.wifioppish.IPreferences#getWifiPSK()
-	 */
 	@Override
 	public String getWifiPassword() {
 		return "emergency";
@@ -129,16 +98,4 @@ public class AndroidPreferences implements IDomainPreferences {
 	public State getStartState() {
 		return IEnvironment.State.Scanning;
 	}
-
-	public WifiConfiguration getWifiSoftAPConfiguration() {
-		WifiConfiguration wc = new WifiConfiguration();
-		wc.SSID = getWifiSSID();
-		wc.preSharedKey = getWifiPassword();
-		wc.allowedGroupCiphers.clear();
-		wc.allowedKeyManagement.set(KeyMgmt.WPA_PSK);
-		wc.allowedPairwiseCiphers.clear();
-		wc.allowedProtocols.clear();
-		return wc;
-	}
-
 }
