@@ -2,6 +2,11 @@ package net.diogomarques.wifioppish;
 
 import net.diogomarques.wifioppish.IEnvironment.State;
 
+/**
+ * Android implementation of state {@link IEnvironment.State#Scanning}
+ * 
+ * @author Diogo Marques <diogohomemmarques@gmail.com>
+ */
 public class StateScanning extends AState {
 
 	public StateScanning(IEnvironment environment) {
@@ -11,19 +16,19 @@ public class StateScanning extends AState {
 	@Override
 	public void start(int timeout) {
 		final INetworkingFacade networking = environment.getNetworkingFacade();
-		environment.sendMessage("entered scanning state");		
+		environment.deliverMessage("entered scanning state");		
 		networking.scanForAP(timeout, new INetworkingFacade.OnAccessPointScanListener() {
 
 			@Override
 			public void onScanTimeout() {
-				environment.sendMessage("t_scan timeout");
+				environment.deliverMessage("t_scan timeout");
 				environment.gotoState(State.Beaconing);
 				;
 			}
 
 			@Override
-			public void onEmergencyAPConnected() {
-				environment.sendMessage("connected to AP!");
+			public void onAPConnection() {
+				environment.deliverMessage("connected to AP!");
 				environment.gotoState(State.Station);
 			}
 		});

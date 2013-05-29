@@ -2,8 +2,10 @@ package net.diogomarques.wifioppish;
 
 import net.diogomarques.wifioppish.IEnvironment.State;
 
-/* NOTE: in this implementation, beaconing lasts t_beac when it first starts and also when StateProviding finishes due to disconnection.
+/**
+ * Android implementation of state {@link IEnvironment.State#Beaconing}
  * 
+ * @author Diogo Marques <diogohomemmarques@gmail.com>
  */
 public class StateBeaconing extends AState {
 
@@ -14,23 +16,25 @@ public class StateBeaconing extends AState {
 	@Override
 	public void start(int timeout) {
 		final INetworkingFacade networking = environment.getNetworkingFacade();
-		environment.sendMessage("entered beaconing state");
-		environment.sendMessage("(re) starting AP");
-		networking.startWifiAP();		
-		networking.receiveFirst(timeout, new INetworkingFacade.OnReceiveListener() {
-			@Override
-			public void onReceiveTimeout(boolean forced) {
-				environment.sendMessage("t_beac timeout, stopping AP");
-				// stop ap and go to scanning
-				networking.stopWifiAP();
-				environment.gotoState(State.Scanning);
-			}
+		environment.deliverMessage("entered beaconing state");
+		environment.deliverMessage("(re) starting AP");
+		networking.startAcessPoint();
+		networking.receiveFirst(timeout,
+				new INetworkingFacade.OnReceiveListener() {
+					@Override
+					public void onReceiveTimeout(boolean forced) {
+						environment
+								.deliverMessage("t_beac timeout, stopping AP");
+						// stop ap and go to scanning
+						networking.stopAccessPoint();
+						environment.gotoState(State.Scanning);
+					}
 
-			@Override
-			public void onMessageReceived(String msg) {
-				environment.sendMessage("message received: " + msg);
-				environment.gotoState(State.Providing);
-			}
-		});
+					@Override
+					public void onMessageReceived(String msg) {
+						environment.deliverMessage("message received: " + msg);
+						environment.gotoState(State.Providing);
+					}
+				});
 	}
 }

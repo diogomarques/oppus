@@ -2,14 +2,14 @@ package net.diogomarques.wifioppish;
 
 import net.diogomarques.wifioppish.IEnvironment.State;
 
+/**
+ * Interface that defines access domain-specific parameters (as opposed to users
+ * preferences).
+ * 
+ * @author Diogo Marques <diogohomemmarques@gmail.com>
+ * 
+ */
 public interface IDomainPreferences {
-
-	/**
-	 * Get port to use in broadcasts.
-	 * 
-	 * @return a port number
-	 */
-	public int getPort();
 
 	/**
 	 * Get t_beac.
@@ -51,7 +51,7 @@ public interface IDomainPreferences {
 	 * Get t_con.
 	 * 
 	 * <blockquote>
-	 * "t_scan is the time a mobile device scans for APs".<footer>Trifunovic et
+	 * "t_con the time a STA stays connected with a specific AP".<footer>Trifunovic et
 	 * al, 2011, <a href="http://202.194.20.8/proc/MOBICOM2011/chants/p37.pdf"
 	 * >PDF</a></footer></blockquote>
 	 * 
@@ -71,14 +71,32 @@ public interface IDomainPreferences {
 	 */
 	public int getScanPeriod();
 
-	// TODo: javadocs and respective inheritance
-	
-	public String getBroadcastAddress();
+	/**
+	 * Get port to use in broadcasts.
+	 * 
+	 * @return a port number.
+	 */
+	public int getPort();
 
+	/**
+	 * Get the access point's SSID.
+	 * 
+	 * @return the SSID.
+	 */
 	public String getWifiSSID();
 
+	/**
+	 * Get the access point's password.
+	 * 
+	 * @return the password.
+	 */
 	public String getWifiPassword();
 
+	/**
+	 * Get the state in which the machine should start.
+	 * 
+	 * @return the start state.
+	 */
 	public abstract State getStartState();
 
 }

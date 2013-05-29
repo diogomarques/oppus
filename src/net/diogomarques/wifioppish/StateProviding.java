@@ -2,6 +2,11 @@ package net.diogomarques.wifioppish;
 
 import net.diogomarques.wifioppish.IEnvironment.State;
 
+/**
+ * Android implementation of state {@link IEnvironment.State#Providing}
+ * 
+ * @author Diogo Marques <diogohomemmarques@gmail.com>
+ */
 public class StateProviding extends AState {
 
 	public StateProviding(IEnvironment environment) {
@@ -11,27 +16,27 @@ public class StateProviding extends AState {
 	@Override
 	public void start(int timeout) {
 		final INetworkingFacade networking = environment.getNetworkingFacade();
-		environment.sendMessage("entered providing state");
+		environment.deliverMessage("entered providing state");
 
 		networking.receive(timeout, new INetworkingFacade.OnReceiveListener() {
 			@Override
 			public void onReceiveTimeout(boolean forced) {
 				// t_pro reached
 				if (forced) {
-					environment.sendMessage("t_pro timeout, stopping AP");
-					networking.stopWifiAP();
+					environment.deliverMessage("t_pro timeout, stopping AP");
+					networking.stopAccessPoint();
 					environment.gotoState(State.Scanning);
 				}
 				// no connections
 				else {
-					environment.sendMessage("no connections to provide for");
+					environment.deliverMessage("no connections to provide for");
 					environment.gotoState(State.Beaconing);
 				}
 			}
 
 			@Override
 			public void onMessageReceived(String msg) {
-				environment.sendMessage("message received: " + msg);
+				environment.deliverMessage("message received: " + msg);
 			}
 		});
 

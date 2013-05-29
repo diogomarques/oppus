@@ -4,18 +4,28 @@ import java.util.Random;
 
 import net.diogomarques.wifioppish.IEnvironment.State;
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 
 /**
  * Android-specific domain parameters.
  * 
- * TODO: use Android's shared preferences instead of hard-coded params & create
- * prefs activity. use recommended params in trifunovic et al. as default.
+ * TODO: use recommended params in trifunovic et al. as default.
  * 
  * @author Diogo Marques <diogohomemmarques@gmail.com>
  * 
  */
 public class AndroidPreferences implements IDomainPreferences {
+	
+	// FIXME switch before deployment
+	public static final boolean DEBUG = false;
+	
+	/*
+	 * Universal timeout parameter for use in debugging.
+	 */
+	int debugMinTimeMilis = 1000 * 15;
 
+	// Dependencies
 	private Context mContext;
 
 	/**
@@ -38,50 +48,53 @@ public class AndroidPreferences implements IDomainPreferences {
 	}
 
 	@Override
-	public int getTBeac() {
-		int t_beac = 1000 * 30;
-		return getRandomTime(t_beac);		
+	public int getTBeac() {		
+		return getRandomTimeFromKey(R.string.key_t_beac);
 	}
 
 	@Override
 	public int getTPro() {
-		int t_pro = 1000 * 30;
-		return getRandomTime(t_pro);
+		return getRandomTimeFromKey(R.string.key_t_pro);
 	}
 
 	@Override
 	public int getTScan() {
-		int t_scan = 1000 * 30;
-		return getRandomTime(t_scan);
+		return getRandomTimeFromKey(R.string.key_t_scan);
 	}
 
 	@Override
 	public int getTCon() {
-		int t_con = 1000 * 30;
-		return getRandomTime(t_con);
+		return getRandomTimeFromKey(R.string.key_t_con);
 	}
 
 	/**
-	 * Return a random uniform value between the given minimum and a maximum set
-	 * at 3 the times the minimum.
+	 * Returns a random uniform value between a minimum (set in the default
+	 * {@link SharedPreferences} with key <i>resId</i>) and a maximum (set at 3
+	 * the times the minimum).
 	 * <p>
 	 * <blockquote>"The respective maximum times are always 3 times the min
 	 * times." (p. 39)<footer>Trifunovic et al, 2011, <a
 	 * href="http://202.194.20.8/proc/MOBICOM2011/chants/p37.pdf"
 	 * >PDF</a></footer></blockquote>
 	 * 
-	 * @param minTime
-	 *            the minimum time
-	 * @return a randomly distributed value between minTime and 3 * minTime
+	 * @param resId
+	 *            the resource identifier for they key in {@link SharedPreferences}
+	 * @return a randomly distributed value between
 	 */
-	protected int getRandomTime(int minTime) {
+	protected int getRandomTimeFromKey(int resId) {
+		if (DEBUG)
+			return debugMinTimeMilis;
+		SharedPreferences prefs = PreferenceManager
+				.getDefaultSharedPreferences(mContext);
+		String key = mContext.getString(resId);
+		int minTime = Integer.parseInt(prefs.getString(key, null));
 		int dif = 3 * minTime - minTime;
 		return (int) (new Random().nextDouble() * dif + minTime);
 	}
 
 	@Override
 	public int getScanPeriod() {
-		return 1000;
+		return 5000;
 	}
 
 	@Override

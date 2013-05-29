@@ -19,15 +19,15 @@ import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiManager;
 import android.util.Log;
 
-public class WiFi {
+public class WiFiDelegate {
 
-	private static final String TAG = WiFi.class.getSimpleName();
+	private static final String TAG = WiFiDelegate.class.getSimpleName();
 
 	/* Dependencies */
 	private final Context mContext;
 	private final IEnvironment mEnvironment;
 
-	public WiFi(Context context, IEnvironment environment) {
+	public WiFiDelegate(Context context, IEnvironment environment) {
 		mContext = context;
 		mEnvironment = environment;
 	}
@@ -117,7 +117,7 @@ public class WiFi {
 					Log.w(TAG, "reconnect -> " + reconnect);
 					safeUnregisterReceiver(this);
 					connected.set(true);
-					listener.onEmergencyAPConnected();
+					listener.onAPConnection();
 				}
 			}
 		};

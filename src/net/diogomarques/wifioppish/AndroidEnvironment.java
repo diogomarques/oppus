@@ -4,22 +4,32 @@ import android.content.Context;
 import android.os.Handler;
 import android.os.Message;
 
+/**
+ * An Android-specific implementation of the state machine environment. To
+ * create an instance, use {@link #createInstance(Context, Handler)}.
+ * <p>
+ * Since the state machine will typically run outside the UI thread, an {@link Handler}
+ * is used to forward status messages obtained through
+ * {@link #deliverMessage(String)};
+ * 
+ * @author Diogo Marques <diogohomemmarques@gmail.com>
+ * 
+ */
 public class AndroidEnvironment implements IEnvironment {
-	
 
+	/* Dependencies */
 	private Handler mHandler;
-	private INetworkingFacade networkingFacade;
-	private IDomainPreferences preferences;
-	private StateBeaconing beaconing;
-	private StateProviding providing;
-	private StateScanning scanning;
-	private StateStation station;
-	private State current;
-	
-	
+	private INetworkingFacade mNetworkingFacade;
+	private IDomainPreferences mPreferences;
+	private StateBeaconing mBeaconing;
+	private StateProviding mProviding;
+	private StateScanning mScanning;
+	private StateStation mStation;
+	private State mCurrentState;
 
 	/**
-	 * Use factory instead.
+	 * Constructor with all dependencies. Use
+	 * {@link #createInstance(Context, Handler)} instead.
 	 * 
 	 * @param mHandler
 	 * @param networkingFacade
@@ -29,122 +39,97 @@ public class AndroidEnvironment implements IEnvironment {
 	 * @param scanning
 	 * @param station
 	 */
-	public AndroidEnvironment(Handler mHandler,
+	private AndroidEnvironment(Handler mHandler,
 			INetworkingFacade networkingFacade, IDomainPreferences preferences,
 			StateBeaconing beaconing, StateProviding providing,
 			StateScanning scanning, StateStation station) {
 		super();
 		this.mHandler = mHandler;
-		this.networkingFacade = networkingFacade;
-		this.preferences = preferences;
-		this.beaconing = beaconing;
-		this.providing = providing;
-		this.scanning = scanning;
-		this.station = station;
+		this.mNetworkingFacade = networkingFacade;
+		this.mPreferences = preferences;
+		this.mBeaconing = beaconing;
+		this.mProviding = providing;
+		this.mScanning = scanning;
+		this.mStation = station;
 	}
-	
+
+	/**
+	 * Convenience constructor for {@link #createInstance(Context, Handler)}.
+	 */
 	private AndroidEnvironment() {
-		
-	}
-	
-	@Override
-	public State getCurrentState() {
-		return current;
-	}
-	
-	void setHandler(Handler mHandler) {
-		this.mHandler = mHandler;
 	}
 
-	void setNetworkingFacade(INetworkingFacade networkingFacade) {
-		this.networkingFacade = networkingFacade;
-	}
-
-	void setPreferences(IDomainPreferences preferences) {
-		this.preferences = preferences;
-	}
-
-	void setBeaconingState(StateBeaconing beaconing) {
-		this.beaconing = beaconing;
-	}
-
-	void setProvidingState(StateProviding providing) {
-		this.providing = providing;
-	}
-
-	void setScanningState(StateScanning scanning) {
-		this.scanning = scanning;
-	}
-
-	void setStationState(StateStation station) {
-		this.station = station;
-	}
-	
-	public static IEnvironment createInstance(Context c, Handler handler) {
+	/**
+	 * Static factory that creates instances of state machine environments.
+	 * 
+	 * @param c
+	 *            the context
+	 * @param h
+	 *            handler to send messages to the UI
+	 * @return a new instance with all dependencies set
+	 */
+	public static IEnvironment createInstance(Context c, Handler h) {
 		AndroidEnvironment environment = new AndroidEnvironment();
 		// states
 		StateBeaconing beaconing = new StateBeaconing(environment);
 		StateProviding providing = new StateProviding(environment);
 		StateScanning scanning = new StateScanning(environment);
 		StateStation station = new StateStation(environment);
-		INetworkingFacade networkingFacade = AndroidNetworkingFacade.createInstance(c, environment);		
-		IDomainPreferences preferences = new AndroidPreferences(c);		
+		INetworkingFacade networkingFacade = AndroidNetworkingFacade
+				.createInstance(c, environment);
+		IDomainPreferences preferences = new AndroidPreferences(c);
 		// networking
-		environment.setHandler(handler);
-		environment.setNetworkingFacade(networkingFacade);
-		environment.setPreferences(preferences);
-		environment.setBeaconingState(beaconing);
-		environment.setProvidingState(providing);
-		environment.setScanningState(scanning);
-		environment.setStationState(station);
+		environment.mHandler = h;
+		environment.mNetworkingFacade = networkingFacade;
+		environment.mPreferences = preferences;
+		environment.mBeaconing = beaconing;
+		environment.mProviding = providing;
+		environment.mScanning = scanning;
+		environment.mStation = station;
 		return environment;
 	}
-	
-	public String getSerializedBuffer() {
-		return "stub buffer"; // TODO: stub
-	}
-	
-	public void addToBuffer(String serializedMessages) {
-		
-	}
 
+	@Override
+	public State getCurrentState() {
+		return mCurrentState;
+	}
 
 	@Override
 	public INetworkingFacade getNetworkingFacade() {
-		return networkingFacade;
+		return mNetworkingFacade;
 	}
 
 	@Override
 	public IDomainPreferences getPreferences() {
-		return preferences;
+		return mPreferences;
 	}
-	
+
 	@Override
-	public void sendMessage(String msg) {
+	public void deliverMessage(String msg) {
 		mHandler.sendMessage(Message.obtain(mHandler, 0, msg));
 	}
 
 	@Override
 	public void gotoState(State state) {
-		current = state;
+		mCurrentState = state;
 		AState next = null;
 		switch (state) {
 		case Beaconing:
-			next = beaconing;
-			next.start(preferences.getTBeac());
+			next = mBeaconing;
+			next.start(mPreferences.getTBeac());
 			break;
 		case Providing:
-			next = providing;
-			next.start(preferences.getTPro());
+			next = mProviding;
+			next.start(mPreferences.getTPro());
 			break;
 		case Scanning:
-			next = scanning;
-			next.start(preferences.getTScan());
+			next = mScanning;
+			next.start(mPreferences.getTScan());
 			break;
 		case Station:
-			next = station;
-			next.start(preferences.getTCon());
+			next = mStation;
+			next.start(mPreferences.getTCon());
 			break;
-		}		
+		}
 	}
 }

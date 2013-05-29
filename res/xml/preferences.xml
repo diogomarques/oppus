@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <PreferenceCategory android:title="Domain preferences" >
+        <EditTextPreference
+            android:defaultValue="@string/value_t_beac"
+            android:dialogMessage="@string/t_beac_title"
+            android:key="@string/key_t_beac"
+            android:title="t_beac" />
+        <EditTextPreference
+            android:defaultValue="@string/value_t_pro"
+            android:dialogMessage="@string/t_pro_title"
+            android:key="@string/key_t_pro"
+            android:title="t_pro" />
+        <EditTextPreference
+            android:defaultValue="@string/value_t_scan"
+            android:dialogMessage="@string/t_scan_title"
+            android:key="@string/key_t_scan"
+            android:title="t_scan" />
+        <EditTextPreference
+            android:defaultValue="@string/value_t_con"
+            android:dialogMessage="@string/t_con_title"
+            android:key="@string/key_t_con"
+            android:title="t_con" />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="UI Preferences" >
+    </PreferenceCategory>
+
+</PreferenceScreen>

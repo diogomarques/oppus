@@ -6,11 +6,14 @@ import java.util.Date;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.preference.PreferenceManager;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -55,6 +58,12 @@ public class MainActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+		// reset prefs to default
+		if (AndroidPreferences.DEBUG)
+			PreferenceManager.getDefaultSharedPreferences(this).edit().clear()
+					.commit();
+		// load default preferences
+		PreferenceManager.setDefaultValues(this, R.xml.preferences, true);
 		// build state
 		mConsoleBuffer = new LinkedBlockingQueue<String>(DEFAULT_CONSOLE_LINES);
 		mHandler = new ConsoleHandler(this);
@@ -62,14 +71,14 @@ public class MainActivity extends Activity {
 		// stop wifi AP that might be left open on abnormal app exit
 		mEnvironment.getNetworkingFacade().stopAccessPoint();
 		// setup views
-		console = (TextView) findViewById(R.id.console);		
+		console = (TextView) findViewById(R.id.console);
 		btStart = (Button) findViewById(R.id.buttonStart);
 		btStart.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
 				processStart();
 			}
-		});		
+		});
 	}
 
 	String getCurrentBuffer() {
@@ -88,12 +97,10 @@ public class MainActivity extends Activity {
 	}
 
 	protected void processStart() {
-
 		new AsyncTask<Void, Void, Void>() {
 
 			@Override
 			protected void onPostExecute(Void result) {
-				
 			}
 
 			@Override
@@ -103,33 +110,41 @@ public class MainActivity extends Activity {
 
 			@Override
 			protected Void doInBackground(Void... params) {
-
-				mEnvironment.gotoState(IEnvironment.State.Scanning);
+				mEnvironment.gotoState(mEnvironment.getPreferences()
+						.getStartState());
 				return null;
-
 			}
 		}.execute();
-
 	}
 
 	private void addTextToConsole(final String txt) {
-
 		console.post(new Runnable() {
-
 			@Override
 			public void run() {
 				addToBufferWithTimestamp(txt);
 				console.setText(getCurrentBuffer());
-
 			}
 		});
 	}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.activity_main, menu);
 		return true;
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+		case R.id.menu_settings:
+			Intent i = new Intent(this, MyPreferenceActivity.class);
+			startActivity(i);
+			break;
+
+		default:
+			break;
+		}
+		return super.onOptionsItemSelected(item);
 	}
 
 }
