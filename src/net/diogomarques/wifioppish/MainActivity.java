@@ -16,6 +16,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 /**
@@ -45,11 +46,11 @@ public class MainActivity extends Activity {
 		}
 	}
 
-	// TODO choose console lines according to screen size
-	private static final int DEFAULT_CONSOLE_LINES = 15;
+	private static final int DEFAULT_CONSOLE_LINES = 120;
 
-	TextView console;
-	Button btStart;
+	TextView mConsoleTextView;
+	Button mStartButton;
+	ScrollView mScrollView;
 	IEnvironment mEnvironment;
 	ConsoleHandler mHandler;
 	LinkedBlockingQueue<String> mConsoleBuffer;
@@ -71,14 +72,15 @@ public class MainActivity extends Activity {
 		// stop wifi AP that might be left open on abnormal app exit
 		mEnvironment.getNetworkingFacade().stopAccessPoint();
 		// setup views
-		console = (TextView) findViewById(R.id.console);
-		btStart = (Button) findViewById(R.id.buttonStart);
-		btStart.setOnClickListener(new View.OnClickListener() {
+		mScrollView = (ScrollView) findViewById(R.id.scroll);
+		mConsoleTextView = (TextView) findViewById(R.id.console);
+		mStartButton = (Button) findViewById(R.id.buttonStart);
+		mStartButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
 				processStart();
 			}
-		});
+		});		
 	}
 
 	String getCurrentBuffer() {
@@ -94,6 +96,7 @@ public class MainActivity extends Activity {
 			mConsoleBuffer.poll();
 		String now = SimpleDateFormat.getTimeInstance().format(new Date());
 		mConsoleBuffer.offer(now + " " + line);
+		mScrollView.smoothScrollBy(0, mConsoleTextView.getBottom());
 	}
 
 	protected void processStart() {
@@ -105,7 +108,7 @@ public class MainActivity extends Activity {
 
 			@Override
 			protected void onPreExecute() {
-				btStart.setEnabled(false);
+				mStartButton.setEnabled(false);
 			}
 
 			@Override
@@ -118,11 +121,11 @@ public class MainActivity extends Activity {
 	}
 
 	private void addTextToConsole(final String txt) {
-		console.post(new Runnable() {
+		mConsoleTextView.post(new Runnable() {
 			@Override
 			public void run() {
 				addToBufferWithTimestamp(txt);
-				console.setText(getCurrentBuffer());
+				mConsoleTextView.setText(getCurrentBuffer());
 			}
 		});
 	}
