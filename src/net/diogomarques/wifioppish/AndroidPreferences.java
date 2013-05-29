@@ -10,16 +10,13 @@ import android.preference.PreferenceManager;
 /**
  * Android-specific domain parameters.
  * 
- * TODO: use recommended params in trifunovic et al. as default.
- * 
  * @author Diogo Marques <diogohomemmarques@gmail.com>
- * 
  */
 public class AndroidPreferences implements IDomainPreferences {
-	
+
 	// FIXME switch before deployment
-	public static final boolean DEBUG = false;
-	
+	public static final boolean DEBUG = true;
+
 	/*
 	 * Universal timeout parameter for use in debugging.
 	 */
@@ -48,7 +45,7 @@ public class AndroidPreferences implements IDomainPreferences {
 	}
 
 	@Override
-	public int getTBeac() {		
+	public int getTBeac() {
 		return getRandomTimeFromKey(R.string.key_t_beac);
 	}
 
@@ -78,7 +75,8 @@ public class AndroidPreferences implements IDomainPreferences {
 	 * >PDF</a></footer></blockquote>
 	 * 
 	 * @param resId
-	 *            the resource identifier for they key in {@link SharedPreferences}
+	 *            the resource identifier for they key in
+	 *            {@link SharedPreferences}
 	 * @return a randomly distributed value between
 	 */
 	protected int getRandomTimeFromKey(int resId) {

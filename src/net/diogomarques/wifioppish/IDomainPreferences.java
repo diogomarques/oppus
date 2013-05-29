@@ -12,10 +12,16 @@ import net.diogomarques.wifioppish.IEnvironment.State;
 public interface IDomainPreferences {
 
 	/**
-	 * Get t_beac.
+	 * Get t_beac (minimum 10s).
 	 * 
 	 * <blockquote> "t_beac the time it advertises its presence in AP mode by
-	 * sending SSID beacons.".<footer>Trifunovic et al, 2011, <a
+	 * sending SSID beacons."
+	 * <p>
+	 * "If not speciﬁed otherwise, the times t_scan min and t_beac min are set
+	 * to 10 seconds".
+	 * <p>
+	 * "Increasing the beaconing time in AP mode has a negative impact on the
+	 * performance". <footer>Trifunovic et al, 2011, <a
 	 * href="http://202.194.20.8/proc/MOBICOM2011/chants/p37.pdf"
 	 * >PDF</a></footer></blockquote>
 	 * 
@@ -24,10 +30,14 @@ public interface IDomainPreferences {
 	public int getTBeac();
 
 	/**
-	 * Get t_pro.
+	 * Get t_pro (minimum 40s).
 	 * 
 	 * <blockquote> "t_pro the time a mobile device is providing AP
-	 * functionality for connected STAs.".<footer>Trifunovic et al, 2011, <a
+	 * functionality for connected STAs"
+	 * <p>
+	 * "The performance of the Flexible STA and Flexible AP variants of WiFi-Opp
+	 * is largely independent of the connection times (if ≥
+	 * 40s)".<footer>Trifunovic et al, 2011, <a
 	 * href="http://202.194.20.8/proc/MOBICOM2011/chants/p37.pdf"
 	 * >PDF</a></footer></blockquote>
 	 * 
@@ -36,10 +46,12 @@ public interface IDomainPreferences {
 	public int getTPro();
 
 	/**
-	 * Get t_scan.
+	 * Get t_scan (minimum 5 minutes).
 	 * 
-	 * <blockquote>
-	 * "t_scan is the time a mobile device scans for APs".<footer>Trifunovic et
+	 * <blockquote> "t_scan is the time a mobile device scans for APs".
+	 * <p>
+	 * "The WiFi-Opp performance is almost independent of the scanning time,
+	 * thus permitting long scanning times of 5-15 minutes".<footer>Trifunovic et
 	 * al, 2011, <a href="http://202.194.20.8/proc/MOBICOM2011/chants/p37.pdf"
 	 * >PDF</a></footer></blockquote>
 	 * 
@@ -48,11 +60,14 @@ public interface IDomainPreferences {
 	public int getTScan();
 
 	/**
-	 * Get t_con.
+	 * Get t_con (minimum 40s).
 	 * 
-	 * <blockquote>
-	 * "t_con the time a STA stays connected with a specific AP".<footer>Trifunovic et
-	 * al, 2011, <a href="http://202.194.20.8/proc/MOBICOM2011/chants/p37.pdf"
+	 * <blockquote> "t_con the time a STA stays connected with a specific AP".
+	 * <p>
+	 * "The performance of the Flexible STA and Flexible AP variants of WiFi-Opp
+	 * is largely independent of the connection times (if ≥ 40s)"
+	 * <footer>Trifunovic et al, 2011, <a
+	 * href="http://202.194.20.8/proc/MOBICOM2011/chants/p37.pdf"
 	 * >PDF</a></footer></blockquote>
 	 * 
 	 * @return t_con

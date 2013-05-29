@@ -5,10 +5,10 @@
     <string name="menu_settings">Settings</string>
     <string name="hello_world">Hello world!</string>
     <string name="start_sm">Start SM</string>
-    <string name="value_t_beac">15000</string>
-    <string name="value_t_pro">15000</string>
-    <string name="value_t_scan">15000</string>
-    <string name="value_t_con">15000</string>    
+    <string name="value_t_beac">10000</string>
+    <string name="value_t_pro">40000</string>
+    <string name="value_t_scan">300000</string>
+    <string name="value_t_con">40000</string>    
     <string name="key_t_beac">t_beac</string>
     <string name="key_t_pro">t_pro</string>
     <string name="key_t_scan">t_beac</string>
