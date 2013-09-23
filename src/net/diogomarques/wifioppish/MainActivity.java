@@ -1,5 +1,6 @@
 package net.diogomarques.wifioppish;
 
+import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -7,11 +8,13 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.preference.PreferenceManager;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -54,10 +57,13 @@ public class MainActivity extends Activity {
 	IEnvironment mEnvironment;
 	ConsoleHandler mHandler;
 	LinkedBlockingQueue<String> mConsoleBuffer;
+	TextLog log;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		// Force portrait view
+		setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT); 
 		setContentView(R.layout.activity_main);
 		// reset prefs to default
 		if (AndroidPreferences.DEBUG)
@@ -80,7 +86,13 @@ public class MainActivity extends Activity {
 			public void onClick(View v) {
 				processStart();
 			}
-		});		
+		});	
+		
+		try {
+			log = new TextLog();
+		} catch (IOException e) {
+			Log.e("TextLog", "External Storage not available");
+		}
 	}
 
 	String getCurrentBuffer() {
@@ -126,6 +138,12 @@ public class MainActivity extends Activity {
 			public void run() {
 				addToBufferWithTimestamp(txt);
 				mConsoleTextView.setText(getCurrentBuffer());
+				try {
+					log.storeLine(txt);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 		});
 	}
