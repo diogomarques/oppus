@@ -1,6 +1,5 @@
 package net.diogomarques.wifioppish;
 
-import net.diogomarques.wifioppish.IEnvironment.State;
 
 /**
  * Interface for state machine environment implementations.
