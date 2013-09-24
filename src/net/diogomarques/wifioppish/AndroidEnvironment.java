@@ -131,7 +131,6 @@ public class AndroidEnvironment implements IEnvironment {
 			try {
 				semNextState.acquire();
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			

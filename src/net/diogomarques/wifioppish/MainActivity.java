@@ -141,8 +141,7 @@ public class MainActivity extends Activity {
 				try {
 					log.storeLine(txt);
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					Log.e("TextLog", "Cannot write to log file: " + e.getMessage());
 				}
 			}
 		});
