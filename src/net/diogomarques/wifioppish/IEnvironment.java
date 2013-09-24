@@ -1,5 +1,7 @@
 package net.diogomarques.wifioppish;
 
+import net.diogomarques.wifioppish.IEnvironment.State;
+
 /**
  * Interface for state machine environment implementations.
  * <p>
@@ -46,12 +48,20 @@ public interface IEnvironment {
 	public void deliverMessage(String msg);
 
 	/**
-	 * Transition to new state.
+	 * Schedules a transition to a new state.
 	 * 
 	 * @param state
 	 *            the destination state.
 	 */
 	public void gotoState(State state);
+	
+	/**
+	 * Loops between states
+	 * 
+	 * @param first
+	 * 			  the initial state of State Machine
+	 */
+	public void startStateLoop(State first);
 
 	/**
 	 * Get preferences relating to this state machine.

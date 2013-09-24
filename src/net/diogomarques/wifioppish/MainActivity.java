@@ -125,7 +125,7 @@ public class MainActivity extends Activity {
 
 			@Override
 			protected Void doInBackground(Void... params) {
-				mEnvironment.gotoState(mEnvironment.getPreferences()
+				mEnvironment.startStateLoop(mEnvironment.getPreferences()
 						.getStartState());
 				return null;
 			}

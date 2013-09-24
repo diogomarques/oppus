@@ -1,5 +1,7 @@
 package net.diogomarques.wifioppish;
 
+import java.util.concurrent.Semaphore;
+
 import android.content.Context;
 import android.os.Handler;
 import android.os.Message;
@@ -26,6 +28,9 @@ public class AndroidEnvironment implements IEnvironment {
 	private StateScanning mScanning;
 	private StateStation mStation;
 	private State mCurrentState;
+	
+	private State nextState;
+	private Semaphore semNextState;
 
 	/**
 	 * Constructor with all dependencies. Use
@@ -86,6 +91,8 @@ public class AndroidEnvironment implements IEnvironment {
 		environment.mProviding = providing;
 		environment.mScanning = scanning;
 		environment.mStation = station;
+		// allow on state transition (to the first one)
+		environment.semNextState = new Semaphore(1);
 		return environment;
 	}
 
@@ -111,25 +118,49 @@ public class AndroidEnvironment implements IEnvironment {
 
 	@Override
 	public void gotoState(State state) {
-		mCurrentState = state;
-		AState next = null;
-		switch (state) {
-		case Beaconing:
-			next = mBeaconing;
-			next.start(mPreferences.getTBeac());
-			break;
-		case Providing:
-			next = mProviding;
-			next.start(mPreferences.getTPro());
-			break;
-		case Scanning:
-			next = mScanning;
-			next.start(mPreferences.getTScan());
-			break;
-		case Station:
-			next = mStation;
-			next.start(mPreferences.getTCon());
-			break;
+		semNextState.release();
+		nextState = state;			
+	}
+
+	@Override
+	public void startStateLoop(State first) {
+		nextState = first;
+		
+		while (true) {
+			
+			try {
+				semNextState.acquire();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			mCurrentState = nextState;
+			AState next = null;
+			int timeout = 0;
+			switch (nextState) {
+			case Beaconing:
+				next = mBeaconing;
+				timeout = mPreferences.getTBeac();
+				break;
+			case Providing:
+				next = mProviding;
+				timeout = mPreferences.getTPro();
+				break;
+			case Scanning:
+				next = mScanning;
+				timeout = mPreferences.getTScan();
+				break;
+			case Station:
+				next = mStation;
+				timeout = mPreferences.getTCon();
+				break;
+			}
+			
+			synchronized(next) {
+				next.start(timeout);
+			}
 		}
+		
 	}
 }
