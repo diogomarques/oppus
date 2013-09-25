@@ -1,6 +1,13 @@
 package net.diogomarques.wifioppish.networking;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutput;
+import java.io.ObjectOutputStream;
+import java.io.StreamCorruptedException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -66,13 +73,17 @@ public class UDPDelegate {
 	}
 
 	public void send(String msg, OnSendListener listener) {
-		msg = msg + MSG_EOT;
+		//msg = msg + MSG_EOT;
+		// TODO obter coordenadas
+		Message m = new Message(msg, System.currentTimeMillis(), new double[] { -1, -1 });
+		byte[] netMessage = messageToNetwork(m); 
+		
 		IDomainPreferences preferences = mEnvironment.getPreferences();
 		try {
-			DatagramPacket packet = new DatagramPacket(msg.getBytes(),
-					msg.length(), getBroadcastAddress(), preferences.getPort());
+			DatagramPacket packet = new DatagramPacket(netMessage,
+					netMessage.length, getBroadcastAddress(), preferences.getPort());
 			getBroadcastSocket().send(packet);
-			listener.onMessageSent(msg);
+			listener.onMessageSent(m.toString());
 		} catch (UnknownHostException e) {
 			listener.onSendError("Unknown host\n\t" + e.getMessage());
 		} catch (SocketException e) {
@@ -106,7 +117,9 @@ public class UDPDelegate {
 
 			// blocks for t_beac
 			socket.receive(packet);
-			String received = getMessageIn(buffer);
+			//String received = getMessageIn(buffer);
+			Message m = networkToMessage(buffer);
+			String received = m.toString();
 			Log.w(TAG,
 					"Received packet! " + received + " from "
 							+ packet.getAddress().getHostAddress() + ":"
@@ -141,7 +154,9 @@ public class UDPDelegate {
 				// blocks for t_beac
 				socket.setSoTimeout(timeoutMilis);
 				socket.receive(packet);
-				String received = getMessageIn(buffer);
+				//String received = getMessageIn(buffer);
+				Message m = networkToMessage(buffer);
+				String received = m.toString();
 				Log.w(TAG,
 						"Received packet! " + received + " from "
 								+ packet.getAddress().getHostAddress() + ":"
@@ -189,6 +204,54 @@ public class UDPDelegate {
 		if (mLock != null && mLock.isHeld())
 			mLock.release();
 		mLock = null;
+	}
+	
+	public byte[] messageToNetwork(Message m) {
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		ObjectOutput out = null;
+		byte[] buffer = null;
+		
+		try {
+		  out = new ObjectOutputStream(bos); 
+		  out.writeObject(m);		  
+		  buffer = bos.toByteArray();
+		  out.close();
+		  bos.close();
+		  
+		} catch(IOException e) {
+			Log.e("messageToNetwork", "Error converting message: " + e.getMessage());			
+		} 
+		
+		return buffer;
+	}
+	
+	public Message networkToMessage(byte[] buffer) {
+		ByteArrayInputStream bis = new ByteArrayInputStream(buffer);
+		ObjectInput in = null;
+		Message message = null;
+		
+		try {
+		  in = new ObjectInputStream(bis);
+		  Object o = in.readObject(); 
+		  
+		  if( o instanceof Message )
+			  message = (Message) o;
+		  
+		  bis.close();
+		  in.close();
+		  
+		} catch (StreamCorruptedException e) {
+			Log.e("networkToMessage", "Corrupted stream: " + e.getMessage());
+			
+		} catch (IOException e) {
+			Log.e("networkToMessage", "Error converting message: " + e.getMessage());
+			
+		} catch (ClassNotFoundException e) {
+			Log.e("networkToMessage", "Class not found (different app versions?): " + e.getMessage());
+			
+		}
+
+		return message;
 	}
 
 }

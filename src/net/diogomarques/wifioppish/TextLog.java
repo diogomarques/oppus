@@ -8,7 +8,6 @@ import java.util.Calendar;
 import java.util.Locale;
 
 import android.os.Environment;
-import android.text.format.Time;
 
 /**
  * Simple text log to store message traces in the SD card root.
@@ -46,10 +45,8 @@ public class TextLog {
 	 * @throws IOException The file cannot be opened, no SD card present
 	 */
 	public TextLog(String prefix) throws IOException {		
-		Time now = new Time();
 		SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMdd-HHmmss", Locale.US);
 		Calendar c = Calendar.getInstance();
-		now.setToNow();
 
 		String name = prefix + formatter.format(c.getTime()) +  ".txt";
 		

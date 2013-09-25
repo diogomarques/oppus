@@ -23,7 +23,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ScrollView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 /**
  * Main UI activity, in which statuses from operations occurring in the state
@@ -97,7 +96,7 @@ public class MainActivity extends Activity {
 			Log.e("TextLog", "External Storage not available");
 		}
 		
-		// try to popup user location
+		// TODO testes: escrever localização no logcat
 		LocationProvider lp = new LocationProvider(getApplicationContext());
 		lp.registerLocationListener(new LocationListener() {
 			
@@ -112,15 +111,14 @@ public class MainActivity extends Activity {
 			
 			@Override
 			public void onLocationChanged(Location location) {
-				Toast.makeText(
-						getApplicationContext(),
+				Log.w(
+						"LocationProvider",
 						String.format(
-								"Localização: %d,  %d",
+								"Localização GPS: %d, %d",
 								location.getLatitude(),
 								location.getLongitude()
-						),
-						Toast.LENGTH_LONG
-				).show();
+						)
+				);
 			}
 		});
 	}
@@ -169,7 +167,8 @@ public class MainActivity extends Activity {
 				addToBufferWithTimestamp(txt);
 				mConsoleTextView.setText(getCurrentBuffer());
 				try {
-					log.storeLine(txt);
+					if(log != null)
+						log.storeLine(txt);
 				} catch (IOException e) {
 					Log.e("TextLog", "Cannot write to log file: " + e.getMessage());
 				}
