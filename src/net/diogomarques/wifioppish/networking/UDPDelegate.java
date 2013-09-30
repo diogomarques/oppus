@@ -17,6 +17,7 @@ import java.net.UnknownHostException;
 import java.util.Date;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import net.diogomarques.wifioppish.ConcurrentForwardingQueue;
 import net.diogomarques.wifioppish.IDomainPreferences;
 import net.diogomarques.wifioppish.IEnvironment;
 import net.diogomarques.wifioppish.INetworkingFacade.OnReceiveListener;
@@ -48,10 +49,7 @@ public class UDPDelegate {
 	 */
 	private DatagramSocket mSocket;
 	
-	/**
-	 * Message queue
-	 */
-	private LinkedBlockingQueue<Message> mQueue;
+	private ConcurrentForwardingQueue mQueue;
 
 	/* Dependencies */
 	private final Context mContext;
@@ -60,7 +58,7 @@ public class UDPDelegate {
 	public UDPDelegate(Context context, IEnvironment environment) {
 		mContext = context;
 		mEnvironment = environment;
-		mQueue = new LinkedBlockingQueue<Message>();
+		mQueue = new ConcurrentForwardingQueue();
 	}
 
 	private InetAddress getBroadcastAddress() throws UnknownHostException {

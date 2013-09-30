@@ -83,4 +83,41 @@ public class Message implements Serializable {
 				+ ", coordinates=" + Arrays.toString(coordinates)
 				+ ", author=" + author + "]";
 	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((author == null) ? 0 : author.hashCode());
+		result = prime * result + Arrays.hashCode(coordinates);
+		result = prime * result + ((message == null) ? 0 : message.hashCode());
+		result = prime * result + (int) (timestamp ^ (timestamp >>> 32));
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Message other = (Message) obj;
+		if (author == null) {
+			if (other.author != null)
+				return false;
+		} else if (!author.equals(other.author))
+			return false;
+		if (!Arrays.equals(coordinates, other.coordinates))
+			return false;
+		if (message == null) {
+			if (other.message != null)
+				return false;
+		} else if (!message.equals(other.message))
+			return false;
+		if (timestamp != other.timestamp)
+			return false;
+		return true;
+	}	
 }
