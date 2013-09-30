@@ -15,12 +15,15 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.Date;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import net.diogomarques.wifioppish.IDomainPreferences;
 import net.diogomarques.wifioppish.IEnvironment;
 import net.diogomarques.wifioppish.INetworkingFacade.OnReceiveListener;
 import net.diogomarques.wifioppish.INetworkingFacade.OnSendListener;
+import net.diogomarques.wifioppish.LocationProvider;
 import android.content.Context;
+import android.location.Location;
 import android.net.DhcpInfo;
 import android.net.wifi.WifiManager;
 import android.net.wifi.WifiManager.MulticastLock;
@@ -44,6 +47,11 @@ public class UDPDelegate {
 	 * Single UDP socket for messaging i/o
 	 */
 	private DatagramSocket mSocket;
+	
+	/**
+	 * Message queue
+	 */
+	private LinkedBlockingQueue<Message> mQueue;
 
 	/* Dependencies */
 	private final Context mContext;
@@ -52,6 +60,7 @@ public class UDPDelegate {
 	public UDPDelegate(Context context, IEnvironment environment) {
 		mContext = context;
 		mEnvironment = environment;
+		mQueue = new LinkedBlockingQueue<Message>();
 	}
 
 	private InetAddress getBroadcastAddress() throws UnknownHostException {
@@ -72,18 +81,15 @@ public class UDPDelegate {
 	    return InetAddress.getByAddress(quads);
 	}
 
-	public void send(String msg, OnSendListener listener) {
-		//msg = msg + MSG_EOT;
-		// TODO obter coordenadas
-		Message m = new Message(msg, System.currentTimeMillis(), new double[] { -1, -1 });
-		byte[] netMessage = messageToNetwork(m); 
+	public void send(Message msg, OnSendListener listener) {
+		byte[] netMessage = messageToNetwork(msg); 
 		
 		IDomainPreferences preferences = mEnvironment.getPreferences();
 		try {
 			DatagramPacket packet = new DatagramPacket(netMessage,
 					netMessage.length, getBroadcastAddress(), preferences.getPort());
 			getBroadcastSocket().send(packet);
-			listener.onMessageSent(m.toString());
+			listener.onMessageSent(msg.toString());
 		} catch (UnknownHostException e) {
 			listener.onSendError("Unknown host\n\t" + e.getMessage());
 		} catch (SocketException e) {
@@ -119,6 +125,7 @@ public class UDPDelegate {
 			socket.receive(packet);
 			//String received = getMessageIn(buffer);
 			Message m = networkToMessage(buffer);
+			mQueue.offer(m);
 			String received = m.toString();
 			Log.w(TAG,
 					"Received packet! " + received + " from "
@@ -156,6 +163,7 @@ public class UDPDelegate {
 				socket.receive(packet);
 				//String received = getMessageIn(buffer);
 				Message m = networkToMessage(buffer);
+				mQueue.offer(m);
 				String received = m.toString();
 				Log.w(TAG,
 						"Received packet! " + received + " from "
@@ -206,6 +214,11 @@ public class UDPDelegate {
 		mLock = null;
 	}
 	
+	/**
+	 * Prepares a Message envelope to be sent over the network
+	 * @param m Message to send
+	 * @return Byte buffer ready to send over a socket, or null in case of failed conversion
+	 */
 	public byte[] messageToNetwork(Message m) {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		ObjectOutput out = null;
@@ -225,6 +238,11 @@ public class UDPDelegate {
 		return buffer;
 	}
 	
+	/**
+	 * Extracts a Message envelope from a byte array
+	 * @param buffer Byte array which contains the Message envelope
+	 * @return Message instance of extracted message, or null in case of failed extraction
+	 */
 	public Message networkToMessage(byte[] buffer) {
 		ByteArrayInputStream bis = new ByteArrayInputStream(buffer);
 		ObjectInput in = null;

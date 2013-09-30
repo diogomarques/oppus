@@ -1,5 +1,6 @@
 package net.diogomarques.wifioppish;
 
+import net.diogomarques.wifioppish.networking.Message;
 import net.diogomarques.wifioppish.networking.SoftAPDelegate;
 import net.diogomarques.wifioppish.networking.UDPDelegate;
 import net.diogomarques.wifioppish.networking.WiFiDelegate;
@@ -83,7 +84,7 @@ public class AndroidNetworkingFacade implements INetworkingFacade {
 	}
 
 	@Override
-	public void send(String msg, OnSendListener listener) {
+	public void send(Message msg, OnSendListener listener) {
 		mUdp.send(msg, listener);
 	}
 

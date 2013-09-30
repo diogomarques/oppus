@@ -3,6 +3,10 @@ package net.diogomarques.wifioppish;
 import net.diogomarques.utils.CountDownTimer;
 import net.diogomarques.wifioppish.IEnvironment.State;
 import net.diogomarques.wifioppish.INetworkingFacade.OnSendListener;
+import net.diogomarques.wifioppish.networking.Message;
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 
 
 /**
@@ -17,7 +21,8 @@ public class StateStation extends AState {
 	}
 
 	@Override
-	public void start(int timeout) {
+	public void start(int timeout, Context c) {
+		context = c;
 		environment.deliverMessage("entered station state");
 		final INetworkingFacade networking = environment.getNetworkingFacade();
 
@@ -44,7 +49,20 @@ public class StateStation extends AState {
 					}
 				};
 
-				networking.send("alive", listener);
+				// Prepare message to be sent
+				SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
+				double lat = Double.parseDouble(sharedPref.getString("gps.lastLatitude", "0"));
+				double lon = Double.parseDouble(sharedPref.getString("gps.lastLongitude", "0"));
+				String nodeID = sharedPref.getString("nodeID", "unknown");
+								
+				Message msg = new Message(
+						"I'm alive!",
+						System.currentTimeMillis(),
+						new double[] { lat, lon },
+						nodeID
+				);
+				
+				networking.send(msg, listener);
 			}
 
 			@Override

@@ -1,5 +1,7 @@
 package net.diogomarques.wifioppish;
 
+import android.content.Context;
+
 /**
  * An abstract state, forcing environment injection and all implementations to
  * have a start method.
@@ -13,6 +15,11 @@ public abstract class AState {
 	 * The state machine environment.
 	 */
 	protected IEnvironment environment;
+	
+	/**
+	 * Android context
+	 */
+	protected Context context;
 
 	/**
 	 * Constructor.
@@ -29,7 +36,9 @@ public abstract class AState {
 	 * 
 	 * @param timeout
 	 *            the timeout in milliseconds
+	 * @param context
+	 * 			  Android current context      
 	 */
-	public abstract void start(int timeout);
+	public abstract void start(int timeout, Context context);
 
 }

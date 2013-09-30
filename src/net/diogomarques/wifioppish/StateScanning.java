@@ -1,5 +1,6 @@
 package net.diogomarques.wifioppish;
 
+import android.content.Context;
 import net.diogomarques.wifioppish.IEnvironment.State;
 
 /**
@@ -14,7 +15,7 @@ public class StateScanning extends AState {
 	}
 
 	@Override
-	public void start(int timeout) {
+	public void start(int timeout, Context c) {
 		final INetworkingFacade networking = environment.getNetworkingFacade();
 		environment.deliverMessage("entered scanning state");		
 		networking.scanForAP(timeout, new INetworkingFacade.OnAccessPointScanListener() {

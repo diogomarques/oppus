@@ -1,5 +1,7 @@
 package net.diogomarques.wifioppish;
 
+import net.diogomarques.wifioppish.networking.Message;
+
 /**
  * The interface for networking control, defining operations and respective
  * callbacks.
@@ -84,7 +86,7 @@ public interface INetworkingFacade {
 	 * @param listener
 	 *            a listener for send-related events.
 	 */
-	public void send(String msg, OnSendListener listener);
+	public void send(Message msg, OnSendListener listener);
 
 	/**
 	 * Receive the first message available on a shared channel, if it comes

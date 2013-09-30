@@ -31,6 +31,7 @@ public class AndroidEnvironment implements IEnvironment {
 	
 	private State nextState;
 	private Semaphore semNextState;
+	private Context context;
 
 	/**
 	 * Constructor with all dependencies. Use
@@ -93,6 +94,8 @@ public class AndroidEnvironment implements IEnvironment {
 		environment.mStation = station;
 		// allow on state transition (to the first one)
 		environment.semNextState = new Semaphore(1);
+		// allowing the gathering of shared preferences
+		environment.context = c;
 		return environment;
 	}
 
@@ -157,7 +160,7 @@ public class AndroidEnvironment implements IEnvironment {
 			}
 			
 			synchronized(next) {
-				next.start(timeout);
+				next.start(timeout, context);
 			}
 		}
 		

@@ -4,16 +4,20 @@ import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Random;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.content.pm.ActivityInfo;
 import android.location.Location;
 import android.location.LocationListener;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.Message;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -60,6 +64,7 @@ public class MainActivity extends Activity {
 	ConsoleHandler mHandler;
 	LinkedBlockingQueue<String> mConsoleBuffer;
 	TextLog log;
+	LocationProvider location;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -96,31 +101,15 @@ public class MainActivity extends Activity {
 			Log.e("TextLog", "External Storage not available");
 		}
 		
-		// TODO testes: escrever localização no logcat
-		LocationProvider lp = new LocationProvider(getApplicationContext());
-		lp.registerLocationListener(new LocationListener() {
-			
-			@Override
-			public void onStatusChanged(String provider, int status, Bundle extras) { }
-			
-			@Override
-			public void onProviderEnabled(String provider) { }
-			
-			@Override
-			public void onProviderDisabled(String provider) { }
-			
-			@Override
-			public void onLocationChanged(Location location) {
-				Log.w(
-						"LocationProvider",
-						String.format(
-								"Localização GPS: %d, %d",
-								location.getLatitude(),
-								location.getLongitude()
-						)
-				);
-			}
-		});
+		location = new LocationProvider(getApplicationContext());
+		
+		// generate unique ID for this node
+		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
+		Editor prefEditor = sp.edit();
+		String id = generateNodeId();
+		prefEditor.putString("nodeID", id);
+		prefEditor.commit();
+		mEnvironment.deliverMessage("my node ID is " + id);
 	}
 
 	String getCurrentBuffer() {
@@ -194,6 +183,31 @@ public class MainActivity extends Activity {
 			break;
 		}
 		return super.onOptionsItemSelected(item);
+	}
+	
+	/**
+	 * (Hppefully) Generates an unique ID in the network
+	 * @return 7 digit alphanumeric ID
+	 */
+	private String generateNodeId() {
+		char[] set = new char[36];
+		Random r = new Random();
+		int pos = 0;
+		
+		// numbers
+		for(int i = 48; i <= 57; i++)
+			set[pos++] = (char) i;
+		
+		// letters
+		for(int i = 65; i <= 90; i++)
+			set[pos++] = (char) i;
+		
+		StringBuilder sb = new StringBuilder();
+		
+		for(int i = 0; i < 7; i++)
+			sb.append(set[r.nextInt(36)]);
+		
+		return sb.toString();
 	}
 
 }

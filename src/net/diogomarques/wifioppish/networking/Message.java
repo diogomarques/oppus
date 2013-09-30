@@ -11,7 +11,7 @@ import java.util.Arrays;
  * original message send time and a geographical location.
  * 
  * <p>
- * This envelope was created to be suitable to be transmited over a network. It 
+ * This envelope was created to be suitable to be transmitted over a network. It 
  * uses Java Serialization to ensure that the contents are formatted correctly. 
  * 
  * @author André Silva <asilva@lasige.di.fc.ul.pt>
@@ -24,6 +24,7 @@ public class Message implements Serializable {
 	 */
 	private static final long serialVersionUID = 4793280315313094725L;
 	
+	private String author;
 	private String message;
 	private long timestamp;
 	private double[] coordinates;
@@ -34,12 +35,14 @@ public class Message implements Serializable {
 	 * @param msg Text to be sent
 	 * @param time Timestamp from when the Message was created 
 	 * @param coords Geographical coordinates associated with this Message. The first position
+	 * @param node Id of the node who sent the message
 	 * should represent the latitude, and the second position of array should represent the longitude
 	 */
-	public Message(String msg, long time, double[] coords) {
+	public Message(String msg, long time, double[] coords, String node) {
 		message = msg;
 		timestamp = time;
 		coordinates = coords;
+		author = node;
 	}
 
 	/**
@@ -66,9 +69,18 @@ public class Message implements Serializable {
 		return coordinates;
 	}
 
+	/**
+	 * Gets the ID of the node who created the message
+	 * @return Unique node ID
+	 */
+	public String getAuthor() {
+		return author;
+	}
+
 	@Override
 	public String toString() {
 		return "Message [message=" + message + ", timestamp=" + timestamp
-				+ ", coordinates=" + Arrays.toString(coordinates) + "]";
+				+ ", coordinates=" + Arrays.toString(coordinates)
+				+ ", author=" + author + "]";
 	}
 }
