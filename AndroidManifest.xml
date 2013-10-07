@@ -5,7 +5,7 @@
     android:versionName="1.0" >
 
     <uses-sdk
-        android:minSdkVersion="9"
+        android:minSdkVersion="8"
         android:targetSdkVersion="17" />
 
     <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
@@ -15,7 +15,7 @@
     <uses-permission android:name="android.permission.WRITE_SETTINGS" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" /> <!-- txt log file -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/> <!-- GPS coordinates -->
-    <!-- <uses-permission android:name="android.permission.WRITE_SECURE_SETTINGS"/> -->
+    <uses-permission android:name="android.permission.READ_PHONE_STATE"/> <!-- device uuid -->
 
     <application
         android:allowBackup="true"

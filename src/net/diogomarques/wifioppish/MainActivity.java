@@ -12,12 +12,9 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.pm.ActivityInfo;
-import android.location.Location;
-import android.location.LocationListener;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Looper;
 import android.os.Message;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -41,6 +38,22 @@ public class MainActivity extends Activity {
 	 * An handler that prints received messages to the console.
 	 */
 	static class ConsoleHandler extends Handler {
+		
+		/**
+		 * Log line to show in the log window
+		 */
+		public static final int LOG_MSG = 800;
+		
+		/**
+		 * The node role (Beaconing, Providing, Scanning, Station) was changed
+		 */
+		public static final int ROLE = 801;
+			
+		/**
+		 * The total of messages received + sent was changed
+		 */
+		public static final int MSG_COUNT = 802;
+		
 		final WeakReference<MainActivity> mActivity;
 
 		ConsoleHandler(MainActivity act) {
@@ -49,9 +62,43 @@ public class MainActivity extends Activity {
 
 		@Override
 		public void handleMessage(Message msg) {
-			String txt = (String) msg.obj;
-			if (mActivity.get() != null) // lifecycle not ended
-				mActivity.get().addTextToConsole(txt);
+			
+			final MainActivity activity = mActivity.get();
+			
+			if (activity != null) {
+				
+				if(msg.what == ROLE) {
+					final String role = (String) msg.obj;
+					activity.mTextMyID.post(new Runnable() {
+						
+						@Override
+						public void run() {
+							activity.mTextRole.setText(role);
+						}
+					});
+					
+				} else if(msg.what == MSG_COUNT) {
+					final int[] stats = msg.getData().getIntArray("stats");
+					activity.mTextMsgStats.post(new Runnable() {
+						
+						@Override
+						public void run() {
+							activity.mTextMsgStats.setText(
+									String.format(
+											"S: %d / R: %d",
+											stats[0],
+											stats[1]
+									)
+							);
+						}
+					});
+					
+				} else if(msg.what == LOG_MSG) {
+					String txt = (String) msg.obj;
+					activity.addTextToConsole(txt);
+				}
+			}
+			
 		}
 	}
 
@@ -60,6 +107,9 @@ public class MainActivity extends Activity {
 	TextView mConsoleTextView;
 	Button mStartButton;
 	ScrollView mScrollView;
+	TextView mTextMyID;
+	TextView mTextRole;
+	TextView mTextMsgStats;
 	IEnvironment mEnvironment;
 	ConsoleHandler mHandler;
 	LinkedBlockingQueue<String> mConsoleBuffer;
@@ -73,9 +123,9 @@ public class MainActivity extends Activity {
 		setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT); 
 		setContentView(R.layout.activity_main);
 		// reset prefs to default
-		if (AndroidPreferences.DEBUG)
+		/*if (AndroidPreferences.DEBUG)
 			PreferenceManager.getDefaultSharedPreferences(this).edit().clear()
-					.commit();
+					.commit();*/
 		// load default preferences
 		PreferenceManager.setDefaultValues(this, R.xml.preferences, true);
 		// build state
@@ -94,6 +144,9 @@ public class MainActivity extends Activity {
 				processStart();
 			}
 		});	
+		mTextMyID = (TextView) findViewById(R.id.txtMyID);
+		mTextRole = (TextView) findViewById(R.id.txtRole);
+		mTextMsgStats = (TextView) findViewById(R.id.txtMsgStats);
 		
 		try {
 			log = new TextLog();
@@ -101,15 +154,20 @@ public class MainActivity extends Activity {
 			Log.e("TextLog", "External Storage not available");
 		}
 		
-		location = new LocationProvider(getApplicationContext());
-		
-		// generate unique ID for this node
+		// get/generate unique ID for this node
 		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
+		
+		if(!sp.contains("nodeID")) {
 		Editor prefEditor = sp.edit();
-		String id = generateNodeId();
-		prefEditor.putString("nodeID", id);
-		prefEditor.commit();
+			String id = generateNodeId();
+			prefEditor.putString("nodeID", id);
+			prefEditor.commit();
+		}
+		String id = sp.getString("nodeID", "unknown");
+		mTextMyID.setText(id);
 		mEnvironment.deliverMessage("my node ID is " + id);
+		
+		location = new LocationProvider(this);
 	}
 
 	String getCurrentBuffer() {
@@ -186,7 +244,7 @@ public class MainActivity extends Activity {
 	}
 	
 	/**
-	 * (Hppefully) Generates an unique ID in the network
+	 * (Hopefully) Generates an unique ID in the network
 	 * @return 7 digit alphanumeric ID
 	 */
 	private String generateNodeId() {

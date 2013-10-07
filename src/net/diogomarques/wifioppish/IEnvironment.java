@@ -1,5 +1,7 @@
 package net.diogomarques.wifioppish;
 
+import net.diogomarques.wifioppish.networking.Message;
+
 
 /**
  * Interface for state machine environment implementations.
@@ -82,4 +84,24 @@ public interface IEnvironment {
 	 * @return the current state if it is set; null otherwise.
 	 */
 	public abstract State getCurrentState();
+	
+	/**
+	 * Pushes a Message to the forwarding queue
+	 * @param m Message to push to the end of queue 
+	 */
+	public abstract void pushMessage(Message m);
+	
+	/**
+	 * Checks of the queue has messages
+	 * @return True if queue has messages, false otherwise
+	 */
+	public abstract boolean hasMessages();
+	
+	/**
+	 * Updates the statistics of sent and received network messages
+	 * @param sent total of messages sent since last update
+	 * @param received total of messages received since last update
+	 */
+	public abstract void updateStats(int sent, int received);
+	
 }

@@ -28,9 +28,21 @@ public class LocationProvider {
 	private LocationManager mLocManager;
 	private SharedPreferences sharedPref;
 	
-	private final String LAST_LAT_KEY = "gps.lastLatitude";
-	private final String LAST_LON_KEY = "gps.lastLongitude";
-	private final String LAST_TIME_KEY = "gps.lastUpdate";
+	/**
+	 * Preference key for the last known latitude
+	 */
+	public static final String LAST_LAT_KEY = "gps.lastLatitude";
+	
+	/**
+	 * Preference key for the last known longitude
+	 */
+	public static final String LAST_LON_KEY = "gps.lastLongitude";
+	
+	/**
+	 * Preference key for the last update
+	 */
+	public static final String LAST_TIME_KEY = "gps.lastUpdate";
+	
 	
 	private LocationListener locationListener = new LocationListener() {
 		
@@ -63,52 +75,19 @@ public class LocationProvider {
 	};
 	
 	/**
-	 * Represents a location with a associated refreshness
-	 * 
-	 * @author André Silva <asilva@lasige.di.fc.ul.pt>
-	 */
-	public class CachedLocation extends Location {
-		
-		private long lastUpdate;
-
-		/**
-		 * Create a default Location object
-		 * @param l
-		 * @see android.location.Location#Location(Location)
-		 */
-		public CachedLocation(Location l) {
-			super(l);
-		}
-		
-		public CachedLocation() {
-			super("");
-		}
-
-		/**
-		 * Gets the last update time
-		 * @return Last update time
-		 */
-		public long getLastUpdate() {
-			return lastUpdate;
-		}
-
-		/**
-		 * Sets the last update time
-		 * @param lastUpdate Last update time
-		 */
-		public void setLastUpdate(long lastUpdate) {
-			this.lastUpdate = lastUpdate;
-		}
-		
-	}
-	
-	/**
 	 * Creates a new Location Provider. It starts the location gathering process.
 	 * @param c Android context
 	 */
 	public LocationProvider(Context c) {
 		context = c;
 		sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
+		
+		// Clean previous location, if any
+		Editor prefEditor = sharedPref.edit();
+		prefEditor.remove(LAST_LAT_KEY);
+		prefEditor.remove(LAST_LON_KEY);
+		prefEditor.remove(LAST_TIME_KEY);
+		prefEditor.commit();
 		
 		// FIXME começar o processo de recolha aqui?
 		registerLocationListener(locationListener);
@@ -128,46 +107,11 @@ public class LocationProvider {
 	}
 	
 	/**
-	 * Gets the current location (note that the location 
-	 * @return location object with the most recent collected data 
-	 */
-	public CachedLocation getCurrentLocation() {
-		/*long reqTime = System.currentTimeMillis();
-		
-		try {
-			registerLocationListener(locationListener);
-			semGPSTimeout.tryAcquire(timeout, TimeUnit.MILLISECONDS);
-			return lastKnownLocation;
-			
-		} catch (InterruptedException e) {
-			Log.e("LocationProvider", "Error acquiring lock: " + e.getMessage(), e);
-		}
-		
-		return null;*/
-		if(!sharedPref.contains(LAST_TIME_KEY) ||
-				!sharedPref.contains(LAST_LON_KEY) ||
-				!sharedPref.contains(LAST_LAT_KEY) )
-			return null;
-		
-		double lat = Double.parseDouble(sharedPref.getString(LAST_LAT_KEY, "0"));
-		double lon = Double.parseDouble(sharedPref.getString(LAST_LON_KEY, "0"));
-		long time = sharedPref.getLong(LAST_TIME_KEY, 0);
-		
-		CachedLocation loc = new CachedLocation();
-		loc.setLatitude(lat);
-		loc.setLongitude(lon);
-		loc.setLastUpdate(time);
-		
-		return loc;
-	}
-	
-	/**
 	 * Unregisters a previously registered location listener
 	 * @param mLocationListener location listener to remove
 	 */
 	public void unregisterLocationListener(LocationListener mLocationListener) {
-		if(mLocManager != null) {
+		if(mLocManager != null)
 			mLocManager.removeUpdates(mLocationListener);
-		}
 	}
 }

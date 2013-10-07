@@ -1,14 +1,17 @@
 package net.diogomarques.wifioppish.networking;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * Message envelope to be exchanged between devices.
  * 
  * <p>
  * Each Message contains a string message, a timestamp indicating the 
- * original message send time and a geographical location.
+ * original message send time, a geographical location and the node ID which created 
+ * the Message.
  * 
  * <p>
  * This envelope was created to be suitable to be transmitted over a network. It 
@@ -28,6 +31,7 @@ public class Message implements Serializable {
 	private String message;
 	private long timestamp;
 	private double[] coordinates;
+	private List<String> trace;
 	
 	/**
 	 * Creates a new read-only Message
@@ -43,6 +47,8 @@ public class Message implements Serializable {
 		timestamp = time;
 		coordinates = coords;
 		author = node;
+		trace = new ArrayList<String>();
+		trace.add(node);
 	}
 
 	/**
@@ -76,12 +82,43 @@ public class Message implements Serializable {
 	public String getAuthor() {
 		return author;
 	}
+	
+	/**
+	 * Adds a node to the message trace
+	 * @param nodeID Node ID where this message arrived
+	 */
+	public void addTraceNode(String nodeID) {
+		trace.add(nodeID);
+	}
+	
+	/**
+	 * Checks if a node is in the Message trace
+	 * @param node Node ID to check
+	 * @return True if node is in the trace, false otherwise
+	 */
+	public boolean isNodeinTrace(String node) {
+		return trace.contains(node);
+	}
+	
+	/**
+	 * Gets the list of nodes where this message passed by
+	 * @return Array containing the nodes, ordered by time
+	 */
+	public String[] getTrace() {
+		String[] traceArray = new String[trace.size()];
+		int i = 0;
+		
+		for(String t : trace)
+			traceArray[i++] = t;
+		
+		return traceArray;
+	}
 
 	@Override
 	public String toString() {
 		return "Message [message=" + message + ", timestamp=" + timestamp
 				+ ", coordinates=" + Arrays.toString(coordinates)
-				+ ", author=" + author + "]";
+				+ ", author=" + author + ", trace=" + Arrays.toString(getTrace()) + "]";
 	}
 
 	@Override

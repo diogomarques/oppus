@@ -1,10 +1,16 @@
 package net.diogomarques.wifioppish;
 
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.Semaphore;
 
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.preference.PreferenceManager;
+import android.util.Log;
 
 /**
  * An Android-specific implementation of the state machine environment. To
@@ -32,6 +38,19 @@ public class AndroidEnvironment implements IEnvironment {
 	private State nextState;
 	private Semaphore semNextState;
 	private Context context;
+	
+	private ConcurrentForwardingQueue mQueue;
+	
+	private String myNodeID;
+	
+	// stats
+	private int totalReceived;
+	private int totalSent;
+	
+	/**
+	 * Period to look for messages to forward
+	 */
+	private final int FORWARD_PERIOD = 1000;
 
 	/**
 	 * Constructor with all dependencies. Use
@@ -62,8 +81,7 @@ public class AndroidEnvironment implements IEnvironment {
 	/**
 	 * Convenience constructor for {@link #createInstance(Context, Handler)}.
 	 */
-	private AndroidEnvironment() {
-	}
+	private AndroidEnvironment() { }
 
 	/**
 	 * Static factory that creates instances of state machine environments.
@@ -96,6 +114,17 @@ public class AndroidEnvironment implements IEnvironment {
 		environment.semNextState = new Semaphore(1);
 		// allowing the gathering of shared preferences
 		environment.context = c;
+		// save the node ID
+		SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(c);
+		String nodeID = sharedPref.getString("nodeID", "unknown");
+		environment.myNodeID = nodeID;
+		Log.w("NodeID", "My node id is: " + environment.myNodeID);
+		// start forwarding task
+		environment.mQueue = new ConcurrentForwardingQueue();
+		environment.forwardMessages();
+		// stats 
+		environment.totalReceived = environment.totalSent = 0; 
+		
 		return environment;
 	}
 
@@ -116,18 +145,20 @@ public class AndroidEnvironment implements IEnvironment {
 
 	@Override
 	public void deliverMessage(String msg) {
-		mHandler.sendMessage(Message.obtain(mHandler, 0, msg));
+		mHandler.sendMessage(Message.obtain(mHandler, MainActivity.ConsoleHandler.LOG_MSG, msg));
 	}
 
 	@Override
 	public void gotoState(State state) {
 		semNextState.release();
-		nextState = state;			
+		nextState = state;
+		mHandler.sendMessage(Message.obtain(mHandler, MainActivity.ConsoleHandler.ROLE, state.toString()));
 	}
 
 	@Override
 	public void startStateLoop(State first) {
 		nextState = first;
+		mHandler.sendMessage(Message.obtain(mHandler, MainActivity.ConsoleHandler.ROLE, first.toString()));
 		
 		while (true) {
 			
@@ -164,5 +195,53 @@ public class AndroidEnvironment implements IEnvironment {
 			}
 		}
 		
+	}
+
+	@Override
+	public void pushMessage(net.diogomarques.wifioppish.networking.Message m) {
+		// don't forward messages sent by this node
+		if(!m.isNodeinTrace(myNodeID)) {
+			mQueue.add(m);
+			Log.w("ForwardingQueue", "New message to queue: " + m + " (received by " + myNodeID + ")");
+		}
+	}
+
+	@Override
+	public boolean hasMessages() {
+		return !mQueue.isEmpty();
+	}
+	
+	private void forwardMessages() {
+		TimerTask job = new TimerTask() {
+			
+			@Override
+			public void run() {
+				if(!mQueue.isEmpty()) {
+					net.diogomarques.wifioppish.networking.Message m;
+					
+					while( (m = mQueue.poll()) != null ) {
+						m.addTraceNode(myNodeID);
+						deliverMessage("Forwarding message from " + m.getAuthor());
+						mNetworkingFacade.send(m, null);
+					}
+				}
+			}
+		};
+		
+		
+		Timer timer = new Timer();
+		timer.schedule(job, 1000, FORWARD_PERIOD);
+	}
+
+	@Override
+	public void updateStats(int sent, int received) {
+		totalSent += sent;
+		totalReceived += received;
+		
+		Message stats = Message.obtain(mHandler, MainActivity.ConsoleHandler.MSG_COUNT);
+		Bundle b = new Bundle();
+		b.putIntArray("stats", new int[] { totalSent, totalReceived });
+		stats.setData(b);
+		mHandler.sendMessage(stats);
 	}
 }

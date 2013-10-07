@@ -99,27 +99,27 @@ public class ConcurrentForwardingQueue implements Queue<Message> {
 
 	@Override
 	public synchronized Message element() {
-		return uniqueQueue.element();
+		return isEmpty() ? null : uniqueQueue.element();
 	}
 
 	@Override
 	public synchronized boolean offer(Message e) {
-		return uniqueQueue.offerLast(e);
+		return add(e);
 	}
 
 	@Override
 	public synchronized Message peek() {
-		return uniqueQueue.peekFirst();
+		return element();
 	}
 
 	@Override
 	public synchronized Message poll() {
-		return uniqueQueue.removeFirst();
+		return isEmpty() ? null : uniqueQueue.removeFirst();
 	}
 
 	@Override
 	public synchronized Message remove() {
-		return uniqueQueue.removeFirst();
+		return isEmpty() ? null : uniqueQueue.removeFirst();
 	}
 
 }
