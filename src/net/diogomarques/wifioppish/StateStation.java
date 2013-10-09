@@ -58,7 +58,7 @@ public class StateStation extends AState {
 					SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
 					double lat = Double.parseDouble(sharedPref.getString("gps.lastLatitude", "0"));
 					double lon = Double.parseDouble(sharedPref.getString("gps.lastLongitude", "0"));
-					String nodeID = sharedPref.getString("nodeID", "unknown");
+					String nodeID = environment.getMyNodeId();
 									
 					Message msg = new Message(
 							"I'm alive!",

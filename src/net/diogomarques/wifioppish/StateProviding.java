@@ -2,6 +2,7 @@ package net.diogomarques.wifioppish;
 
 import android.content.Context;
 import net.diogomarques.wifioppish.IEnvironment.State;
+import net.diogomarques.wifioppish.networking.Message;
 
 /**
  * Android implementation of state {@link IEnvironment.State#Providing}
@@ -38,6 +39,13 @@ public class StateProviding extends AState {
 			@Override
 			public void onMessageReceived(String msg) {
 				environment.deliverMessage("message received: " + msg);
+			}
+
+			@Override
+			public void onMessageReceived(Message m) {
+				// discard self messages from appearing in log
+				if(!m.isNodeinTrace(environment.getMyNodeId()))
+					environment.deliverMessage("message received: " + m.toString());
 			}
 		});
 

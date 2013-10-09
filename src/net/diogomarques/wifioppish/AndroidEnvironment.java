@@ -244,4 +244,9 @@ public class AndroidEnvironment implements IEnvironment {
 		stats.setData(b);
 		mHandler.sendMessage(stats);
 	}
+
+	@Override
+	public String getMyNodeId() {
+		return myNodeID;
+	}
 }

@@ -50,6 +50,14 @@ public interface INetworkingFacade {
 		 *            the message that was received.
 		 */
 		public void onMessageReceived(String msg);
+
+		/**
+		 * Callback to be invoked when a message is received.
+		 * 
+		 * @param msg
+		 *            the message in the envelope format that was received.
+		 */
+		public void onMessageReceived(Message m);
 	}
 
 	/**

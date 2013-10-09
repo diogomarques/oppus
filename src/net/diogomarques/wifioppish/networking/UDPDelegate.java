@@ -135,7 +135,7 @@ public class UDPDelegate {
 							+ packet.getAddress().getHostAddress() + ":"
 							+ packet.getPort());
 			releaseBroadcastSocket();
-			listener.onMessageReceived(received);
+			listener.onMessageReceived(m);
 			mEnvironment.updateStats(0, 1);
 		} catch (SocketTimeoutException e) {
 			// t_beac timed out, go to scanning
@@ -174,7 +174,7 @@ public class UDPDelegate {
 								+ packet.getAddress().getHostAddress() + ":"
 								+ packet.getPort());
 				releaseBroadcastSocket();
-				listener.onMessageReceived(received);
+				listener.onMessageReceived(m);
 				mEnvironment.updateStats(0, 1);
 			}
 		} catch (SocketTimeoutException e) {
@@ -270,7 +270,7 @@ public class UDPDelegate {
 			
 		} catch (ClassNotFoundException e) {
 			Log.e("networkToMessage", "Class not found (different app versions?): " + e.getMessage());
-			
+			message = null;
 		}
 
 		return message;

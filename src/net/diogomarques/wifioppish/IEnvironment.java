@@ -104,4 +104,9 @@ public interface IEnvironment {
 	 */
 	public abstract void updateStats(int sent, int received);
 	
+	/**
+	 * Gets the ID associated with this node
+	 * @return node ID
+	 */
+	public abstract String getMyNodeId();
 }
