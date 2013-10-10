@@ -1,5 +1,6 @@
 package net.diogomarques.wifioppish;
 
+import android.net.wifi.WifiInfo;
 import net.diogomarques.wifioppish.networking.Message;
 
 /**
@@ -72,8 +73,11 @@ public interface INetworkingFacade {
 
 		/**
 		 * Callback to be invoked when connection to AP is successful.
+		 * 
+		 * @param bSSID
+		 * 				BSSID (MAC address) of the remote AP
 		 */
-		public void onAPConnection();
+		public void onAPConnection(String bSSID);
 	}
 
 	/**

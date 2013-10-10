@@ -2,16 +2,21 @@ package net.diogomarques.wifioppish;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Random;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.pm.ActivityInfo;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -103,6 +108,8 @@ public class MainActivity extends Activity {
 	}
 
 	private static final int DEFAULT_CONSOLE_LINES = 120;
+	
+	private static 
 
 	TextView mConsoleTextView;
 	Button mStartButton;
@@ -123,11 +130,17 @@ public class MainActivity extends Activity {
 		setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT); 
 		setContentView(R.layout.activity_main);
 		// reset prefs to default
-		/*if (AndroidPreferences.DEBUG)
+		if (AndroidPreferences.DEBUG)
 			PreferenceManager.getDefaultSharedPreferences(this).edit().clear()
-					.commit();*/
+					.commit();
 		// load default preferences
 		PreferenceManager.setDefaultValues(this, R.xml.preferences, true);
+		//  generate unique ID for this node
+		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
+		Editor prefEditor = sp.edit();
+		String id = NodeIdentification.getMyNodeId(this);
+		prefEditor.putString("nodeID", id);
+		prefEditor.commit();
 		// build state
 		mConsoleBuffer = new LinkedBlockingQueue<String>(DEFAULT_CONSOLE_LINES);
 		mHandler = new ConsoleHandler(this);
@@ -154,16 +167,6 @@ public class MainActivity extends Activity {
 			Log.e("TextLog", "External Storage not available");
 		}
 		
-		// get/generate unique ID for this node
-		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
-		
-		if(!sp.contains("nodeID")) {
-		Editor prefEditor = sp.edit();
-			String id = generateNodeId();
-			prefEditor.putString("nodeID", id);
-			prefEditor.commit();
-		}
-		String id = sp.getString("nodeID", "unknown");
 		mTextMyID.setText(id);
 		mEnvironment.deliverMessage("my node ID is " + id);
 		
@@ -243,29 +246,4 @@ public class MainActivity extends Activity {
 		return super.onOptionsItemSelected(item);
 	}
 	
-	/**
-	 * (Hopefully) Generates an unique ID in the network
-	 * @return 7 digit alphanumeric ID
-	 */
-	private String generateNodeId() {
-		char[] set = new char[36];
-		Random r = new Random();
-		int pos = 0;
-		
-		// numbers
-		for(int i = 48; i <= 57; i++)
-			set[pos++] = (char) i;
-		
-		// letters
-		for(int i = 65; i <= 90; i++)
-			set[pos++] = (char) i;
-		
-		StringBuilder sb = new StringBuilder();
-		
-		for(int i = 0; i < 7; i++)
-			sb.append(set[r.nextInt(36)]);
-		
-		return sb.toString();
-	}
-
 }

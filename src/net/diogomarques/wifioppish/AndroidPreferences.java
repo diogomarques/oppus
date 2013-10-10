@@ -15,7 +15,7 @@ import android.preference.PreferenceManager;
 public class AndroidPreferences implements IDomainPreferences {
 
 	// FIXME switch before deployment
-	public static final boolean DEBUG = false;
+	public static final boolean DEBUG = true;
 
 	/*
 	 * Universal timeout parameter for use in debugging.

@@ -1,6 +1,7 @@
 package net.diogomarques.wifioppish;
 
 import android.content.Context;
+import android.net.wifi.WifiInfo;
 import net.diogomarques.wifioppish.IEnvironment.State;
 
 /**
@@ -24,12 +25,20 @@ public class StateScanning extends AState {
 			public void onScanTimeout() {
 				environment.deliverMessage("t_scan timeout");
 				environment.gotoState(State.Beaconing);
-				;
 			}
 
 			@Override
-			public void onAPConnection() {
-				environment.deliverMessage("connected to AP!");
+			public void onAPConnection(String bSSID) {
+				// calculate remote node ID
+				String mac = bSSID;
+				
+				if(mac != null) {
+					String remoteId = NodeIdentification.getNodeId(mac);
+					environment.deliverMessage("connected to AP! (node ID is " + remoteId + " )");
+				} else {
+					environment.deliverMessage("connected to AP!");
+				}
+				
 				environment.gotoState(State.Station);
 			}
 		});
