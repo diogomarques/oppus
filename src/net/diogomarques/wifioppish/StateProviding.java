@@ -44,7 +44,7 @@ public class StateProviding extends AState {
 			@Override
 			public void onMessageReceived(Message m) {
 				// discard self messages from appearing in log
-				if(!m.isNodeinTrace(environment.getMyNodeId()))
+				if(!environment.getMyNodeId().equals(m.getAuthor()))
 					environment.deliverMessage("message received: " + m.toString());
 			}
 		});
