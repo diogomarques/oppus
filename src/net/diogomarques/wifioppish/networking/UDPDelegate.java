@@ -80,7 +80,9 @@ public class UDPDelegate {
 	}
 
 	public void send(Message msg, OnSendListener listener) {
-		byte[] netMessage = messageToNetwork(msg); 
+		/*byte[] netMessage = messageToNetwork(msg);*/
+		String json = MessageSerializer.messageToNetwork(msg);
+		byte[] netMessage = json.getBytes();
 		
 		IDomainPreferences preferences = mEnvironment.getPreferences();
 		try {
@@ -127,7 +129,7 @@ public class UDPDelegate {
 			// blocks for t_beac
 			socket.receive(packet);
 			//String received = getMessageIn(buffer);
-			Message m = networkToMessage(buffer);
+			Message m = MessageSerializer.networkToMessage(buffer);
 			mEnvironment.pushMessage(m);
 			String received = m.toString();
 			Log.w(TAG,
@@ -166,7 +168,7 @@ public class UDPDelegate {
 				socket.setSoTimeout(timeoutMilis);
 				socket.receive(packet);
 				//String received = getMessageIn(buffer);
-				Message m = networkToMessage(buffer);
+				Message m = MessageSerializer.networkToMessage(buffer);
 				mEnvironment.pushMessage(m);
 				String received = m.toString();
 				Log.w(TAG,
@@ -217,63 +219,4 @@ public class UDPDelegate {
 			mLock.release();
 		mLock = null;
 	}
-	
-	/**
-	 * Prepares a Message envelope to be sent over the network
-	 * @param m Message to send
-	 * @return Byte buffer ready to send over a socket, or null in case of failed conversion
-	 */
-	public byte[] messageToNetwork(Message m) {
-		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		ObjectOutput out = null;
-		byte[] buffer = null;
-		
-		try {
-		  out = new ObjectOutputStream(bos); 
-		  out.writeObject(m);		  
-		  buffer = bos.toByteArray();
-		  out.close();
-		  bos.close();
-		  
-		} catch(IOException e) {
-			Log.e("messageToNetwork", "Error converting message: " + e.getMessage());			
-		} 
-		
-		return buffer;
-	}
-	
-	/**
-	 * Extracts a Message envelope from a byte array
-	 * @param buffer Byte array which contains the Message envelope
-	 * @return Message instance of extracted message, or null in case of failed extraction
-	 */
-	public Message networkToMessage(byte[] buffer) {
-		ByteArrayInputStream bis = new ByteArrayInputStream(buffer);
-		ObjectInput in = null;
-		Message message = null;
-		
-		try {
-		  in = new ObjectInputStream(bis);
-		  Object o = in.readObject(); 
-		  
-		  if( o instanceof Message )
-			  message = (Message) o;
-		  
-		  bis.close();
-		  in.close();
-		  
-		} catch (StreamCorruptedException e) {
-			Log.e("networkToMessage", "Corrupted stream: " + e.getMessage());
-			
-		} catch (IOException e) {
-			Log.e("networkToMessage", "Error converting message: " + e.getMessage());
-			
-		} catch (ClassNotFoundException e) {
-			Log.e("networkToMessage", "Class not found (different app versions?): " + e.getMessage());
-			message = null;
-		}
-
-		return message;
-	}
-
 }
