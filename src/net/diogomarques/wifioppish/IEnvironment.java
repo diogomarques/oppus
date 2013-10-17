@@ -109,4 +109,10 @@ public interface IEnvironment {
 	 * @return node ID
 	 */
 	public abstract String getMyNodeId();
+	
+	/**
+	 * Gets the current node geographical location
+	 * @return geographical location (latitude, longitude)
+	 */
+	public abstract double[] getMyLocation();
 }

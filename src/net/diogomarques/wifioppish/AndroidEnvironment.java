@@ -220,7 +220,7 @@ public class AndroidEnvironment implements IEnvironment {
 					net.diogomarques.wifioppish.networking.Message m;
 					
 					while( (m = mQueue.poll()) != null ) {
-						m.addTraceNode(myNodeID);
+						m.addTraceNode(myNodeID, System.currentTimeMillis(), getMyLocation());
 						deliverMessage("Forwarding message from " + m.getAuthor());
 						mNetworkingFacade.send(m, null);
 					}
@@ -248,5 +248,14 @@ public class AndroidEnvironment implements IEnvironment {
 	@Override
 	public String getMyNodeId() {
 		return myNodeID;
+	}
+
+	@Override
+	public double[] getMyLocation() {
+		SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
+		double lat = Double.parseDouble(sharedPref.getString("gps.lastLatitude", "0"));
+		double lon = Double.parseDouble(sharedPref.getString("gps.lastLongitude", "0"));
+		
+		return new double[] { lat, lon };
 	}
 }

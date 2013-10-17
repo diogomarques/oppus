@@ -74,15 +74,16 @@ public class StateStation extends AState {
 					};
 	
 					// Prepare message to be sent
-					SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
+					/*SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
 					double lat = Double.parseDouble(sharedPref.getString("gps.lastLatitude", "0"));
-					double lon = Double.parseDouble(sharedPref.getString("gps.lastLongitude", "0"));
+					double lon = Double.parseDouble(sharedPref.getString("gps.lastLongitude", "0"));*/
+					double[] location = environment.getMyLocation();
 					String nodeID = environment.getMyNodeId();
 									
 					Message msg = new Message(
 							"I'm alive!",
 							System.currentTimeMillis(),
-							new double[] { lat, lon },
+							location,
 							nodeID
 					);
 					

@@ -11,7 +11,8 @@ import java.util.List;
  * <p>
  * Each Message contains a string message, a timestamp indicating the 
  * original message send time, a geographical location and the node ID which created 
- * the Message.
+ * the Message. It also contains a trace which allows to know the nodes where the message 
+ * was temporarily stored.
  * 
  * <p>
  * This envelope was created to be suitable to be transmitted over a network. It 
@@ -27,11 +28,43 @@ public class Message implements Serializable {
 	 */
 	private static final long serialVersionUID = 4793280315313094725L;
 	
-	private String author;
 	private String message;
-	private long timestamp;
-	private double[] coordinates;
-	private List<String> trace;
+	private List<TraceNode> trace;
+	
+	/**
+	 * Represents an entry inside the Trace list
+	 */
+	private static class TraceNode implements Serializable {
+		
+		/**
+		 * Generated class serial number
+		 */
+		private static final long serialVersionUID = 8019775040490610392L;
+		
+		private String author;
+		private long timestamp;
+		private double[] coordinates;
+		
+		/**
+		 * Creates a new entry for the trace list
+		 * @param middleman The node id which received the message
+		 * @param timestamp The timestamp when the message was received by this node
+		 * @param coordinates The geographical coordinates associated with the node location
+		 */
+		public TraceNode(String middleman, long timestamp, double[] coordinates) {
+			super();
+			this.author = middleman;
+			this.timestamp = timestamp;
+			this.coordinates = coordinates;
+		}
+
+		@Override
+		public String toString() {
+			return "[node=" + author + ", timestamp="
+					+ timestamp + ", coordinates="
+					+ Arrays.toString(coordinates) + "]";
+		}	
+	}
 	
 	/**
 	 * Creates a new read-only Message
@@ -44,11 +77,8 @@ public class Message implements Serializable {
 	 */
 	public Message(String msg, long time, double[] coords, String node) {
 		message = msg;
-		timestamp = time;
-		coordinates = coords;
-		author = node;
-		trace = new ArrayList<String>();
-		trace.add(node);
+		trace = new ArrayList<TraceNode>();
+		trace.add(new TraceNode(node, time, coords));
 	}
 
 	/**
@@ -64,7 +94,8 @@ public class Message implements Serializable {
 	 * @return Message creation timestamp
 	 */
 	public long getTimestamp() {
-		return timestamp;
+		TraceNode first = trace.get(0);
+		return first.timestamp;
 	}
 
 	/**
@@ -72,7 +103,8 @@ public class Message implements Serializable {
 	 * @return Geographical coordinates
 	 */
 	public double[] getCoordinates() {
-		return coordinates;
+		TraceNode first = trace.get(0);
+		return first.coordinates;
 	}
 
 	/**
@@ -80,15 +112,16 @@ public class Message implements Serializable {
 	 * @return Unique node ID
 	 */
 	public String getAuthor() {
-		return author;
+		TraceNode first = trace.get(0);
+		return first.author;
 	}
 	
 	/**
 	 * Adds a node to the message trace
 	 * @param nodeID Node ID where this message arrived
 	 */
-	public void addTraceNode(String nodeID) {
-		trace.add(nodeID);
+	public void addTraceNode(String nodeID, long time, double[] coords) {
+		trace.add(new TraceNode(nodeID, time, coords));
 	}
 	
 	/**
@@ -97,38 +130,40 @@ public class Message implements Serializable {
 	 * @return True if node is in the trace, false otherwise
 	 */
 	public boolean isNodeinTrace(String node) {
-		return trace.contains(node);
+		for(TraceNode t : trace)
+			if (t.author.equals(node)) return true;
+		
+		return false;
 	}
 	
 	/**
 	 * Gets the list of nodes where this message passed by
 	 * @return Array containing the nodes, ordered by time
 	 */
-	public String[] getTrace() {
-		String[] traceArray = new String[trace.size()];
+	private TraceNode[] getTrace() {
+		TraceNode[] traceArray = new TraceNode[trace.size()];
 		int i = 0;
 		
-		for(String t : trace)
+		for(TraceNode t : trace)
 			traceArray[i++] = t;
 		
 		return traceArray;
 	}
-
+	
 	@Override
 	public String toString() {
-		return "Message [message=" + message + ", timestamp=" + timestamp
-				+ ", coordinates=" + Arrays.toString(coordinates)
-				+ ", author=" + author + ", trace=" + Arrays.toString(getTrace()) + "]";
+		return "Message [message=" + message + ", timestamp=" + getTimestamp()
+				+ ", author=" + getAuthor() + ", trace=" + Arrays.toString(getTrace()) + "]";
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((author == null) ? 0 : author.hashCode());
-		result = prime * result + Arrays.hashCode(coordinates);
+		result = prime * result + ((getAuthor() == null) ? 0 : getAuthor().hashCode());
+		result = prime * result + Arrays.hashCode(getCoordinates());
 		result = prime * result + ((message == null) ? 0 : message.hashCode());
-		result = prime * result + (int) (timestamp ^ (timestamp >>> 32));
+		result = prime * result + (int) (getTimestamp() ^ (getTimestamp() >>> 32));
 		return result;
 	}
 
@@ -141,19 +176,12 @@ public class Message implements Serializable {
 		if (getClass() != obj.getClass())
 			return false;
 		Message other = (Message) obj;
-		if (author == null) {
-			if (other.author != null)
-				return false;
-		} else if (!author.equals(other.author))
-			return false;
-		if (!Arrays.equals(coordinates, other.coordinates))
-			return false;
 		if (message == null) {
 			if (other.message != null)
 				return false;
 		} else if (!message.equals(other.message))
 			return false;
-		if (timestamp != other.timestamp)
+		if (getTimestamp() != other.getTimestamp())
 			return false;
 		return true;
 	}	
