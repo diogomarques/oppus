@@ -5,7 +5,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Locale;
 
 import android.content.Context;
-import android.location.Address;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.util.Log;
@@ -22,7 +21,7 @@ import android.util.Log;
 public class NodeIdentification {
 	
 	/**
-	 * Gets this node's Id. This methos is suitable to use once in the startup 
+	 * Gets this node's Id. This method is suitable to use once in the startup 
 	 * since it uses {@link android.net.WifiManager} to turn on Wifi and get the 
 	 * MAC address. The wifi remains enabled after the method ends
 	 * 
@@ -34,7 +33,6 @@ public class NodeIdentification {
 		manager.setWifiEnabled(true);
 		WifiInfo info = manager.getConnectionInfo();
 		String address = info.getMacAddress();
-		Log.w("NodeIdentification", "My MAC is " + address);
 		
 		return getNodeId(address);
 	}
@@ -47,7 +45,6 @@ public class NodeIdentification {
 	 */
 	public static String getNodeId(String macAddress) {
 		int maxLength = 6;
-		Log.w("NodeIdentification", "target MAC is |" + macAddress + "|");
 		
 		// normalize MAC Address
 		macAddress = macAddress.toUpperCase(Locale.US);

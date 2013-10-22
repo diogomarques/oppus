@@ -34,7 +34,8 @@ public class StateStation extends AState {
 			
 			@Override
 			public void onMessageReceived(Message m) {
-				environment.deliverMessage("message received: " + m.toString());
+				if(!m.isNodeinTrace(environment.getMyNodeId()))
+					environment.deliverMessage("message received: " + m.toString());
 			}
 			
 			@Override

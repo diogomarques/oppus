@@ -115,4 +115,9 @@ public interface IEnvironment {
 	 * @return geographical location (latitude, longitude)
 	 */
 	public abstract double[] getMyLocation();
+	
+	/**
+	 * Stores a Message received inside a log file
+	 */
+	public abstract void storeReceivedMessage(Message m);
 }

@@ -1,5 +1,6 @@
 package net.diogomarques.wifioppish;
 
+import java.io.IOException;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.Semaphore;
@@ -46,6 +47,8 @@ public class AndroidEnvironment implements IEnvironment {
 	// stats
 	private int totalReceived;
 	private int totalSent;
+	
+	private MessageDumper dumper;
 	
 	/**
 	 * Period to look for messages to forward
@@ -110,7 +113,7 @@ public class AndroidEnvironment implements IEnvironment {
 		environment.mProviding = providing;
 		environment.mScanning = scanning;
 		environment.mStation = station;
-		// allow on state transition (to the first one)
+		// allow one state transition (to the first one)
 		environment.semNextState = new Semaphore(1);
 		// allowing the gathering of shared preferences
 		environment.context = c;
@@ -123,7 +126,13 @@ public class AndroidEnvironment implements IEnvironment {
 		environment.mQueue = new ConcurrentForwardingQueue();
 		environment.forwardMessages();
 		// stats 
-		environment.totalReceived = environment.totalSent = 0; 
+		environment.totalReceived = environment.totalSent = 0;
+		// message dumper
+		try {
+			environment.dumper = new MessageDumper("msg-dump");
+		} catch (IOException e) {
+			Log.e("AndroidEnvironment", "Cannot start Dumper: " + e.getMessage());
+		}
 		
 		return environment;
 	}
@@ -257,5 +266,15 @@ public class AndroidEnvironment implements IEnvironment {
 		double lon = Double.parseDouble(sharedPref.getString("gps.lastLongitude", "0"));
 		
 		return new double[] { lat, lon };
+	}
+
+	@Override
+	public void storeReceivedMessage(
+			net.diogomarques.wifioppish.networking.Message m) {
+		try {
+			dumper.addMessage(m);
+		} catch (IOException e) {
+			Log.e("AndroidEnvironment", "Cannot store message into Dumper: " + e.getMessage());
+		}
 	}
 }
