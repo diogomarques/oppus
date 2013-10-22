@@ -171,6 +171,7 @@ public class MainActivity extends Activity {
 		mEnvironment.deliverMessage("my node ID is " + id);
 		
 		location = new LocationProvider(this);
+		location.startLocationDiscovery();
 	}
 
 	String getCurrentBuffer() {

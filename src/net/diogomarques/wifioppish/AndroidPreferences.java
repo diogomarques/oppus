@@ -15,12 +15,12 @@ import android.preference.PreferenceManager;
 public class AndroidPreferences implements IDomainPreferences {
 
 	// FIXME switch before deployment
-	public static final boolean DEBUG = false;
+	public static final boolean DEBUG = true;
 
 	/*
 	 * Universal timeout parameter for use in debugging.
 	 */
-	int debugMinTimeMilis = 1000 * 15;
+	int debugMinTimeMilis = 1000 * 30;
 
 	// Dependencies
 	private Context mContext;

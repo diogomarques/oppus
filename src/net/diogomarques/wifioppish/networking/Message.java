@@ -152,8 +152,7 @@ public class Message implements Serializable {
 	
 	@Override
 	public String toString() {
-		return "Message [message=" + message + ", timestamp=" + getTimestamp()
-				+ ", author=" + getAuthor() + ", trace=" + Arrays.toString(getTrace()) + "]";
+		return "Message [message=" + message + ", trace=" + Arrays.toString(getTrace()) + "]";
 	}
 
 	@Override

@@ -80,9 +80,7 @@ public class UDPDelegate {
 	}
 
 	public void send(Message msg, OnSendListener listener) {
-		/*byte[] netMessage = messageToNetwork(msg);*/
-		String json = MessageSerializer.messageToNetwork(msg);
-		byte[] netMessage = json.getBytes();
+		byte[] netMessage = MessageSerializer.messageToNetwork(msg);
 		
 		IDomainPreferences preferences = mEnvironment.getPreferences();
 		try {
@@ -131,6 +129,7 @@ public class UDPDelegate {
 			//String received = getMessageIn(buffer);
 			Message m = MessageSerializer.networkToMessage(buffer);
 			mEnvironment.pushMessage(m);
+			mEnvironment.storeReceivedMessage(m);
 			String received = m.toString();
 			Log.w(TAG,
 					"Received packet! " + received + " from "
@@ -170,6 +169,7 @@ public class UDPDelegate {
 				//String received = getMessageIn(buffer);
 				Message m = MessageSerializer.networkToMessage(buffer);
 				mEnvironment.pushMessage(m);
+				mEnvironment.storeReceivedMessage(m);
 				String received = m.toString();
 				Log.w(TAG,
 						"Received packet! " + received + " from "
