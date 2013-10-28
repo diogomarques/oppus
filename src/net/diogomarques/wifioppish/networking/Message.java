@@ -150,6 +150,30 @@ public class Message implements Serializable {
 		return traceArray;
 	}
 	
+	/**
+	 * Gets the CSV (Comma Separated Values) for this message
+	 * @return String containing information about the Message in CSV format
+	 */
+	public String getMessageCsv() {
+		StringBuilder sb = new StringBuilder("\"" + getMessage() + "\";");
+		
+		for(TraceNode tn : getTrace())
+			sb.append(
+				String.format(
+					"%s;%s;%s,%s;",
+					tn.author,
+					String.valueOf(tn.timestamp),
+					String.valueOf(tn.coordinates[0]),
+					String.valueOf(tn.coordinates[1])
+				)
+			);
+			
+		// remove last semicolon
+		sb.deleteCharAt(sb.length() - 1);
+		
+		return sb.toString();
+	}
+	
 	@Override
 	public String toString() {
 		return "Message [message=" + message + ", trace=" + Arrays.toString(getTrace()) + "]";

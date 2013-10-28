@@ -75,10 +75,10 @@ public class TextLog {
 		if (timestamp != -1)
 			c.setTimeInMillis(timestamp);
 		
-		SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMdd HHmmss.SSS", Locale.US);
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMdd;HHmmssSSS", Locale.US);
 		sb.append(formatter.format(c.getTime()));
-		sb.append("\t");
-		sb.append(line);
+		sb.append(";");
+		sb.append("\"" + line + "\"");
 		sb.append("\r\n");
 		
 		fos.write(sb.toString().getBytes());

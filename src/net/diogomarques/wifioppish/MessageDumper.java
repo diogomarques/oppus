@@ -20,7 +20,7 @@ import net.diogomarques.wifioppish.networking.Message;
 public class MessageDumper {
 	
 	private FileOutputStream fos; 
-	private final String LINE_BREAK = "\n"; 
+	private final String LINE_BREAK = "\r\n"; 
 	
 	/**
 	 * Creates a new instance of this Message Dumper
@@ -47,7 +47,7 @@ public class MessageDumper {
 	 * @throws IOException File inaccessible, SD card removed
 	 */
 	public void addMessage(Message m) throws IOException {
-		fos.write(m.toString().getBytes());
+		fos.write(m.getMessageCsv().getBytes());
 		fos.write(LINE_BREAK.getBytes());
 		fos.flush();
 	}

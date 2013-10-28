@@ -1,13 +1,6 @@
 package net.diogomarques.wifioppish.networking;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutput;
-import java.io.ObjectOutputStream;
-import java.io.StreamCorruptedException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -15,16 +8,13 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.Date;
-import java.util.concurrent.LinkedBlockingQueue;
 
 import net.diogomarques.wifioppish.ConcurrentForwardingQueue;
 import net.diogomarques.wifioppish.IDomainPreferences;
 import net.diogomarques.wifioppish.IEnvironment;
 import net.diogomarques.wifioppish.INetworkingFacade.OnReceiveListener;
 import net.diogomarques.wifioppish.INetworkingFacade.OnSendListener;
-import net.diogomarques.wifioppish.LocationProvider;
 import android.content.Context;
-import android.location.Location;
 import android.net.DhcpInfo;
 import android.net.wifi.WifiManager;
 import android.net.wifi.WifiManager.MulticastLock;
@@ -109,12 +99,6 @@ public class UDPDelegate {
 				listener.onSendError("Freak IO exception\n\t" + e.getMessage());
 			}
 		}
-	}
-
-	private String getMessageIn(byte[] buffer) {
-		String msg = new String(buffer);
-		msg = msg.substring(0, msg.indexOf(MSG_EOT));
-		return msg;
 	}
 
 	public void receiveFirst(int timeoutMilis, OnReceiveListener listener) {
