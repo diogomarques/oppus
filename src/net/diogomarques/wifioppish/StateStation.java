@@ -5,8 +5,7 @@ import net.diogomarques.wifioppish.IEnvironment.State;
 import net.diogomarques.wifioppish.INetworkingFacade.OnSendListener;
 import net.diogomarques.wifioppish.networking.Message;
 import android.content.Context;
-import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
+import android.util.Log;
 
 
 /**
@@ -22,6 +21,9 @@ public class StateStation extends AState {
 
 	@Override
 	public void start(int timeout, Context c) {
+		
+		Log.w("Machine State", "Station");
+		
 		context = c;
 		environment.deliverMessage("entered station state");
 		final INetworkingFacade networking = environment.getNetworkingFacade();
@@ -34,8 +36,16 @@ public class StateStation extends AState {
 			
 			@Override
 			public void onMessageReceived(Message m) {
-				if(!m.isNodeinTrace(environment.getMyNodeId()))
+				// discard cycling messages from appearing in log
+				if(!m.isNodeinTrace(environment.getMyNodeId())) {
+					// stamp the message on arrival
+					m.addTraceNode(
+							environment.getMyNodeId(),
+							System.currentTimeMillis(),
+							environment.getMyLocation()
+					);
 					environment.deliverMessage("message received: " + m.toString());
+				}
 			}
 			
 			@Override
@@ -75,9 +85,6 @@ public class StateStation extends AState {
 					};
 	
 					// Prepare message to be sent
-					/*SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
-					double lat = Double.parseDouble(sharedPref.getString("gps.lastLatitude", "0"));
-					double lon = Double.parseDouble(sharedPref.getString("gps.lastLongitude", "0"));*/
 					double[] location = environment.getMyLocation();
 					String nodeID = environment.getMyNodeId();
 									

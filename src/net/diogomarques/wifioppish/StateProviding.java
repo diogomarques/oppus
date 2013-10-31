@@ -1,6 +1,7 @@
 package net.diogomarques.wifioppish;
 
 import android.content.Context;
+import android.util.Log;
 import net.diogomarques.wifioppish.IEnvironment.State;
 import net.diogomarques.wifioppish.networking.Message;
 
@@ -17,6 +18,9 @@ public class StateProviding extends AState {
 
 	@Override
 	public void start(int timeout, Context c) {
+		
+		Log.w("Machine State", "Providing");
+		
 		final INetworkingFacade networking = environment.getNetworkingFacade();
 		environment.deliverMessage("entered providing state");
 
@@ -43,6 +47,13 @@ public class StateProviding extends AState {
 
 			@Override
 			public void onMessageReceived(Message m) {
+				// stamp message on arrival
+				m.addTraceNode(
+						environment.getMyNodeId(),
+						System.currentTimeMillis(),
+						environment.getMyLocation()
+				);
+				
 				// discard self messages from appearing in log
 				if(!environment.getMyNodeId().equals(m.getAuthor()))
 					environment.deliverMessage("message received: " + m.toString());

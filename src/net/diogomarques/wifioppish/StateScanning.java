@@ -1,8 +1,8 @@
 package net.diogomarques.wifioppish;
 
-import android.content.Context;
-import android.net.wifi.WifiInfo;
 import net.diogomarques.wifioppish.IEnvironment.State;
+import android.content.Context;
+import android.util.Log;
 
 /**
  * Android implementation of state {@link IEnvironment.State#Scanning}
@@ -17,6 +17,9 @@ public class StateScanning extends AState {
 
 	@Override
 	public void start(int timeout, Context c) {
+		
+		Log.w("Machine State", "Scanning");
+		
 		final INetworkingFacade networking = environment.getNetworkingFacade();
 		environment.deliverMessage("entered scanning state");		
 		networking.scanForAP(timeout, new INetworkingFacade.OnAccessPointScanListener() {

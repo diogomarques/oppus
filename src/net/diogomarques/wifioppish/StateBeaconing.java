@@ -1,6 +1,7 @@
 package net.diogomarques.wifioppish;
 
 import android.content.Context;
+import android.util.Log;
 import net.diogomarques.wifioppish.IEnvironment.State;
 import net.diogomarques.wifioppish.networking.Message;
 
@@ -10,8 +11,6 @@ import net.diogomarques.wifioppish.networking.Message;
  * @author Diogo Marques <diogohomemmarques@gmail.com>
  */
 public class StateBeaconing extends AState {
-	
-	private Context context;
 
 	public StateBeaconing(IEnvironment environment) {
 		super(environment);
@@ -19,6 +18,9 @@ public class StateBeaconing extends AState {
 
 	@Override
 	public void start(int timeout, Context c) {
+		
+		Log.w("Machine State", "Beaconing");
+		
 		final INetworkingFacade networking = environment.getNetworkingFacade();
 		environment.deliverMessage("entered beaconing state");
 		environment.deliverMessage("(re) starting AP");
