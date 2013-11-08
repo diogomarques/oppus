@@ -2,7 +2,6 @@ package net.diogomarques.wifioppish.networking;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -99,6 +98,7 @@ public class WiFiDelegate {
 				if (bestSignal != null) {
 					Log.w(TAG, "Settled for AP with signal  "
 							+ bestSignal.level);
+					Log.w(TAG, "Best BSSID: |" + bestSignal.BSSID + "|");
 					WifiConfiguration configuration = androidNetworkingFacade
 							.getWifiSoftAPConfiguration();
 					configuration.SSID = "\"" + configuration.SSID + "\"";
@@ -117,7 +117,7 @@ public class WiFiDelegate {
 					Log.w(TAG, "reconnect -> " + reconnect);
 					safeUnregisterReceiver(this);
 					connected.set(true);
-					listener.onAPConnection();
+					listener.onAPConnection(bestSignal.BSSID);
 				}
 			}
 		};

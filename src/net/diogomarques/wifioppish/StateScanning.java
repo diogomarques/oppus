@@ -1,6 +1,8 @@
 package net.diogomarques.wifioppish;
 
 import net.diogomarques.wifioppish.IEnvironment.State;
+import android.content.Context;
+import android.util.Log;
 
 /**
  * Android implementation of state {@link IEnvironment.State#Scanning}
@@ -14,7 +16,10 @@ public class StateScanning extends AState {
 	}
 
 	@Override
-	public void start(int timeout) {
+	public void start(int timeout, Context c) {
+		
+		Log.w("Machine State", "Scanning");
+		
 		final INetworkingFacade networking = environment.getNetworkingFacade();
 		environment.deliverMessage("entered scanning state");		
 		networking.scanForAP(timeout, new INetworkingFacade.OnAccessPointScanListener() {
@@ -23,12 +28,20 @@ public class StateScanning extends AState {
 			public void onScanTimeout() {
 				environment.deliverMessage("t_scan timeout");
 				environment.gotoState(State.Beaconing);
-				;
 			}
 
 			@Override
-			public void onAPConnection() {
-				environment.deliverMessage("connected to AP!");
+			public void onAPConnection(String bSSID) {
+				// calculate remote node ID
+				String mac = bSSID;
+				
+				if(mac != null) {
+					String remoteId = NodeIdentification.getNodeId(mac);
+					environment.deliverMessage("connected to AP! (node ID is " + remoteId + " )");
+				} else {
+					environment.deliverMessage("connected to AP!");
+				}
+				
 				environment.gotoState(State.Station);
 			}
 		});

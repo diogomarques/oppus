@@ -1,8 +1,17 @@
 package net.diogomarques.wifioppish;
 
+import java.io.IOException;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.Semaphore;
+
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.preference.PreferenceManager;
+import android.util.Log;
 
 /**
  * An Android-specific implementation of the state machine environment. To
@@ -26,6 +35,25 @@ public class AndroidEnvironment implements IEnvironment {
 	private StateScanning mScanning;
 	private StateStation mStation;
 	private State mCurrentState;
+	
+	private State nextState;
+	private Semaphore semNextState;
+	private Context context;
+	
+	private ConcurrentForwardingQueue mQueue;
+	
+	private String myNodeID;
+	
+	// stats
+	private int totalReceived;
+	private int totalSent;
+	
+	private MessageDumper dumper;
+	
+	/**
+	 * Period to look for messages to forward
+	 */
+	private final int FORWARD_PERIOD = 1000;
 
 	/**
 	 * Constructor with all dependencies. Use
@@ -56,8 +84,7 @@ public class AndroidEnvironment implements IEnvironment {
 	/**
 	 * Convenience constructor for {@link #createInstance(Context, Handler)}.
 	 */
-	private AndroidEnvironment() {
-	}
+	private AndroidEnvironment() { }
 
 	/**
 	 * Static factory that creates instances of state machine environments.
@@ -86,6 +113,27 @@ public class AndroidEnvironment implements IEnvironment {
 		environment.mProviding = providing;
 		environment.mScanning = scanning;
 		environment.mStation = station;
+		// allow one state transition (to the first one)
+		environment.semNextState = new Semaphore(1);
+		// allowing the gathering of shared preferences
+		environment.context = c;
+		// save the node ID
+		SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(c);
+		String nodeID = sharedPref.getString("nodeID", "unknown");
+		environment.myNodeID = nodeID;
+		Log.w("NodeID", "My node id is: " + environment.myNodeID);
+		// start forwarding task
+		environment.mQueue = new ConcurrentForwardingQueue();
+		environment.forwardMessages();
+		// stats 
+		environment.totalReceived = environment.totalSent = 0;
+		// message dumper
+		try {
+			environment.dumper = new MessageDumper("msg-dump");
+		} catch (IOException e) {
+			Log.e("AndroidEnvironment", "Cannot start Dumper: " + e.getMessage());
+		}
+		
 		return environment;
 	}
 
@@ -106,30 +154,127 @@ public class AndroidEnvironment implements IEnvironment {
 
 	@Override
 	public void deliverMessage(String msg) {
-		mHandler.sendMessage(Message.obtain(mHandler, 0, msg));
+		mHandler.sendMessage(Message.obtain(mHandler, MainActivity.ConsoleHandler.LOG_MSG, msg));
 	}
 
 	@Override
 	public void gotoState(State state) {
-		mCurrentState = state;
-		AState next = null;
-		switch (state) {
-		case Beaconing:
-			next = mBeaconing;
-			next.start(mPreferences.getTBeac());
-			break;
-		case Providing:
-			next = mProviding;
-			next.start(mPreferences.getTPro());
-			break;
-		case Scanning:
-			next = mScanning;
-			next.start(mPreferences.getTScan());
-			break;
-		case Station:
-			next = mStation;
-			next.start(mPreferences.getTCon());
-			break;
+		semNextState.release();
+		nextState = state;
+		mHandler.sendMessage(Message.obtain(mHandler, MainActivity.ConsoleHandler.ROLE, state.toString()));
+	}
+
+	@Override
+	public void startStateLoop(State first) {
+		nextState = first;
+		mHandler.sendMessage(Message.obtain(mHandler, MainActivity.ConsoleHandler.ROLE, first.toString()));
+		
+		while (true) {
+			
+			try {
+				semNextState.acquire();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			
+			mCurrentState = nextState;
+			AState next = null;
+			int timeout = 0;
+			switch (nextState) {
+			case Beaconing:
+				next = mBeaconing;
+				timeout = mPreferences.getTBeac();
+				break;
+			case Providing:
+				next = mProviding;
+				timeout = mPreferences.getTPro();
+				break;
+			case Scanning:
+				next = mScanning;
+				timeout = mPreferences.getTScan();
+				break;
+			case Station:
+				next = mStation;
+				timeout = mPreferences.getTCon();
+				break;
+			}
+			
+			synchronized(next) {
+				next.start(timeout, context);
+			}
+		}
+		
+	}
+
+	@Override
+	public void pushMessage(net.diogomarques.wifioppish.networking.Message m) {
+		// don't forward messages sent by this node
+		if(!m.isNodeinTrace(myNodeID)) {
+			mQueue.add(m);
+			Log.w("ForwardingQueue", "New message to queue: " + m + " (received by " + myNodeID + ")");
+		}
+	}
+
+	@Override
+	public boolean hasMessages() {
+		return !mQueue.isEmpty();
+	}
+	
+	private void forwardMessages() {
+		TimerTask job = new TimerTask() {
+			
+			@Override
+			public void run() {
+				if(!mQueue.isEmpty()) {
+					net.diogomarques.wifioppish.networking.Message m;
+					
+					while( (m = mQueue.poll()) != null ) {
+						m.addTraceNode(myNodeID, System.currentTimeMillis(), getMyLocation());
+						deliverMessage("Forwarding message from " + m.getAuthor());
+						mNetworkingFacade.send(m, null);
+					}
+				}
+			}
+		};
+		
+		
+		Timer timer = new Timer();
+		timer.schedule(job, 1000, FORWARD_PERIOD);
+	}
+
+	@Override
+	public void updateStats(int sent, int received) {
+		totalSent += sent;
+		totalReceived += received;
+		
+		Message stats = Message.obtain(mHandler, MainActivity.ConsoleHandler.MSG_COUNT);
+		Bundle b = new Bundle();
+		b.putIntArray("stats", new int[] { totalSent, totalReceived });
+		stats.setData(b);
+		mHandler.sendMessage(stats);
+	}
+
+	@Override
+	public String getMyNodeId() {
+		return myNodeID;
+	}
+
+	@Override
+	public double[] getMyLocation() {
+		SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
+		double lat = Double.parseDouble(sharedPref.getString("gps.lastLatitude", "0"));
+		double lon = Double.parseDouble(sharedPref.getString("gps.lastLongitude", "0"));
+		
+		return new double[] { lat, lon };
+	}
+
+	@Override
+	public void storeReceivedMessage(
+			net.diogomarques.wifioppish.networking.Message m) {
+		try {
+			dumper.addMessage(m);
+		} catch (IOException e) {
+			Log.e("AndroidEnvironment", "Cannot store message into Dumper: " + e.getMessage());
 		}
 	}
 }

@@ -1,5 +1,6 @@
 package net.diogomarques.wifioppish;
 
+import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -7,11 +8,15 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
+import android.content.pm.ActivityInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.preference.PreferenceManager;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -32,6 +37,22 @@ public class MainActivity extends Activity {
 	 * An handler that prints received messages to the console.
 	 */
 	static class ConsoleHandler extends Handler {
+		
+		/**
+		 * Log line to show in the log window
+		 */
+		public static final int LOG_MSG = 800;
+		
+		/**
+		 * The node role (Beaconing, Providing, Scanning, Station) was changed
+		 */
+		public static final int ROLE = 801;
+			
+		/**
+		 * The total of messages received + sent was changed
+		 */
+		public static final int MSG_COUNT = 802;
+		
 		final WeakReference<MainActivity> mActivity;
 
 		ConsoleHandler(MainActivity act) {
@@ -40,24 +61,67 @@ public class MainActivity extends Activity {
 
 		@Override
 		public void handleMessage(Message msg) {
-			String txt = (String) msg.obj;
-			if (mActivity.get() != null) // lifecycle not ended
-				mActivity.get().addTextToConsole(txt);
+			
+			final MainActivity activity = mActivity.get();
+			
+			if (activity != null) {
+				
+				if(msg.what == ROLE) {
+					final String role = (String) msg.obj;
+					activity.mTextMyID.post(new Runnable() {
+						
+						@Override
+						public void run() {
+							activity.mTextRole.setText(role);
+						}
+					});
+					
+				} else if(msg.what == MSG_COUNT) {
+					final int[] stats = msg.getData().getIntArray("stats");
+					activity.mTextMsgStats.post(new Runnable() {
+						
+						@Override
+						public void run() {
+							activity.mTextMsgStats.setText(
+									String.format(
+											"S: %d / R: %d",
+											stats[0],
+											stats[1]
+									)
+							);
+						}
+					});
+					
+				} else if(msg.what == LOG_MSG) {
+					String txt = (String) msg.obj;
+					activity.addTextToConsole(txt);
+				}
+			}
+			
 		}
 	}
 
 	private static final int DEFAULT_CONSOLE_LINES = 120;
+	
+	private static 
 
 	TextView mConsoleTextView;
 	Button mStartButton;
 	ScrollView mScrollView;
+	TextView mTextMyID;
+	TextView mTextRole;
+	TextView mTextMsgStats;
 	IEnvironment mEnvironment;
 	ConsoleHandler mHandler;
 	LinkedBlockingQueue<String> mConsoleBuffer;
+	TextLog log;
+	LocationProvider location;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		// Force portrait view
+		setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT); 
 		setContentView(R.layout.activity_main);
 		// reset prefs to default
 		if (AndroidPreferences.DEBUG)
@@ -65,6 +129,12 @@ public class MainActivity extends Activity {
 					.commit();
 		// load default preferences
 		PreferenceManager.setDefaultValues(this, R.xml.preferences, true);
+		//  generate unique ID for this node
+		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
+		Editor prefEditor = sp.edit();
+		String id = NodeIdentification.getMyNodeId(this);
+		prefEditor.putString("nodeID", id);
+		prefEditor.commit();
 		// build state
 		mConsoleBuffer = new LinkedBlockingQueue<String>(DEFAULT_CONSOLE_LINES);
 		mHandler = new ConsoleHandler(this);
@@ -80,7 +150,22 @@ public class MainActivity extends Activity {
 			public void onClick(View v) {
 				processStart();
 			}
-		});		
+		});	
+		mTextMyID = (TextView) findViewById(R.id.txtMyID);
+		mTextRole = (TextView) findViewById(R.id.txtRole);
+		mTextMsgStats = (TextView) findViewById(R.id.txtMsgStats);
+		
+		try {
+			log = new TextLog();
+		} catch (IOException e) {
+			Log.e("TextLog", "External Storage not available");
+		}
+		
+		mTextMyID.setText(id);
+		mEnvironment.deliverMessage("my node ID is " + id);
+		
+		location = new LocationProvider(this);
+		location.startLocationDiscovery();
 	}
 
 	String getCurrentBuffer() {
@@ -113,7 +198,7 @@ public class MainActivity extends Activity {
 
 			@Override
 			protected Void doInBackground(Void... params) {
-				mEnvironment.gotoState(mEnvironment.getPreferences()
+				mEnvironment.startStateLoop(mEnvironment.getPreferences()
 						.getStartState());
 				return null;
 			}
@@ -126,6 +211,12 @@ public class MainActivity extends Activity {
 			public void run() {
 				addToBufferWithTimestamp(txt);
 				mConsoleTextView.setText(getCurrentBuffer());
+				try {
+					if(log != null)
+						log.storeLine(txt);
+				} catch (IOException e) {
+					Log.e("TextLog", "Cannot write to log file: " + e.getMessage());
+				}
 			}
 		});
 	}
@@ -149,5 +240,5 @@ public class MainActivity extends Activity {
 		}
 		return super.onOptionsItemSelected(item);
 	}
-
+	
 }

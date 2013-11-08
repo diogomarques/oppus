@@ -20,7 +20,7 @@ public class AndroidPreferences implements IDomainPreferences {
 	/*
 	 * Universal timeout parameter for use in debugging.
 	 */
-	int debugMinTimeMilis = 1000 * 15;
+	int debugMinTimeMilis = 1000 * 30;
 
 	// Dependencies
 	private Context mContext;

@@ -9,6 +9,7 @@ import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.Date;
 
+import net.diogomarques.wifioppish.ConcurrentForwardingQueue;
 import net.diogomarques.wifioppish.IDomainPreferences;
 import net.diogomarques.wifioppish.IEnvironment;
 import net.diogomarques.wifioppish.INetworkingFacade.OnReceiveListener;
@@ -37,6 +38,8 @@ public class UDPDelegate {
 	 * Single UDP socket for messaging i/o
 	 */
 	private DatagramSocket mSocket;
+	
+	protected ConcurrentForwardingQueue mQueue;
 
 	/* Dependencies */
 	private final Context mContext;
@@ -45,6 +48,7 @@ public class UDPDelegate {
 	public UDPDelegate(Context context, IEnvironment environment) {
 		mContext = context;
 		mEnvironment = environment;
+		mQueue = new ConcurrentForwardingQueue();
 	}
 
 	private InetAddress getBroadcastAddress() throws UnknownHostException {
@@ -65,36 +69,36 @@ public class UDPDelegate {
 	    return InetAddress.getByAddress(quads);
 	}
 
-	public void send(String msg, OnSendListener listener) {
-		msg = msg + MSG_EOT;
+	public void send(Message msg, OnSendListener listener) {
+		byte[] netMessage = MessageSerializer.messageToNetwork(msg);
+		
 		IDomainPreferences preferences = mEnvironment.getPreferences();
 		try {
-			DatagramPacket packet = new DatagramPacket(msg.getBytes(),
-					msg.length(), getBroadcastAddress(), preferences.getPort());
+			DatagramPacket packet = new DatagramPacket(netMessage,
+					netMessage.length, getBroadcastAddress(), preferences.getPort());
 			getBroadcastSocket().send(packet);
-			listener.onMessageSent(msg);
+			if(listener != null)
+				listener.onMessageSent(msg.toString());	
+			
+			mEnvironment.updateStats(1, 0);
 		} catch (UnknownHostException e) {
 			listener.onSendError("Unknown host\n\t" + e.getMessage());
 		} catch (SocketException e) {
 			// Connection to softAP not available
 			Log.w(TAG, e.getMessage(), e);
-			listener.onSendError("lost connection to AP\n\t" + e.getMessage());
+			if(listener != null)
+				listener.onSendError("lost connection to AP\n\t" + e.getMessage());
 		} catch (IOException e) {
 			// wtf - e comes up null sometimes
 			if (e != null) {
 				Log.e(TAG, e.getMessage(), e);
-				listener.onSendError(e.getMessage());
+				if(listener != null)
+					listener.onSendError(e.getMessage());
 
-			} else {
+			} else if(listener != null) {
 				listener.onSendError("Freak IO exception\n\t" + e.getMessage());
 			}
 		}
-	}
-
-	private String getMessageIn(byte[] buffer) {
-		String msg = new String(buffer);
-		msg = msg.substring(0, msg.indexOf(MSG_EOT));
-		return msg;
 	}
 
 	public void receiveFirst(int timeoutMilis, OnReceiveListener listener) {
@@ -106,13 +110,18 @@ public class UDPDelegate {
 
 			// blocks for t_beac
 			socket.receive(packet);
-			String received = getMessageIn(buffer);
+			//String received = getMessageIn(buffer);
+			Message m = MessageSerializer.networkToMessage(buffer);
+			mEnvironment.pushMessage(m);
+			mEnvironment.storeReceivedMessage(m);
+			String received = m.toString();
 			Log.w(TAG,
 					"Received packet! " + received + " from "
 							+ packet.getAddress().getHostAddress() + ":"
 							+ packet.getPort());
 			releaseBroadcastSocket();
-			listener.onMessageReceived(received);
+			listener.onMessageReceived(m);
+			mEnvironment.updateStats(0, 1);
 		} catch (SocketTimeoutException e) {
 			// t_beac timed out, go to scanning
 			releaseBroadcastSocket();
@@ -141,14 +150,18 @@ public class UDPDelegate {
 				// blocks for t_beac
 				socket.setSoTimeout(timeoutMilis);
 				socket.receive(packet);
-				String received = getMessageIn(buffer);
+				//String received = getMessageIn(buffer);
+				Message m = MessageSerializer.networkToMessage(buffer);
+				mEnvironment.pushMessage(m);
+				mEnvironment.storeReceivedMessage(m);
+				String received = m.toString();
 				Log.w(TAG,
 						"Received packet! " + received + " from "
 								+ packet.getAddress().getHostAddress() + ":"
 								+ packet.getPort());
 				releaseBroadcastSocket();
-				listener.onMessageReceived(received);
-
+				listener.onMessageReceived(m);
+				mEnvironment.updateStats(0, 1);
 			}
 		} catch (SocketTimeoutException e) {
 			// no connections received
@@ -190,5 +203,4 @@ public class UDPDelegate {
 			mLock.release();
 		mLock = null;
 	}
-
 }

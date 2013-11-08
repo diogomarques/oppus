@@ -1,5 +1,8 @@
 package net.diogomarques.wifioppish;
 
+import android.net.wifi.WifiInfo;
+import net.diogomarques.wifioppish.networking.Message;
+
 /**
  * The interface for networking control, defining operations and respective
  * callbacks.
@@ -48,6 +51,14 @@ public interface INetworkingFacade {
 		 *            the message that was received.
 		 */
 		public void onMessageReceived(String msg);
+
+		/**
+		 * Callback to be invoked when a message is received.
+		 * 
+		 * @param msg
+		 *            the message in the envelope format that was received.
+		 */
+		public void onMessageReceived(Message m);
 	}
 
 	/**
@@ -62,8 +73,11 @@ public interface INetworkingFacade {
 
 		/**
 		 * Callback to be invoked when connection to AP is successful.
+		 * 
+		 * @param bSSID
+		 * 				BSSID (MAC address) of the remote AP
 		 */
-		public void onAPConnection();
+		public void onAPConnection(String bSSID);
 	}
 
 	/**
@@ -84,7 +98,7 @@ public interface INetworkingFacade {
 	 * @param listener
 	 *            a listener for send-related events.
 	 */
-	public void send(String msg, OnSendListener listener);
+	public void send(Message msg, OnSendListener listener);
 
 	/**
 	 * Receive the first message available on a shared channel, if it comes
