@@ -1,5 +1,7 @@
 package net.diogomarques.wifioppish.sensors;
 
+import android.content.Context;
+
 /**
  * Interface that defines a basic sensor.
  * 
@@ -7,6 +9,12 @@ package net.diogomarques.wifioppish.sensors;
  * 
  */
 public interface ISensor {
+	
+	/**
+	 * Tells the sensor to start obtaining data
+	 * @param c Android Context
+	 */
+	public void startSensor(Context c);
 
 	/**
 	 * Gets the current value of this sensor

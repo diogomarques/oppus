@@ -21,7 +21,7 @@ public interface IIntervalSensor extends ISensor {
 	 * Tells the sensor to start a new interval, possibly 
 	 * dicarding old data. Depending on sensor implementation, 
 	 * it could be useful to save data from previous interval 
-	 * using {@link #getCurrentValue()}
+	 * using {@link #getCurrentValue()} as it may be deleted.
 	 */
 	public void resetInterval();
 }
