@@ -1,4 +1,4 @@
-package net.diogomarques.wifioppish;
+package net.diogomarques.wifioppish.logging;
 
 import java.io.File;
 import java.io.FileOutputStream;

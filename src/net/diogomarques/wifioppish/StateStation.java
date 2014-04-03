@@ -28,36 +28,9 @@ public class StateStation extends AState {
 		environment.deliverMessage("entered station state");
 		final INetworkingFacade networking = environment.getNetworkingFacade();
 		
-		// listen for message from neighbors
-		networking.receive(environment.getPreferences().getTCon(), new INetworkingFacade.OnReceiveListener() {
-			
-			@Override
-			public void onReceiveTimeout(boolean forced) { }
-			
-			@Override
-			public void onMessageReceived(Message m) {
-				// discard cycling messages from appearing in log
-				if(!m.isNodeinTrace(environment.getMyNodeId())) {
-					// stamp the message on arrival
-					m.addTraceNode(
-							environment.getMyNodeId(),
-							System.currentTimeMillis(),
-							environment.getMyLocation()
-					);
-					environment.deliverMessage("message received: " + m.toString());
-				}
-			}
-			
-			@Override
-			public void onMessageReceived(String msg) {
-				environment.deliverMessage("message received: " + msg);
-			}
-		});
-		
-		
 		// send messages for the network
 		// TODO: adjust period
-		int period = 1000;
+		int period = 1000; 
 		new CountDownTimer(environment.getPreferences().getTCon(), period) {
 
 			private boolean sentOnce = false;

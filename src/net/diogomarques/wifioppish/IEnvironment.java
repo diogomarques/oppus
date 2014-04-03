@@ -36,7 +36,11 @@ public interface IEnvironment {
 		/**
 		 * Being connected to an access point.
 		 */
-		Station;
+		Station,
+		/**
+		 * Internet is avaliable
+		 */
+		Internet;
 	}
 
 	/**
