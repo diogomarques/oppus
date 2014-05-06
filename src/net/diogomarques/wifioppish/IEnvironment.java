@@ -51,6 +51,18 @@ public interface IEnvironment {
 	 *            a textual message
 	 */
 	public void deliverMessage(String msg);
+	
+	/**
+	 * An helper for internal components to deliver object updates to the 
+	 * environment.
+	 * 
+	 * @param object
+	 * 			the object to be shared
+	 * @param code
+	 * 			common code between the receiver and the sender, representing
+	 * 			the operation which could be started
+	 */
+	public void deliverCustomMessage(Object object, int code);
 
 	/**
 	 * Schedules a transition to a new state.
@@ -93,7 +105,13 @@ public interface IEnvironment {
 	 * Pushes a Message to the forwarding queue
 	 * @param m Message to push to the end of queue 
 	 */
-	public abstract void pushMessage(Message m);
+	public abstract void pushMessageToQueue(Message m);
+	
+	/**
+	 * Gets all Messages from the sending queue, and then empties the queue
+	 * @return Array of Messages to be sent
+	 */
+	public abstract net.diogomarques.wifioppish.networking.Message[] fetchMessagesFromQueue();
 	
 	/**
 	 * Checks of the queue has messages
@@ -124,4 +142,11 @@ public interface IEnvironment {
 	 * Stores a Message received inside a log file
 	 */
 	public abstract void storeReceivedMessage(Message m);
+	
+	/**
+	 * Creates a Message containing a custom text, ready to be sent 
+	 * over the network.
+	 * @param contents Custom text to append to this message
+	 */
+	public abstract Message createTextMessage(String contents);
 }

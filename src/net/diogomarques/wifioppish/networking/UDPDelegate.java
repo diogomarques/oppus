@@ -78,7 +78,7 @@ public class UDPDelegate {
 					netMessage.length, getBroadcastAddress(), preferences.getPort());
 			getBroadcastSocket().send(packet);
 			if(listener != null)
-				listener.onMessageSent(msg.toString());	
+				listener.onMessageSent(msg);	
 			
 			mEnvironment.updateStats(1, 0);
 		} catch (UnknownHostException e) {
@@ -112,7 +112,7 @@ public class UDPDelegate {
 			socket.receive(packet);
 			//String received = getMessageIn(buffer);
 			Message m = MessageSerializer.networkToMessage(buffer);
-			mEnvironment.pushMessage(m);
+			mEnvironment.pushMessageToQueue(m);
 			mEnvironment.storeReceivedMessage(m);
 			String received = m.toString();
 			Log.w(TAG,
@@ -152,7 +152,7 @@ public class UDPDelegate {
 				socket.receive(packet);
 				//String received = getMessageIn(buffer);
 				Message m = MessageSerializer.networkToMessage(buffer);
-				mEnvironment.pushMessage(m);
+				mEnvironment.pushMessageToQueue(m);
 				mEnvironment.storeReceivedMessage(m);
 				String received = m.toString();
 				Log.w(TAG,

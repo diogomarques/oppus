@@ -126,7 +126,6 @@ public class AndroidEnvironment implements IEnvironment {
 		Log.w("NodeID", "My node id is: " + environment.myNodeID);
 		// start forwarding task
 		environment.mQueue = new ConcurrentForwardingQueue();
-		environment.forwardMessages();
 		// stats 
 		environment.totalReceived = environment.totalSent = 0;
 		// message dumper
@@ -209,12 +208,24 @@ public class AndroidEnvironment implements IEnvironment {
 	}
 
 	@Override
-	public void pushMessage(net.diogomarques.wifioppish.networking.Message m) {
+	public void pushMessageToQueue(net.diogomarques.wifioppish.networking.Message m) {
 		// don't forward messages sent by this node
-		if(!m.isNodeinTrace(myNodeID)) {
-			mQueue.add(m);
-			Log.w("ForwardingQueue", "New message to queue: " + m + " (received by " + myNodeID + ")");
-		}
+		mQueue.add(m);
+		Log.w("ForwardingQueue", "New message to queue: " + m + " (received by " + myNodeID + ")");
+	}
+	
+	@Override
+	public net.diogomarques.wifioppish.networking.Message[] fetchMessagesFromQueue() {
+		net.diogomarques.wifioppish.networking.Message[] messages = 
+				new net.diogomarques.wifioppish.networking.Message[mQueue.size()];
+		int i = 0;
+		
+		for(net.diogomarques.wifioppish.networking.Message m : mQueue)
+			messages[i++] = m;
+		
+		//mQueue.clear();
+			
+		return messages;
 	}
 
 	@Override
@@ -278,5 +289,24 @@ public class AndroidEnvironment implements IEnvironment {
 		} catch (IOException e) {
 			Log.e("AndroidEnvironment", "Cannot store message into Dumper: " + e.getMessage());
 		}
+	}
+
+	@Override
+	public net.diogomarques.wifioppish.networking.Message createTextMessage(
+			String contents) {
+		double[] location = getMyLocation();
+		String nodeID = getMyNodeId();
+						
+		return new net.diogomarques.wifioppish.networking.Message(
+				contents,
+				System.currentTimeMillis(),
+				location,
+				nodeID
+		);
+	}
+
+	@Override
+	public void deliverCustomMessage(Object object, int code) {
+		mHandler.sendMessage(Message.obtain(mHandler, MainActivity.ConsoleHandler.LOG_MSG, object));
 	}
 }

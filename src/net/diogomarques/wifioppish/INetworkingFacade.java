@@ -23,6 +23,14 @@ public interface INetworkingFacade {
 		 *            the message that was sent.
 		 */
 		public void onMessageSent(String msg);
+		
+		/**
+		 * Callback to be invoked when a message is successfully sent.
+		 * 
+		 * @param msg
+		 *            the message that was sent (object format).
+		 */
+		public void onMessageSent(Message msg);
 
 		/**
 		 * Callback to be invoked when a message send fails.

@@ -38,7 +38,7 @@ public class StateStation extends AState {
 			@Override
 			public void onTick(long arg0) {
 				
-				if( !sentOnce ) {
+				//if( !sentOnce ) {
 				
 					OnSendListener listener = new OnSendListener() {
 	
@@ -55,22 +55,27 @@ public class StateStation extends AState {
 						public void onMessageSent(String msg) {
 							environment.deliverMessage("message successfully sent");
 						}
+
+						@Override
+						public void onMessageSent(Message msg) {
+							environment.deliverCustomMessage(
+									msg, VictimActivity.StateChangeHandler.MSG_SENT);
+							environment.deliverMessage("message successfully sent");
+						}
 					};
 	
 					// Prepare message to be sent
-					double[] location = environment.getMyLocation();
-					String nodeID = environment.getMyNodeId();
-									
-					Message msg = new Message(
-							"I'm alive!",
-							System.currentTimeMillis(),
-							location,
-							nodeID
-					);
+					//Message autoMessage = environment.createTextMessage("I'm alive!");
+					//environment.pushMessageToQueue(autoMessage);
 					
-					networking.send(msg, listener);
-					sentOnce = true;
-				}
+					for(Message msg : environment.fetchMessagesFromQueue()) {
+						Log.w("Station", "About to send message: " + msg.toString());
+						networking.send(msg, listener);
+					}
+					//networking.send(autoMessage, listener);
+					
+					//sentOnce = true;
+				//}
 			}
 
 			@Override
