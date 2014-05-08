@@ -1,12 +1,11 @@
 package net.diogomarques.wifioppish;
 
 import java.io.IOException;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Semaphore;
 
 import net.diogomarques.wifioppish.logging.MessageDumper;
-
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -51,11 +50,6 @@ public class AndroidEnvironment implements IEnvironment {
 	private int totalSent;
 	
 	private MessageDumper dumper;
-	
-	/**
-	 * Period to look for messages to forward
-	 */
-	private final int FORWARD_PERIOD = 1000;
 
 	/**
 	 * Constructor with all dependencies. Use
@@ -215,16 +209,13 @@ public class AndroidEnvironment implements IEnvironment {
 	}
 	
 	@Override
-	public net.diogomarques.wifioppish.networking.Message[] fetchMessagesFromQueue() {
-		net.diogomarques.wifioppish.networking.Message[] messages = 
-				new net.diogomarques.wifioppish.networking.Message[mQueue.size()];
-		int i = 0;
+	public List<net.diogomarques.wifioppish.networking.Message> fetchMessagesFromQueue() {
+		ArrayList<net.diogomarques.wifioppish.networking.Message> messages =
+				new ArrayList<net.diogomarques.wifioppish.networking.Message>();
 		
 		for(net.diogomarques.wifioppish.networking.Message m : mQueue)
-			messages[i++] = m;
+			messages.add(m);
 		
-		//mQueue.clear();
-			
 		return messages;
 	}
 
@@ -233,26 +224,14 @@ public class AndroidEnvironment implements IEnvironment {
 		return !mQueue.isEmpty();
 	}
 	
-	private void forwardMessages() {
-		TimerTask job = new TimerTask() {
-			
-			@Override
-			public void run() {
-				if(!mQueue.isEmpty()) {
-					net.diogomarques.wifioppish.networking.Message m;
-					
-					while( (m = mQueue.poll()) != null ) {
-						m.addTraceNode(myNodeID, System.currentTimeMillis(), getMyLocation());
-						deliverMessage("Forwarding message from " + m.getAuthor());
-						mNetworkingFacade.send(m, null);
-					}
-				}
-			}
-		};
-		
-		
-		Timer timer = new Timer();
-		timer.schedule(job, 1000, FORWARD_PERIOD);
+	@Override
+	public void clearQueue() {
+		mQueue.clear();
+	}
+	
+	@Override
+	public boolean removeFromQueue(net.diogomarques.wifioppish.networking.Message msg) {
+		return mQueue.remove(msg);
 	}
 
 	@Override

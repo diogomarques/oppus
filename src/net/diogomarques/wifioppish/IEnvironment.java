@@ -1,5 +1,7 @@
 package net.diogomarques.wifioppish;
 
+import java.util.List;
+
 import net.diogomarques.wifioppish.networking.Message;
 
 
@@ -108,10 +110,10 @@ public interface IEnvironment {
 	public abstract void pushMessageToQueue(Message m);
 	
 	/**
-	 * Gets all Messages from the sending queue, and then empties the queue
+	 * Gets all Messages from the sending queue
 	 * @return Array of Messages to be sent
 	 */
-	public abstract net.diogomarques.wifioppish.networking.Message[] fetchMessagesFromQueue();
+	public abstract List<Message> fetchMessagesFromQueue();
 	
 	/**
 	 * Checks of the queue has messages
@@ -149,4 +151,16 @@ public interface IEnvironment {
 	 * @param contents Custom text to append to this message
 	 */
 	public abstract Message createTextMessage(String contents);
+
+	/**
+	 * Empties the sending queue
+	 */
+	public abstract void clearQueue();
+
+	/**
+	 * Removes a single messge from the sending queue
+	 * @param msg Message to be removed
+	 * @return True if the message was removed; False otherwise.
+	 */
+	public abstract boolean removeFromQueue(Message msg);
 }
