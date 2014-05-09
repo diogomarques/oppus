@@ -1,6 +1,5 @@
 package net.diogomarques.wifioppish;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import net.diogomarques.utils.CountDownTimer;
@@ -56,11 +55,6 @@ public class StateStation extends AState {
 					}
 
 					@Override
-					public void onMessageSent(String msg) {
-						environment.deliverMessage("message successfully sent");
-					}
-
-					@Override
 					public void onMessageSent(Message msg) {
 						environment.deliverCustomMessage(
 								msg, VictimActivity.StateChangeHandler.MSG_SENT);
@@ -80,7 +74,6 @@ public class StateStation extends AState {
 				environment
 						.deliverMessage("t_con finished, exiting station mode");
 				environment.gotoState(State.Scanning);
-				environment.clearQueue();
 				toSend.clear();
 			}
 		}.start();

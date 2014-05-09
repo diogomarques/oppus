@@ -158,7 +158,7 @@ public interface IEnvironment {
 	public abstract void clearQueue();
 
 	/**
-	 * Removes a single messge from the sending queue
+	 * Removes a single message from the sending queue
 	 * @param msg Message to be removed
 	 * @return True if the message was removed; False otherwise.
 	 */

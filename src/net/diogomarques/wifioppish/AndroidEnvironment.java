@@ -50,6 +50,9 @@ public class AndroidEnvironment implements IEnvironment {
 	private int totalSent;
 	
 	private MessageDumper dumper;
+	
+	// duplicates prevention
+	private List<Integer> duplicates;
 
 	/**
 	 * Constructor with all dependencies. Use
@@ -118,7 +121,7 @@ public class AndroidEnvironment implements IEnvironment {
 		String nodeID = sharedPref.getString("nodeID", "unknown");
 		environment.myNodeID = nodeID;
 		Log.w("NodeID", "My node id is: " + environment.myNodeID);
-		// start forwarding task
+		// start forwarding sending queue
 		environment.mQueue = new ConcurrentForwardingQueue();
 		// stats 
 		environment.totalReceived = environment.totalSent = 0;
@@ -128,6 +131,8 @@ public class AndroidEnvironment implements IEnvironment {
 		} catch (IOException e) {
 			Log.e("AndroidEnvironment", "Cannot start Dumper: " + e.getMessage());
 		}
+		// duplicate hashes
+		environment.duplicates = new ArrayList<Integer>();
 		
 		return environment;
 	}
@@ -203,9 +208,14 @@ public class AndroidEnvironment implements IEnvironment {
 
 	@Override
 	public void pushMessageToQueue(net.diogomarques.wifioppish.networking.Message m) {
-		// don't forward messages sent by this node
-		mQueue.add(m);
-		Log.w("ForwardingQueue", "New message to queue: " + m + " (received by " + myNodeID + ")");
+		// duplicate check
+		Integer msgHashcode = Integer.valueOf(m.hashCode());
+		if( !duplicates.contains(msgHashcode) ) {
+			mQueue.add(m);
+			Log.w("SendingQueue", "New message to queue: " + m + " (received by " + myNodeID + ")");
+			Log.w("SendingQueue", "Added message to queue, " + mQueue.size() + " messages remaining");
+			duplicates.add(msgHashcode);
+		}
 	}
 	
 	@Override
@@ -227,11 +237,16 @@ public class AndroidEnvironment implements IEnvironment {
 	@Override
 	public void clearQueue() {
 		mQueue.clear();
+		Log.w("SendingQueue", "Queue cleared");
 	}
 	
 	@Override
 	public boolean removeFromQueue(net.diogomarques.wifioppish.networking.Message msg) {
-		return mQueue.remove(msg);
+		boolean removed = mQueue.remove(msg);
+		if(removed)
+			Log.w("SendingQueue", "Removed message from queue, " + mQueue.size() + " messages remaining");
+			
+		return removed;
 	}
 
 	@Override
@@ -275,17 +290,13 @@ public class AndroidEnvironment implements IEnvironment {
 			String contents) {
 		double[] location = getMyLocation();
 		String nodeID = getMyNodeId();
-						
+		
 		return new net.diogomarques.wifioppish.networking.Message(
-				contents,
-				System.currentTimeMillis(),
-				location,
-				nodeID
-		);
+				nodeID, System.currentTimeMillis(), location, contents);
 	}
 
 	@Override
 	public void deliverCustomMessage(Object object, int code) {
-		mHandler.sendMessage(Message.obtain(mHandler, MainActivity.ConsoleHandler.LOG_MSG, object));
+		mHandler.sendMessage(Message.obtain(mHandler, code, object));
 	}
 }

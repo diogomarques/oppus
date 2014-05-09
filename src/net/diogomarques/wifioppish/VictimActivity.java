@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.diogomarques.wifioppish.logging.TextLog;
-
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -97,7 +96,7 @@ public class VictimActivity extends Activity {
 				environment.pushMessageToQueue(newMessage);
 				
 				// put on Message log
-				data.add(new TextMessageListItem(contents, newMessage.getTimestamp()));
+				data.add(new TextMessageListItem(newMessage));
 				adapter.notifyDataSetChanged();
 				mEditTextMessage.setText("");
 			}
@@ -191,23 +190,21 @@ public class VictimActivity extends Activity {
 	 * @author André Silva <asilva@lasige.di.fc.ul.pt>
 	 */
 	private class TextMessageListItem {
-		private String message;
+		private net.diogomarques.wifioppish.networking.Message msgObject;
 		private boolean sent;
-		private long timestamp;
 		
-		public TextMessageListItem(String message, long timestamp) {
+		public TextMessageListItem(net.diogomarques.wifioppish.networking.Message envelope) {
 			super();
-			this.message = message;
-			this.timestamp = timestamp;
+			this.msgObject = envelope;
 			this.sent = false;
 		}
 		
 		public String getMessage() {
-			return message;
+			return msgObject.getMessage();
 		}
 		
 		public long getTimestamp() {
-			return timestamp;
+			return msgObject.getTimestamp();
 		}
 
 		public boolean isSent() {
@@ -217,10 +214,14 @@ public class VictimActivity extends Activity {
 		public void setSent(boolean sent) {
 			this.sent = sent;
 		}
+		
+		public boolean messageEquals(net.diogomarques.wifioppish.networking.Message other) {
+			return msgObject.equals(other);
+		}
 
 		@Override
 		public String toString() {
-			return message;
+			return getMessage();
 		}
 	}
 	
@@ -308,9 +309,10 @@ public class VictimActivity extends Activity {
 				final net.diogomarques.wifioppish.networking.Message sent = 
 						(net.diogomarques.wifioppish.networking.Message) msg.obj;
 				
-				for(TextMessageListItem m : activity.data) {
-					if(m.getTimestamp() == sent.getTimestamp() && m.getMessage().equals(sent.getMessage())) {
-						m.setSent(true);
+				for (int i = 0; i < activity.data.size(); i++) {
+					TextMessageListItem tmli = activity.data.get(i);
+					if(tmli.messageEquals(sent)) {
+						tmli.setSent(true);
 						activity.adapter.notifyDataSetChanged();
 						break;
 					}

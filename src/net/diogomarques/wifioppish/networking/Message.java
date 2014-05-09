@@ -1,18 +1,15 @@
 package net.diogomarques.wifioppish.networking;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * Message envelope to be exchanged between devices.
  * 
  * <p>
- * Each Message contains a string message, a timestamp indicating the 
- * original message send time, a geographical location and the node ID which created 
- * the Message. It also contains a trace which allows to know the nodes where the message 
- * was temporarily stored.
+ * Each Message contains a node ID, a timestamp indicating the 
+ * original message send time, a geographical location and an optional text message. 
+ * Messages also contain another attributes like device battery, number of steps given 
+ * by victim among others.
  * 
  * <p>
  * This envelope was created to be suitable to be transmitted over a network. It 
@@ -28,126 +25,150 @@ public class Message implements Serializable {
 	 */
 	private static final long serialVersionUID = 4793280315313094725L;
 	
+	/* Essentials attributes */
+	private String nodeId;
+	private long timestamp;
+	private double latitude;
+	private double longitude;
 	private String message;
-	private List<TraceNode> trace;
 	
-	/**
-	 * Represents an entry inside the Trace list
-	 */
-	private static class TraceNode implements Serializable {
-		
-		/**
-		 * Generated class serial number
-		 */
-		private static final long serialVersionUID = 8019775040490610392L;
-		
-		private String author;
-		private long timestamp;
-		private double[] coordinates;
-		
-		/**
-		 * Creates a new entry for the trace list
-		 * @param middleman The node id which received the message
-		 * @param timestamp The timestamp when the message was received by this node
-		 * @param coordinates The geographical coordinates associated with the node location
-		 */
-		public TraceNode(String middleman, long timestamp, double[] coordinates) {
-			super();
-			this.author = middleman;
-			this.timestamp = timestamp;
-			this.coordinates = coordinates;
-		}
-
-		@Override
-		public String toString() {
-			return "[node=" + author + ", timestamp="
-					+ timestamp + ", coordinates="
-					+ Arrays.toString(coordinates) + "]";
-		}	
-	}
+	/* Victim status attributes */
+	private int battery;
+	private int steps;
+	private int screenOn;
+	private boolean safe;
 	
 	/**
 	 * Creates a new read-only Message
-	 *  
-	 * @param msg Text to be sent
-	 * @param time Timestamp from when the Message was created 
-	 * @param coords Geographical coordinates associated with this Message. The first position
-	 * @param node Id of the node who sent the message
-	 * should represent the latitude, and the second position of array should represent the longitude
+	 * 
+	 * @param message Text to be sent
+	 * @param timestamp Timestamp from when the Message was created 
+	 * @param coords Geographical coordinates associated with this Message. The first position 
+	 * 	should represent the latitude, and the second position of array should represent the longitude
+	 * @param nodeId Identificator of the node who sent the message
+	 * 
 	 */
-	public Message(String msg, long time, double[] coords, String node) {
-		message = msg;
-		trace = new ArrayList<TraceNode>();
-		trace.add(new TraceNode(node, time, coords));
+	public Message(String nodeId, long timestamp, double[] coords, String message) {
+		this.nodeId = nodeId;
+		this.timestamp = timestamp;
+		this.latitude = coords[0];
+		this.longitude = coords[1];
+		this.message = message;
+		this.battery = -1;
+		this.safe = false;
+		this.screenOn = -1;
+		this.steps = -1;
+	}
+	
+	/**
+	 * Gets the device battery when this message was sent
+	 * @return the battery
+	 */
+	public int getBattery() {
+		return battery;
 	}
 
 	/**
-	 * Gets the textual Message from the envelope
-	 * @return Text Message
+	 * Sets the device battery information to be sent
+	 * @param battery the battery to set
+	 */
+	public void setBattery(int battery) {
+		this.battery = battery;
+	}
+
+
+
+	/**
+	 * Gets the total of steps the victims made until the message was sent
+	 * @return the steps
+	 */
+	public int getSteps() {
+		return steps;
+	}
+
+
+
+	/**
+	 * Sets the total number of steps for the victim
+	 * @param steps the steps to set
+	 */
+	public void setSteps(int steps) {
+		this.steps = steps;
+	}
+
+	/**
+	 * Gets the total times the screen as turned on
+	 * @return the screenOn
+	 */
+	public int getScreenOn() {
+		return screenOn;
+	}
+
+	/**
+	 * Sets the total times the screen as turned on
+	 * @param screenOn the screenOn to set
+	 */
+	public void setScreenOn(int screenOn) {
+		this.screenOn = screenOn;
+	}
+
+	/**
+	 * Tells whenever the victim marked itself as safe
+	 * @return the safe value
+	 */
+	public boolean isSafe() {
+		return safe;
+	}
+
+
+
+	/**
+	 * Sets the safe victim status
+	 * @param safe the safe to set
+	 */
+	public void setSafe(boolean safe) {
+		this.safe = safe;
+	}
+
+	/**
+	 * Gets the sender node identificator
+	 * @return the nodeId
+	 */
+	public String getNodeId() {
+		return nodeId;
+	}
+
+
+	/**
+	 * Gets the time when the message was sent
+	 * @return the timestamp
+	 */
+	public long getTimestamp() {
+		return timestamp;
+	}
+
+	/**
+	 * Gets the latitude of the victim
+	 * @return the latitude
+	 */
+	public double getLatitude() {
+		return latitude;
+	}
+
+	/**
+	 * Gets the longitude of the victim
+	 * @return the longitude
+	 */
+	public double getLongitude() {
+		return longitude;
+	}
+
+	/**
+	 * Gets the textual message sent by the victim, if any
+	 * @return the text message; empty if no text message was sent
 	 */
 	public String getMessage() {
 		return message;
-	}
-
-	/**
-	 * Gets the timestamp associated with this Message
-	 * @return Message creation timestamp
-	 */
-	public long getTimestamp() {
-		TraceNode first = trace.get(0);
-		return first.timestamp;
-	}
-
-	/**
-	 * Gets the geographical coordinates associated with this Message
-	 * @return Geographical coordinates
-	 */
-	public double[] getCoordinates() {
-		TraceNode first = trace.get(0);
-		return first.coordinates;
-	}
-
-	/**
-	 * Gets the ID of the node who created the message
-	 * @return Unique node ID
-	 */
-	public String getAuthor() {
-		TraceNode first = trace.get(0);
-		return first.author;
-	}
-	
-	/**
-	 * Adds a node to the message trace
-	 * @param nodeID Node ID where this message arrived
-	 */
-	public void addTraceNode(String nodeID, long time, double[] coords) {
-		trace.add(new TraceNode(nodeID, time, coords));
-	}
-	
-	/**
-	 * Checks if a node is in the Message trace
-	 * @param node Node ID to check
-	 * @return True if node is in the trace, false otherwise
-	 */
-	public boolean isNodeinTrace(String node) {
-		for(TraceNode t : trace)
-			if (t.author.equals(node)) return true;
-		
-		return false;
-	}
-	
-	/**
-	 * Gets the list of nodes where this message passed by
-	 * @return Array containing the nodes, ordered by time
-	 */
-	private TraceNode[] getTrace() {
-		TraceNode[] traceArray = new TraceNode[trace.size()];
-		int i = 0;
-		
-		for(TraceNode t : trace)
-			traceArray[i++] = t;
-		
-		return traceArray;
 	}
 	
 	/**
@@ -155,38 +176,46 @@ public class Message implements Serializable {
 	 * @return String containing information about the Message in CSV format
 	 */
 	public String getMessageCsv() {
-		StringBuilder sb = new StringBuilder("\"" + getMessage() + "\";");
-		
-		for(TraceNode tn : getTrace())
-			sb.append(
-				String.format(
-					"%s;%s;%s,%s;",
-					tn.author,
-					String.valueOf(tn.timestamp),
-					String.valueOf(tn.coordinates[0]),
-					String.valueOf(tn.coordinates[1])
-				)
-			);
-			
-		// remove last semicolon
-		sb.deleteCharAt(sb.length() - 1);
+		StringBuilder sb = new StringBuilder(String.format(
+			"\"%s\";%s;%s;%s;%s;%d;%d;%d;%d",
+			(message == null ? "" : message),
+			nodeId,
+			timestamp,
+			latitude,
+			longitude,
+			battery,
+			steps,
+			screenOn,
+			safe ? 1 : 0
+		));
 		
 		return sb.toString();
 	}
-	
+
 	@Override
 	public String toString() {
-		return "Message [message=" + message + ", trace=" + Arrays.toString(getTrace()) + "]";
+		return "Message [nodeId=" + nodeId + ", timestamp=" + timestamp
+				+ ", latitude=" + latitude + ", longitude=" + longitude
+				+ ", message=" + message + ", battery=" + battery + ", steps="
+				+ steps + ", screenOn=" + screenOn + ", safe=" + safe + "]";
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((getAuthor() == null) ? 0 : getAuthor().hashCode());
-		result = prime * result + Arrays.hashCode(getCoordinates());
+		result = prime * result + battery;
+		long temp;
+		temp = Double.doubleToLongBits(latitude);
+		result = prime * result + (int) (temp ^ (temp >>> 32));
+		temp = Double.doubleToLongBits(longitude);
+		result = prime * result + (int) (temp ^ (temp >>> 32));
 		result = prime * result + ((message == null) ? 0 : message.hashCode());
-		result = prime * result + (int) (getTimestamp() ^ (getTimestamp() >>> 32));
+		result = prime * result + ((nodeId == null) ? 0 : nodeId.hashCode());
+		result = prime * result + (safe ? 1231 : 1237);
+		result = prime * result + screenOn;
+		result = prime * result + steps;
+		result = prime * result + (int) (timestamp ^ (timestamp >>> 32));
 		return result;
 	}
 
@@ -196,16 +225,35 @@ public class Message implements Serializable {
 			return true;
 		if (obj == null)
 			return false;
-		if (getClass() != obj.getClass())
+		if (!(obj instanceof Message))
 			return false;
 		Message other = (Message) obj;
+		if (battery != other.battery)
+			return false;
+		if (Double.doubleToLongBits(latitude) != Double
+				.doubleToLongBits(other.latitude))
+			return false;
+		if (Double.doubleToLongBits(longitude) != Double
+				.doubleToLongBits(other.longitude))
+			return false;
 		if (message == null) {
 			if (other.message != null)
 				return false;
 		} else if (!message.equals(other.message))
 			return false;
-		if (getTimestamp() != other.getTimestamp())
+		if (nodeId == null) {
+			if (other.nodeId != null)
+				return false;
+		} else if (!nodeId.equals(other.nodeId))
+			return false;
+		if (safe != other.safe)
+			return false;
+		if (screenOn != other.screenOn)
+			return false;
+		if (steps != other.steps)
+			return false;
+		if (timestamp != other.timestamp)
 			return false;
 		return true;
-	}	
+	}
 }
