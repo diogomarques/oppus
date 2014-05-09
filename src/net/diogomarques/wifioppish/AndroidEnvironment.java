@@ -53,6 +53,8 @@ public class AndroidEnvironment implements IEnvironment {
 	
 	// duplicates prevention
 	private List<Integer> duplicates;
+	
+	private boolean victimSafe;
 
 	/**
 	 * Constructor with all dependencies. Use
@@ -291,12 +293,21 @@ public class AndroidEnvironment implements IEnvironment {
 		double[] location = getMyLocation();
 		String nodeID = getMyNodeId();
 		
-		return new net.diogomarques.wifioppish.networking.Message(
+		net.diogomarques.wifioppish.networking.Message newMsg =
+			new net.diogomarques.wifioppish.networking.Message(
 				nodeID, System.currentTimeMillis(), location, contents);
+		newMsg.setSafe(victimSafe);
+		
+		return newMsg;
 	}
 
 	@Override
 	public void deliverCustomMessage(Object object, int code) {
 		mHandler.sendMessage(Message.obtain(mHandler, code, object));
+	}
+	
+	@Override
+	public void markVictimAsSafe(boolean safe) {
+		victimSafe = safe;
 	}
 }

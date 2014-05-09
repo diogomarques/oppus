@@ -3,11 +3,16 @@ package net.diogomarques.wifioppish;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import net.diogomarques.wifioppish.logging.TextLog;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnClickListener;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.pm.ActivityInfo;
@@ -20,6 +25,9 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -97,6 +105,7 @@ public class VictimActivity extends Activity {
 				
 				// put on Message log
 				data.add(new TextMessageListItem(newMessage));
+				Collections.sort(data);
 				adapter.notifyDataSetChanged();
 				mEditTextMessage.setText("");
 			}
@@ -145,6 +154,55 @@ public class VictimActivity extends Activity {
 		}.execute();
 	}
 	
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+	    MenuInflater inflater = getMenuInflater();
+	    inflater.inflate(R.menu.menu_victim, menu);
+	    return true;
+	}
+	
+	@Override
+	public boolean onOptionsItemSelected(final MenuItem item) {
+		switch (item.getItemId()) {
+		
+			// show wifioppish time parameters
+			case R.id.menu_victim_settings:
+			Intent i = new Intent(this, MyPreferenceActivity.class);
+			startActivity(i);
+			break;
+			
+			// show confirmation popup to make victim safe
+			case R.id.menu_victim_marksafe:
+			AlertDialog.Builder builder = new AlertDialog.Builder(this);
+			builder.setIcon(android.R.drawable.stat_sys_warning);
+			builder.setMessage(R.string.victim_marksafe_contents)
+			       .setTitle(R.string.victim_marksafe_title);
+			builder.setPositiveButton(
+					getResources().getString(android.R.string.yes),
+					new OnClickListener() {
+						
+						@Override
+						public void onClick(DialogInterface dialog, int which) {
+							environment.markVictimAsSafe(true);
+							item.setTitle(R.string.menu_victim_safe_off);
+							item.setEnabled(false);
+						}
+					}
+			);
+			builder.setNegativeButton(
+					getResources().getString(android.R.string.no),
+					null
+			);
+			AlertDialog dialog = builder.create();
+			dialog.show();
+
+			default:
+			break;
+		}
+		
+		return super.onOptionsItemSelected(item);
+	}
+	
 	/**
 	 * Changes interface to show the current application status
 	 * @param curState Current state of State Machine
@@ -186,35 +244,61 @@ public class VictimActivity extends Activity {
 }
 	
 	/**
-	 * List item container for a text message with sending status
+	 * List item container for a text message with sending status and the 
+	 * message envelope
 	 * @author André Silva <asilva@lasige.di.fc.ul.pt>
 	 */
-	private class TextMessageListItem {
+	private class TextMessageListItem implements Comparable<TextMessageListItem> {
 		private net.diogomarques.wifioppish.networking.Message msgObject;
 		private boolean sent;
 		
+		/**
+		 * Creates a new instance
+		 * @param envelope Message envelope to be sent over network
+		 */
 		public TextMessageListItem(net.diogomarques.wifioppish.networking.Message envelope) {
 			super();
 			this.msgObject = envelope;
 			this.sent = false;
 		}
 		
+		/**
+		 * Gets the text message contained in the envelope
+		 * @return Text message
+		 */
 		public String getMessage() {
 			return msgObject.getMessage();
 		}
 		
+		/**
+		 * Gets the timestamp of the envelope
+		 * @return timestamp of message creation
+		 */
 		public long getTimestamp() {
 			return msgObject.getTimestamp();
 		}
 
+		/**
+		 * Return whenever the message is sent or not
+		 * @return True if already sent; False otherwise
+		 */
 		public boolean isSent() {
 			return sent;
 		}
 
+		/**
+		 * Sets the sending status of message
+		 * @param sent True if already sent; False otherwise
+		 */
 		public void setSent(boolean sent) {
 			this.sent = sent;
 		}
 		
+		/**
+		 * Checks if the message on the envelope is equal to the message to compare
+		 * @param other Message to compare to the one stored in the envelope
+		 * @return True if the message is equal (same attributes); false otherwise
+		 */
 		public boolean messageEquals(net.diogomarques.wifioppish.networking.Message other) {
 			return msgObject.equals(other);
 		}
@@ -222,6 +306,17 @@ public class VictimActivity extends Activity {
 		@Override
 		public String toString() {
 			return getMessage();
+		}
+
+		@Override
+		public int compareTo(TextMessageListItem another) {
+			// descending order
+			long result = another.getTimestamp() - this.getTimestamp();
+			
+			if(result == 0)
+				return 0;
+			
+			return result < 0 ? -1 : 1;
 		}
 	}
 	
@@ -266,7 +361,7 @@ public class VictimActivity extends Activity {
 	static class StateChangeHandler extends Handler {
 		
 		/**
-		 * Log line to show in the log window
+		 * New log line to show in the log window
 		 */
 		public static final int LOG_MSG = 800;
 		
@@ -275,7 +370,9 @@ public class VictimActivity extends Activity {
 		 */
 		public static final int ROLE = 801;
 		
-		
+		/**
+		 * A new message was sent to the network
+		 */
 		public static final int MSG_SENT = 804;
 		
 		final WeakReference<VictimActivity> mActivity;

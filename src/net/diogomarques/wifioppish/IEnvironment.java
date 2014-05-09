@@ -163,4 +163,11 @@ public interface IEnvironment {
 	 * @return True if the message was removed; False otherwise.
 	 */
 	public abstract boolean removeFromQueue(Message msg);
+
+	/**
+	 * Marks the victim as safe or not. The Messages will reflect this change. 
+	 * Once marked as safe, a victim should not mark it self as needing help again.
+	 * @param safe True, if the victim is safe; false otherwise
+	 */
+	void markVictimAsSafe(boolean safe);
 }
