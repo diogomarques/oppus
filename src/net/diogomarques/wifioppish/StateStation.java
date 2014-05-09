@@ -1,5 +1,7 @@
 package net.diogomarques.wifioppish;
 
+import java.util.List;
+
 import net.diogomarques.utils.CountDownTimer;
 import net.diogomarques.wifioppish.IEnvironment.State;
 import net.diogomarques.wifioppish.INetworkingFacade.OnSendListener;
@@ -28,48 +30,42 @@ public class StateStation extends AState {
 		environment.deliverMessage("entered station state");
 		final INetworkingFacade networking = environment.getNetworkingFacade();
 		
+		// prepare messages to be sent to network and add auto-message
+		final List<Message> toSend = environment.fetchMessagesFromQueue();
+		Message autoMessage = environment.createTextMessage("");
+		toSend.add(autoMessage);
+		
 		// send messages for the network
 		// TODO: adjust period
-		int period = 1000; 
+		int period = 2000; 
 		new CountDownTimer(environment.getPreferences().getTCon(), period) {
-
-			private boolean sentOnce = false;
 			
 			@Override
 			public void onTick(long arg0) {
 				
-				if( !sentOnce ) {
+				OnSendListener listener = new OnSendListener() {
+
+					@Override
+					public void onSendError(String errorMsg) {
+						environment.deliverMessage("send error: " + errorMsg
+								+ "[" + environment.getCurrentState().name()
+								+ "]");
+						cancel();
+						environment.gotoState(State.Scanning);
+					}
+
+					@Override
+					public void onMessageSent(Message msg) {
+						environment.deliverCustomMessage(
+								msg, VictimActivity.StateChangeHandler.MSG_SENT);
+						environment.deliverMessage("message successfully sent");
+						environment.removeFromQueue(msg);
+					}
+				};
 				
-					OnSendListener listener = new OnSendListener() {
-	
-						@Override
-						public void onSendError(String errorMsg) {
-							environment.deliverMessage("send error: " + errorMsg
-									+ "[" + environment.getCurrentState().name()
-									+ "]");
-							cancel();
-							environment.gotoState(State.Scanning);
-						}
-	
-						@Override
-						public void onMessageSent(String msg) {
-							environment.deliverMessage("message successfully sent");
-						}
-					};
-	
-					// Prepare message to be sent
-					double[] location = environment.getMyLocation();
-					String nodeID = environment.getMyNodeId();
-									
-					Message msg = new Message(
-							"I'm alive!",
-							System.currentTimeMillis(),
-							location,
-							nodeID
-					);
-					
+				for(Message msg : toSend) {
+					Log.w("Station", "About to send message: " + msg.toString());
 					networking.send(msg, listener);
-					sentOnce = true;
 				}
 			}
 
@@ -78,7 +74,7 @@ public class StateStation extends AState {
 				environment
 						.deliverMessage("t_con finished, exiting station mode");
 				environment.gotoState(State.Scanning);
-
+				toSend.clear();
 			}
 		}.start();
 	}

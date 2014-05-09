@@ -1,12 +1,11 @@
 package net.diogomarques.wifioppish;
 
 import java.io.IOException;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Semaphore;
 
 import net.diogomarques.wifioppish.logging.MessageDumper;
-
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -52,10 +51,10 @@ public class AndroidEnvironment implements IEnvironment {
 	
 	private MessageDumper dumper;
 	
-	/**
-	 * Period to look for messages to forward
-	 */
-	private final int FORWARD_PERIOD = 1000;
+	// duplicates prevention
+	private List<Integer> duplicates;
+	
+	private boolean victimSafe;
 
 	/**
 	 * Constructor with all dependencies. Use
@@ -124,9 +123,8 @@ public class AndroidEnvironment implements IEnvironment {
 		String nodeID = sharedPref.getString("nodeID", "unknown");
 		environment.myNodeID = nodeID;
 		Log.w("NodeID", "My node id is: " + environment.myNodeID);
-		// start forwarding task
+		// start forwarding sending queue
 		environment.mQueue = new ConcurrentForwardingQueue();
-		environment.forwardMessages();
 		// stats 
 		environment.totalReceived = environment.totalSent = 0;
 		// message dumper
@@ -135,6 +133,8 @@ public class AndroidEnvironment implements IEnvironment {
 		} catch (IOException e) {
 			Log.e("AndroidEnvironment", "Cannot start Dumper: " + e.getMessage());
 		}
+		// duplicate hashes
+		environment.duplicates = new ArrayList<Integer>();
 		
 		return environment;
 	}
@@ -209,12 +209,26 @@ public class AndroidEnvironment implements IEnvironment {
 	}
 
 	@Override
-	public void pushMessage(net.diogomarques.wifioppish.networking.Message m) {
-		// don't forward messages sent by this node
-		if(!m.isNodeinTrace(myNodeID)) {
+	public void pushMessageToQueue(net.diogomarques.wifioppish.networking.Message m) {
+		// duplicate check
+		Integer msgHashcode = Integer.valueOf(m.hashCode());
+		if( !duplicates.contains(msgHashcode) ) {
 			mQueue.add(m);
-			Log.w("ForwardingQueue", "New message to queue: " + m + " (received by " + myNodeID + ")");
+			Log.w("SendingQueue", "New message to queue: " + m + " (received by " + myNodeID + ")");
+			Log.w("SendingQueue", "Added message to queue, " + mQueue.size() + " messages remaining");
+			duplicates.add(msgHashcode);
 		}
+	}
+	
+	@Override
+	public List<net.diogomarques.wifioppish.networking.Message> fetchMessagesFromQueue() {
+		ArrayList<net.diogomarques.wifioppish.networking.Message> messages =
+				new ArrayList<net.diogomarques.wifioppish.networking.Message>();
+		
+		for(net.diogomarques.wifioppish.networking.Message m : mQueue)
+			messages.add(m);
+		
+		return messages;
 	}
 
 	@Override
@@ -222,26 +236,19 @@ public class AndroidEnvironment implements IEnvironment {
 		return !mQueue.isEmpty();
 	}
 	
-	private void forwardMessages() {
-		TimerTask job = new TimerTask() {
+	@Override
+	public void clearQueue() {
+		mQueue.clear();
+		Log.w("SendingQueue", "Queue cleared");
+	}
+	
+	@Override
+	public boolean removeFromQueue(net.diogomarques.wifioppish.networking.Message msg) {
+		boolean removed = mQueue.remove(msg);
+		if(removed)
+			Log.w("SendingQueue", "Removed message from queue, " + mQueue.size() + " messages remaining");
 			
-			@Override
-			public void run() {
-				if(!mQueue.isEmpty()) {
-					net.diogomarques.wifioppish.networking.Message m;
-					
-					while( (m = mQueue.poll()) != null ) {
-						m.addTraceNode(myNodeID, System.currentTimeMillis(), getMyLocation());
-						deliverMessage("Forwarding message from " + m.getAuthor());
-						mNetworkingFacade.send(m, null);
-					}
-				}
-			}
-		};
-		
-		
-		Timer timer = new Timer();
-		timer.schedule(job, 1000, FORWARD_PERIOD);
+		return removed;
 	}
 
 	@Override
@@ -278,5 +285,29 @@ public class AndroidEnvironment implements IEnvironment {
 		} catch (IOException e) {
 			Log.e("AndroidEnvironment", "Cannot store message into Dumper: " + e.getMessage());
 		}
+	}
+
+	@Override
+	public net.diogomarques.wifioppish.networking.Message createTextMessage(
+			String contents) {
+		double[] location = getMyLocation();
+		String nodeID = getMyNodeId();
+		
+		net.diogomarques.wifioppish.networking.Message newMsg =
+			new net.diogomarques.wifioppish.networking.Message(
+				nodeID, System.currentTimeMillis(), location, contents);
+		newMsg.setSafe(victimSafe);
+		
+		return newMsg;
+	}
+
+	@Override
+	public void deliverCustomMessage(Object object, int code) {
+		mHandler.sendMessage(Message.obtain(mHandler, code, object));
+	}
+	
+	@Override
+	public void markVictimAsSafe(boolean safe) {
+		victimSafe = safe;
 	}
 }

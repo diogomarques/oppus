@@ -1,6 +1,5 @@
 package net.diogomarques.wifioppish;
 
-import android.net.wifi.WifiInfo;
 import net.diogomarques.wifioppish.networking.Message;
 
 /**
@@ -20,9 +19,9 @@ public interface INetworkingFacade {
 		 * Callback to be invoked when a message is successfully sent.
 		 * 
 		 * @param msg
-		 *            the message that was sent.
+		 *            the message that was sent (object format).
 		 */
-		public void onMessageSent(String msg);
+		public void onMessageSent(Message msg);
 
 		/**
 		 * Callback to be invoked when a message send fails.
@@ -43,14 +42,6 @@ public interface INetworkingFacade {
 		 * TODO: remove forced, probs gone away after moving to TCP
 		 */
 		public void onReceiveTimeout(boolean forced);
-
-		/**
-		 * Callback to be invoked when a message is received.
-		 * 
-		 * @param msg
-		 *            the message that was received.
-		 */
-		public void onMessageReceived(String msg);
 
 		/**
 		 * Callback to be invoked when a message is received.

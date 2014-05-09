@@ -41,22 +41,12 @@ public class StateProviding extends AState {
 			}
 
 			@Override
-			public void onMessageReceived(String msg) {
-				environment.deliverMessage("message received: " + msg);
-			}
-
-			@Override
 			public void onMessageReceived(Message m) {
-				// stamp message on arrival
-				m.addTraceNode(
-						environment.getMyNodeId(),
-						System.currentTimeMillis(),
-						environment.getMyLocation()
-				);
+				environment.deliverMessage("message received: " + m.toString());
 				
-				// discard self messages from appearing in log
-				if(!environment.getMyNodeId().equals(m.getAuthor()))
-					environment.deliverMessage("message received: " + m.toString());
+				// avoid resending own messages
+				if( !m.getNodeId().equals(environment.getMyNodeId()))
+					environment.pushMessageToQueue(m);
 			}
 		});
 

@@ -37,12 +37,6 @@ public class StateBeaconing extends AState {
 					}
 
 					@Override
-					public void onMessageReceived(String msg) {
-						environment.deliverMessage("message received: " + msg);
-						environment.gotoState(State.Providing);
-					}
-
-					@Override
 					public void onMessageReceived(Message m) {
 						environment.deliverMessage("message received: " + m.toString());
 						environment.gotoState(State.Providing);
