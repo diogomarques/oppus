@@ -42,7 +42,11 @@ public interface IEnvironment {
 		/**
 		 * Internet is avaliable
 		 */
-		Internet;
+		Internet,
+		/**
+		 * Connected to the internet
+		 */
+		Connected;
 	}
 
 	/**
@@ -170,4 +174,16 @@ public interface IEnvironment {
 	 * @param safe True, if the victim is safe; false otherwise
 	 */
 	void markVictimAsSafe(boolean safe);
+	
+	/**
+	 * Gets the last non-internet state 
+	 * @return last state 
+	 */
+	public abstract State getLastState();
+
+	/**
+	 * Get the boolean that represents if internet state is part of the state cycle 
+	 * @return true if internet state is part of the cycle, false if not
+	 */
+	public boolean internetState();
 }

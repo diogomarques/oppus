@@ -73,6 +73,14 @@ public interface IDomainPreferences {
 	 * @return t_con
 	 */
 	public int getTCon();
+	/**
+	 * Get t_int (TODO).
+	 * 
+	 * "t_int is the time a mobile device scans for a internet connection".
+	 * 
+	 * @return t_int
+	 */
+	public int getTInt();
 
 	/**
 	 * Get the interval between scans when in scanning state.
@@ -113,5 +121,10 @@ public interface IDomainPreferences {
 	 * @return the start state.
 	 */
 	public abstract State getStartState();
+	
+	/**
+	 * Get if the internet state is enable or disabled
+	 */
+	public boolean checkInternetMode();
 
 }

@@ -63,6 +63,10 @@ public class AndroidPreferences implements IDomainPreferences {
 	public int getTCon() {
 		return getRandomTimeFromKey(R.string.key_t_con);
 	}
+	@Override
+	public int getTInt() {
+		return getRandomTimeFromKey(R.string.key_t_int);
+	}
 
 	/**
 	 * Returns a random uniform value between a minimum (set in the default
@@ -108,5 +112,12 @@ public class AndroidPreferences implements IDomainPreferences {
 	@Override
 	public State getStartState() {
 		return IEnvironment.State.Scanning;
+	}
+	@Override
+	public boolean checkInternetMode() {
+		SharedPreferences prefs = PreferenceManager
+				.getDefaultSharedPreferences(mContext);
+		boolean internetState = prefs.getBoolean("internet",false);
+		return internetState;
 	}
 }

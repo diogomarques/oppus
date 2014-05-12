@@ -22,6 +22,18 @@
             android:dialogMessage="@string/t_con_title"
             android:key="@string/key_t_con"
             android:title="t_con" />
+         <EditTextPreference
+            android:defaultValue="@string/value_t_int"
+            android:dialogMessage="@string/t_int_title"
+            android:key="@string/key_t_int"
+            android:title="t_int" />
+        
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:enabled="true"
+            android:key="@string/key_internet"
+            android:summary="@string/internet"
+            android:title="@string/internet_title" />
     </PreferenceCategory>
     <PreferenceCategory android:title="UI Preferences" >
     </PreferenceCategory>

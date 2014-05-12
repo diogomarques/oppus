@@ -1,12 +1,20 @@
 package net.diogomarques.wifioppish;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Date;
+
 import net.diogomarques.wifioppish.networking.Message;
 import net.diogomarques.wifioppish.networking.SoftAPDelegate;
 import net.diogomarques.wifioppish.networking.UDPDelegate;
 import net.diogomarques.wifioppish.networking.WiFiDelegate;
 import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiConfiguration.KeyMgmt;
+import android.util.Log;
 
 /**
  * The Android-specific networking controller facade.
@@ -103,5 +111,69 @@ public class AndroidNetworkingFacade implements INetworkingFacade {
 			final OnAccessPointScanListener listener) {
 		mWiFi.scanForAP(timeoutMilis, listener, this);
 
+	}
+	
+	@Override
+	public void scanForInternet(int timeout, OnInternetConnection listener) {
+		boolean connected=false;
+		long startTime = new Date().getTime();
+		while (!connected) {
+			long tick = new Date().getTime();
+			if (tick > startTime + timeout) {
+				Log.w("", "Internet scan timeout");
+				listener.onScanTimeout();
+				break;
+			}
+			while (true) {
+				if (new Date().getTime() > tick + mEnvironment.getPreferences().getScanPeriod()) {
+					if(isNetworkAvailable()){
+						Log.w("TextLog", "network available");
+						String pings = ping("www.google.pt");
+						Log.w("TextLog", "ping: " + pings);
+
+						if(pings.contains("1 received")){
+							Log.w("TextLog", " Connected internet");
+							connected=true;
+							listener.onInternetConnection();
+						}
+					}
+
+				
+					break;
+				}
+			}
+		}
+		
+	}
+	private boolean isNetworkAvailable() {
+	    ConnectivityManager connectivityManager 
+	          = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
+	    NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+	    return activeNetworkInfo != null && activeNetworkInfo.isConnectedOrConnecting();
+	}
+	private String ping(String url) {
+
+		//int count = 0;
+		String str = ""; 
+		try {
+			Process process = Runtime.getRuntime().exec(
+					"/system/bin/ping -c 1 " + url);
+			BufferedReader reader = new BufferedReader(new InputStreamReader(
+					process.getInputStream()));
+			int i;
+			char[] buffer = new char[4096];
+			StringBuffer output = new StringBuffer();
+			while ((i = reader.read(buffer)) > 0)
+				output.append(buffer, 0, i);
+			reader.close();
+
+			// body.append(output.toString()+"\n");
+			str = output.toString();
+			// Log.d(TAG, str);
+		} catch (IOException e) {
+			// body.append("Error\n");
+			e.printStackTrace();
+		}
+		return str;
 	}
 }

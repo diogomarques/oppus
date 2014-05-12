@@ -123,5 +123,33 @@ public interface INetworkingFacade {
 	 * 
 	 */
 	void scanForAP(int timeout, OnAccessPointScanListener listener);
+	
+	/**
+	 * Listener for access point scanning events.
+	 */
+	public static interface OnInternetConnection {
+		/**
+		 * Callback to be invoked when scan times out without finding an
+		 * appropriate access point.
+		 */
+		public void onScanTimeout();
+
+		/**
+		 * Callback to be invoked when a ping to www.google.pt is successful.
+		 * 
+		 */
+		public void onInternetConnection();
+	}
+	
+	/**
+	 * Scan for internet connection until the timeout is reached.
+	 * 
+	 * @param timeout
+	 *            the timeout in milliseconds.
+	 * @param listener
+	 *            a listener for access point scanning events.
+	 * 
+	 */
+	void scanForInternet(int timeout, OnInternetConnection listener);
 
 }

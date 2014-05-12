@@ -33,7 +33,12 @@ public class StateBeaconing extends AState {
 								.deliverMessage("t_beac timeout, stopping AP");
 						// stop ap and go to scanning
 						networking.stopAccessPoint();
-						environment.gotoState(State.Scanning);
+						
+						//goes to internet state if enabled
+						if(environment.internetState())
+							environment.gotoState(State.Internet);
+						else
+							environment.gotoState(State.Scanning);
 					}
 
 					@Override
