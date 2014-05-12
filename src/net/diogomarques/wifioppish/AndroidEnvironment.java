@@ -35,7 +35,14 @@ public class AndroidEnvironment implements IEnvironment {
 	private StateProviding mProviding;
 	private StateScanning mScanning;
 	private StateStation mStation;
+	private StateInternet mInternet;
+	private StateConnected mConnected;
+	
 	private State mCurrentState;
+	
+	//last state, used to determine the next state after the internet state
+	private State lastState;
+
 	
 	private State nextState;
 	private Semaphore semNextState;
@@ -71,7 +78,7 @@ public class AndroidEnvironment implements IEnvironment {
 	private AndroidEnvironment(Handler mHandler,
 			INetworkingFacade networkingFacade, IDomainPreferences preferences,
 			StateBeaconing beaconing, StateProviding providing,
-			StateScanning scanning, StateStation station) {
+			StateScanning scanning, StateStation station, StateInternet internet, StateConnected sconnect) {
 		super();
 		this.mHandler = mHandler;
 		this.mNetworkingFacade = networkingFacade;
@@ -80,6 +87,10 @@ public class AndroidEnvironment implements IEnvironment {
 		this.mProviding = providing;
 		this.mScanning = scanning;
 		this.mStation = station;
+		this.mInternet = internet;
+		this.mConnected = sconnect;
+		
+		
 	}
 
 	/**
@@ -103,9 +114,13 @@ public class AndroidEnvironment implements IEnvironment {
 		StateProviding providing = new StateProviding(environment);
 		StateScanning scanning = new StateScanning(environment);
 		StateStation station = new StateStation(environment);
+		StateInternet internet = new StateInternet(environment);
+		StateConnected sconnect = new StateConnected(environment);
+		
 		INetworkingFacade networkingFacade = AndroidNetworkingFacade
 				.createInstance(c, environment);
 		IDomainPreferences preferences = new AndroidPreferences(c);
+		
 		// networking
 		environment.mHandler = h;
 		environment.mNetworkingFacade = networkingFacade;
@@ -114,6 +129,9 @@ public class AndroidEnvironment implements IEnvironment {
 		environment.mProviding = providing;
 		environment.mScanning = scanning;
 		environment.mStation = station;
+		environment.mInternet = internet;
+		environment.mConnected = sconnect;
+		
 		// allow one state transition (to the first one)
 		environment.semNextState = new Semaphore(1);
 		// allowing the gathering of shared preferences
@@ -179,6 +197,9 @@ public class AndroidEnvironment implements IEnvironment {
 				e.printStackTrace();
 			}
 			
+			if(mCurrentState!=null && mCurrentState != State.Internet &&  mCurrentState != State.Connected)
+				lastState=mCurrentState;
+			
 			mCurrentState = nextState;
 			AState next = null;
 			int timeout = 0;
@@ -198,6 +219,14 @@ public class AndroidEnvironment implements IEnvironment {
 			case Station:
 				next = mStation;
 				timeout = mPreferences.getTCon();
+				break;
+			case Internet:
+				next = mInternet;
+				timeout = mPreferences.getTInt();
+				break;
+			case Connected:
+				next = mConnected;
+				timeout = mPreferences.getTInt();
 				break;
 			}
 			
@@ -310,4 +339,13 @@ public class AndroidEnvironment implements IEnvironment {
 	public void markVictimAsSafe(boolean safe) {
 		victimSafe = safe;
 	}
+	@Override
+	public State getLastState() {
+		return lastState;
+	}
+	@Override
+	public boolean internetState(){
+		return  mPreferences.checkInternetMode();
+	}
+	
 }

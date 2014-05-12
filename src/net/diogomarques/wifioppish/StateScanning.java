@@ -27,7 +27,12 @@ public class StateScanning extends AState {
 			@Override
 			public void onScanTimeout() {
 				environment.deliverMessage("t_scan timeout");
-				environment.gotoState(State.Beaconing);
+				
+				//goes to internet state if enabled
+				if(environment.internetState())
+					environment.gotoState(State.Internet);
+				else
+					environment.gotoState(State.Beaconing);				
 			}
 
 			@Override
