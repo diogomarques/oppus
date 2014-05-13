@@ -33,6 +33,7 @@
 		<item >Accepting connections&#8230;</item>
 		<item >Connected to the Internet</item>
 		<item >Clients connected</item>
+		<item >Checking for Internet connection...</item>
 	</string-array>
 	<string name="victim_lblMessageLogHeading">Message Log</string>
 	<string name="menu_victim_safe_on">Mark yourself as safe&#8230;</string>

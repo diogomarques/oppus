@@ -112,8 +112,6 @@ public class UDPDelegate {
 			socket.receive(packet);
 			//String received = getMessageIn(buffer);
 			Message m = MessageSerializer.networkToMessage(buffer);
-			mEnvironment.pushMessageToQueue(m);
-			mEnvironment.storeReceivedMessage(m);
 			String received = m.toString();
 			Log.w(TAG,
 					"Received packet! " + received + " from "
@@ -152,8 +150,6 @@ public class UDPDelegate {
 				socket.receive(packet);
 				//String received = getMessageIn(buffer);
 				Message m = MessageSerializer.networkToMessage(buffer);
-				mEnvironment.pushMessageToQueue(m);
-				mEnvironment.storeReceivedMessage(m);
 				String received = m.toString();
 				Log.w(TAG,
 						"Received packet! " + received + " from "

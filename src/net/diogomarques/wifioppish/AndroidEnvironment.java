@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.concurrent.Semaphore;
 
 import net.diogomarques.wifioppish.logging.MessageDumper;
+import net.diogomarques.wifioppish.sensors.SensorGroup;
+import net.diogomarques.wifioppish.sensors.SensorGroup.GroupKey;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -62,6 +64,8 @@ public class AndroidEnvironment implements IEnvironment {
 	private List<Integer> duplicates;
 	
 	private boolean victimSafe;
+	
+	private SensorGroup sensorGroup;
 
 	/**
 	 * Constructor with all dependencies. Use
@@ -325,7 +329,23 @@ public class AndroidEnvironment implements IEnvironment {
 		net.diogomarques.wifioppish.networking.Message newMsg =
 			new net.diogomarques.wifioppish.networking.Message(
 				nodeID, System.currentTimeMillis(), location, contents);
+		
+		// set other attributes
 		newMsg.setSafe(victimSafe);
+		
+		if(sensorGroup != null) {
+			Integer battery = (Integer) sensorGroup.getSensorCurrentValue(GroupKey.Battery);
+			if(battery != null)
+				newMsg.setBattery(battery);
+			
+			Integer steps = (Integer) sensorGroup.getSensorCurrentValue(GroupKey.Steps);
+			if(steps != null)
+				newMsg.setSteps(steps);
+			
+			Integer screen = (Integer) sensorGroup.getSensorCurrentValue(GroupKey.ScreenOn);
+			if(screen != null)
+				newMsg.setScreenOn(screen);
+		}
 		
 		return newMsg;
 	}
@@ -346,6 +366,14 @@ public class AndroidEnvironment implements IEnvironment {
 	@Override
 	public boolean internetState(){
 		return  mPreferences.checkInternetMode();
+	}
+
+	@Override
+	public SensorGroup getSensorGroup() {
+		if(sensorGroup == null)
+			sensorGroup = new SensorGroup();
+		
+		return sensorGroup;
 	}
 	
 }

@@ -3,6 +3,7 @@ package net.diogomarques.wifioppish;
 import java.util.List;
 
 import net.diogomarques.wifioppish.networking.Message;
+import net.diogomarques.wifioppish.sensors.SensorGroup;
 
 
 /**
@@ -40,7 +41,7 @@ public interface IEnvironment {
 		 */
 		Station,
 		/**
-		 * Internet is avaliable
+		 * Checking if Internet is available
 		 */
 		Internet,
 		/**
@@ -186,4 +187,10 @@ public interface IEnvironment {
 	 * @return true if internet state is part of the cycle, false if not
 	 */
 	public boolean internetState();
+	
+	/**
+	 * Gets the SensorGroup instance
+	 * @return SensorGroup instance
+	 */
+	public abstract SensorGroup getSensorGroup();
 }

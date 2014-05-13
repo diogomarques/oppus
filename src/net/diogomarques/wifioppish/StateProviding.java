@@ -48,9 +48,11 @@ public class StateProviding extends AState {
 			public void onMessageReceived(Message m) {
 				environment.deliverMessage("message received: " + m.toString());
 				
-				// avoid resending own messages
-				if( !m.getNodeId().equals(environment.getMyNodeId()))
+				// avoid duplicates
+				if( !m.getNodeId().equals(environment.getMyNodeId())) {
 					environment.pushMessageToQueue(m);
+					environment.storeReceivedMessage(m);
+				}
 			}
 		});
 

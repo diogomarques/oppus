@@ -7,6 +7,10 @@ import java.util.Collections;
 import java.util.List;
 
 import net.diogomarques.wifioppish.logging.TextLog;
+import net.diogomarques.wifioppish.sensors.BatterySensor;
+import net.diogomarques.wifioppish.sensors.PedometerSensor;
+import net.diogomarques.wifioppish.sensors.ScreenOnSensor;
+import net.diogomarques.wifioppish.sensors.SensorGroup.GroupKey;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -58,6 +62,9 @@ public class VictimActivity extends Activity {
 	private Handler updatesHandler;
 	private static TextLog log;
 	private LocationProvider location;
+	private ScreenOnSensor screenOn;
+	private PedometerSensor steps;
+	private BatterySensor battery;
 	
 	/* app data */
 	private ArrayList<TextMessageListItem> data;
@@ -133,6 +140,17 @@ public class VictimActivity extends Activity {
 		environment = AndroidEnvironment.createInstance(this, updatesHandler);
 		// stop wifi AP that might be left open on abnormal app exit
 		environment.getNetworkingFacade().stopAccessPoint();
+		
+		// add sensors to environment
+		screenOn = new ScreenOnSensor();
+		screenOn.startSensor(this);
+		environment.getSensorGroup().addSensor(GroupKey.ScreenOn, screenOn);
+		battery = new BatterySensor();
+		battery.startSensor(this);
+		environment.getSensorGroup().addSensor(GroupKey.Battery, battery);
+		steps = new PedometerSensor();
+		steps.startSensor(this);
+		environment.getSensorGroup().addSensor(GroupKey.Steps, steps);
 		
 		environment.deliverMessage("my node ID is " + id);
 		
@@ -218,7 +236,7 @@ public class VictimActivity extends Activity {
 			imgResource = R.drawable.beaconing;
 			break;
 			
-			case Internet:
+			case Connected:
 			text = descriptions[3];
 			imgResource = R.drawable.internet;
 			break;
@@ -236,7 +254,12 @@ public class VictimActivity extends Activity {
 			case Station:
 			text = descriptions[1];
 			imgResource = R.drawable.station;
-			break;	
+			break;
+			
+			case Internet:
+			text = descriptions[5];
+			imgResource = R.drawable.internet;
+			break;
 		}
 		
 		mTextViewStatus.setText(text);

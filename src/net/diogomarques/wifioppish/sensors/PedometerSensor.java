@@ -15,6 +15,8 @@ import android.util.Log;
  */
 public class PedometerSensor implements IIntervalSensor {
 	
+	private static final String TAG = "Pedometer Sensor";
+	
 	private Integer steps;
 	private Sensor mSensor;
 	private SensorManager mSensorManager;
@@ -27,7 +29,7 @@ public class PedometerSensor implements IIntervalSensor {
 		@Override
 		public void onStep() {
 			steps++;
-			Log.i("PedometerSensor", steps + " steps");
+			Log.i(TAG, steps + " steps");
 		}
 	};
 	
@@ -38,18 +40,22 @@ public class PedometerSensor implements IIntervalSensor {
 		steps = 0;
 	}
 	
+	@Override
 	public Object getCurrentValue() {
 		return steps;
 	}
 
+	@Override
 	public Object getIntervalValue() {
 		return steps;
 	}
 
+	@Override
 	public void resetInterval() {
 		steps = 0;
 	}
 	
+	@Override
 	public void startSensor(Context c) {
 		mSensorManager = (SensorManager) c.getSystemService(Context.SENSOR_SERVICE);
 		mSensor = mSensorManager.getDefaultSensor(

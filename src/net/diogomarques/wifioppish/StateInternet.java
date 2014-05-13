@@ -6,8 +6,6 @@ import net.diogomarques.wifioppish.IEnvironment.State;
 
 /**
  * Android implementation of state {@link IEnvironment.State#Internet}
- * 
- * @author André Silva <asilva@lasige.di.fc.ul.pt>
  */
 public class StateInternet extends AState {
 
