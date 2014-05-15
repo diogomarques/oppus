@@ -236,7 +236,7 @@ public class VictimActivity extends Activity {
 			imgResource = R.drawable.beaconing;
 			break;
 			
-			case Connected:
+			case InternetConn:
 			text = descriptions[3];
 			imgResource = R.drawable.internet;
 			break;
@@ -256,7 +256,7 @@ public class VictimActivity extends Activity {
 			imgResource = R.drawable.station;
 			break;
 			
-			case Internet:
+			case InternetCheck:
 			text = descriptions[5];
 			imgResource = R.drawable.internet;
 			break;

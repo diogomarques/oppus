@@ -9,7 +9,6 @@ import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.Date;
 
-import net.diogomarques.wifioppish.ConcurrentForwardingQueue;
 import net.diogomarques.wifioppish.IDomainPreferences;
 import net.diogomarques.wifioppish.IEnvironment;
 import net.diogomarques.wifioppish.INetworkingFacade.OnReceiveListener;
@@ -38,8 +37,6 @@ public class UDPDelegate {
 	 * Single UDP socket for messaging i/o
 	 */
 	private DatagramSocket mSocket;
-	
-	protected ConcurrentForwardingQueue mQueue;
 
 	/* Dependencies */
 	private final Context mContext;
@@ -48,7 +45,6 @@ public class UDPDelegate {
 	public UDPDelegate(Context context, IEnvironment environment) {
 		mContext = context;
 		mEnvironment = environment;
-		mQueue = new ConcurrentForwardingQueue();
 	}
 
 	private InetAddress getBroadcastAddress() throws UnknownHostException {

@@ -34,7 +34,7 @@ public class StateProviding extends AState {
 					
 					//goes to internet state if enabled
 					if(environment.internetState())
-						environment.gotoState(State.Internet);
+						environment.gotoState(State.InternetCheck);
 					else
 						environment.gotoState(State.Scanning);				}
 				// no connections

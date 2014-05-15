@@ -43,11 +43,11 @@ public interface IEnvironment {
 		/**
 		 * Checking if Internet is available
 		 */
-		Internet,
+		InternetCheck,
 		/**
 		 * Connected to the internet
 		 */
-		Connected;
+		InternetConn;
 	}
 
 	/**

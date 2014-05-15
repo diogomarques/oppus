@@ -8,6 +8,7 @@ import java.util.concurrent.Semaphore;
 import net.diogomarques.wifioppish.logging.MessageDumper;
 import net.diogomarques.wifioppish.sensors.SensorGroup;
 import net.diogomarques.wifioppish.sensors.SensorGroup.GroupKey;
+import net.diogomarques.wifioppish.structs.ConcurrentForwardingQueue;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -37,8 +38,8 @@ public class AndroidEnvironment implements IEnvironment {
 	private StateProviding mProviding;
 	private StateScanning mScanning;
 	private StateStation mStation;
-	private StateInternet mInternet;
-	private StateConnected mConnected;
+	private StateInternetCheck mInternet;
+	private StateInternetConn mConnected;
 	
 	private State mCurrentState;
 	
@@ -82,7 +83,7 @@ public class AndroidEnvironment implements IEnvironment {
 	private AndroidEnvironment(Handler mHandler,
 			INetworkingFacade networkingFacade, IDomainPreferences preferences,
 			StateBeaconing beaconing, StateProviding providing,
-			StateScanning scanning, StateStation station, StateInternet internet, StateConnected sconnect) {
+			StateScanning scanning, StateStation station, StateInternetCheck internet, StateInternetConn sconnect) {
 		super();
 		this.mHandler = mHandler;
 		this.mNetworkingFacade = networkingFacade;
@@ -118,8 +119,8 @@ public class AndroidEnvironment implements IEnvironment {
 		StateProviding providing = new StateProviding(environment);
 		StateScanning scanning = new StateScanning(environment);
 		StateStation station = new StateStation(environment);
-		StateInternet internet = new StateInternet(environment);
-		StateConnected sconnect = new StateConnected(environment);
+		StateInternetCheck internet = new StateInternetCheck(environment);
+		StateInternetConn sconnect = new StateInternetConn(environment);
 		
 		INetworkingFacade networkingFacade = AndroidNetworkingFacade
 				.createInstance(c, environment);
@@ -201,7 +202,7 @@ public class AndroidEnvironment implements IEnvironment {
 				e.printStackTrace();
 			}
 			
-			if(mCurrentState!=null && mCurrentState != State.Internet &&  mCurrentState != State.Connected)
+			if(mCurrentState!=null && mCurrentState != State.InternetCheck &&  mCurrentState != State.InternetConn)
 				lastState=mCurrentState;
 			
 			mCurrentState = nextState;
@@ -224,11 +225,11 @@ public class AndroidEnvironment implements IEnvironment {
 				next = mStation;
 				timeout = mPreferences.getTCon();
 				break;
-			case Internet:
+			case InternetCheck:
 				next = mInternet;
 				timeout = mPreferences.getTInt();
 				break;
-			case Connected:
+			case InternetConn:
 				next = mConnected;
 				timeout = mPreferences.getTInt();
 				break;

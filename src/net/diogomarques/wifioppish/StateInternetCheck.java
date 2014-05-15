@@ -5,18 +5,19 @@ import android.util.Log;
 import net.diogomarques.wifioppish.IEnvironment.State;
 
 /**
- * Android implementation of state {@link IEnvironment.State#Internet}
+ * Android implementation of state {@link IEnvironment.State#InternetCheck}
+ * 
+ * @author André Rodrigues
  */
-public class StateInternet extends AState {
+public class StateInternetCheck extends AState {
 
-	public StateInternet(IEnvironment env) {
+	public StateInternetCheck(IEnvironment env) {
 		super(env);
-		// TODO Auto-generated constructor stub
 	}
 
 	@Override
 	public void start(int timeout, Context context) {
-		Log.w("Machine State", "Internet");
+		Log.w("Machine State", "Internet Checking");
 
 		final INetworkingFacade networking = environment.getNetworkingFacade();
 		environment.deliverMessage("entered Internet state");
@@ -44,7 +45,7 @@ public class StateInternet extends AState {
 						environment
 								.deliverMessage("connected to the internet!");
 
-						environment.gotoState(State.Connected);
+						environment.gotoState(State.InternetConn);
 					}
 				});
 

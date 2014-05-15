@@ -30,7 +30,7 @@ public class StateScanning extends AState {
 				
 				//goes to internet state if enabled
 				if(environment.internetState())
-					environment.gotoState(State.Internet);
+					environment.gotoState(State.InternetCheck);
 				else
 					environment.gotoState(State.Beaconing);				
 			}

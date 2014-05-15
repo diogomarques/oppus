@@ -1,4 +1,4 @@
-package net.diogomarques.wifioppish;
+package net.diogomarques.wifioppish.structs;
 
 import java.util.Collection;
 import java.util.Iterator;
