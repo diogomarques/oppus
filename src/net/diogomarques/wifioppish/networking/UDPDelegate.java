@@ -66,7 +66,7 @@ public class UDPDelegate {
 	}
 
 	public void send(Message msg, OnSendListener listener) {
-		byte[] netMessage = MessageSerializer.messageToNetwork(msg);
+		byte[] netMessage = MessageFormatter.messageToNetwork(msg);
 		
 		IDomainPreferences preferences = mEnvironment.getPreferences();
 		try {
@@ -107,7 +107,7 @@ public class UDPDelegate {
 			// blocks for t_beac
 			socket.receive(packet);
 			//String received = getMessageIn(buffer);
-			Message m = MessageSerializer.networkToMessage(buffer);
+			Message m = MessageFormatter.networkToMessage(buffer);
 			String received = m.toString();
 			Log.w(TAG,
 					"Received packet! " + received + " from "
@@ -145,7 +145,7 @@ public class UDPDelegate {
 				socket.setSoTimeout(timeoutMilis);
 				socket.receive(packet);
 				//String received = getMessageIn(buffer);
-				Message m = MessageSerializer.networkToMessage(buffer);
+				Message m = MessageFormatter.networkToMessage(buffer);
 				String received = m.toString();
 				Log.w(TAG,
 						"Received packet! " + received + " from "

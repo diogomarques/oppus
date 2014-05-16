@@ -170,27 +170,6 @@ public class Message implements Serializable {
 	public String getMessage() {
 		return message;
 	}
-	
-	/**
-	 * Gets the CSV (Comma Separated Values) for this message
-	 * @return String containing information about the Message in CSV format
-	 */
-	public String getMessageCsv() {
-		StringBuilder sb = new StringBuilder(String.format(
-			"\"%s\";%s;%s;%s;%s;%d;%d;%d;%d",
-			(message == null ? "" : message),
-			nodeId,
-			timestamp,
-			latitude,
-			longitude,
-			battery,
-			steps,
-			screenOn,
-			safe ? 1 : 0
-		));
-		
-		return sb.toString();
-	}
 
 	@Override
 	public String toString() {
