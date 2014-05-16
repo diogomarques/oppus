@@ -126,5 +126,12 @@ public interface IDomainPreferences {
 	 * Get if the internet state is enable or disabled
 	 */
 	public boolean checkInternetMode();
+	
+	/**
+	 * Gets the preferred API webservice endpoint. 
+	 * The method will be appended to this address.
+	 * @return API endpoint web address
+	 */
+	public abstract String getApiEndpoint(); 
 
 }

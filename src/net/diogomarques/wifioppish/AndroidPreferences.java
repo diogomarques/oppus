@@ -120,4 +120,14 @@ public class AndroidPreferences implements IDomainPreferences {
 		boolean internetState = prefs.getBoolean("internet",false);
 		return internetState;
 	}
+
+	@Override
+	public String getApiEndpoint() {
+		SharedPreferences prefs = PreferenceManager
+				.getDefaultSharedPreferences(mContext);
+		String key = mContext.getString(R.string.key_t_api);
+		String address = prefs.getString(key, null);
+		
+		return address;
+	}
 }

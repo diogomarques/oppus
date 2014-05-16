@@ -34,6 +34,12 @@
             android:key="@string/key_internet"
             android:summary="@string/internet"
             android:title="@string/internet_title" />
+        
+        <EditTextPreference
+            android:defaultValue="@string/value_t_api"
+            android:dialogMessage="@string/t_api_desc"
+            android:key="@string/key_t_api"
+            android:title="@string/t_api_title" />
     </PreferenceCategory>
     <PreferenceCategory android:title="UI Preferences" >
     </PreferenceCategory>

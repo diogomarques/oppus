@@ -1,10 +1,12 @@
 package net.diogomarques.wifioppish;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import net.diogomarques.wifioppish.IEnvironment.State;
 import net.diogomarques.wifioppish.networking.Message;
+import net.diogomarques.wifioppish.networking.MessageFormatter;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -31,6 +33,7 @@ import android.util.Log;
 public class StateInternetConn extends AState {
 	
 	private final int HTTP_OK = 200;
+	private final String METHOD = "victims";
 
 	public StateInternetConn(IEnvironment env) {
 		super(env);
@@ -44,36 +47,30 @@ public class StateInternetConn extends AState {
 		context = c;
 		environment.deliverMessage("entered Internet connected state");
 		
-		// TODO move endpoint to preferences
-		String endpoint = "http://192.168.1.3/wifioppish-map/index.php/rest/victims";
-		
-		HttpClient httpclient = new DefaultHttpClient();
-		HttpPost httppost = new HttpPost(endpoint);
-		
-		// get messages from send queue
-		List<Message> messages = environment.fetchMessagesFromQueue();
-		JSONArray jsonArray = new JSONArray();
-		
-		for(Message m : messages) {
-			JSONObject json = new JSONObject();
-			json.put("nodeid", m.getNodeId());
-			json.put("timestamp", m.getTimestamp());
-			json.put("msg", m.getMessage());
-			json.put("latitude", m.getLatitude());
-			json.put("longitude", m.getLongitude());
-			json.put("battery", m.getBattery());
-			json.put("steps", m.getSteps());
-			json.put("screen", m.getScreenOn());
-			json.put("distance", -1);
-			json.put("safe", m.isSafe() ? 1 : 0);
-			jsonArray.put(json);
-		}
-
-		String contents = jsonArray.toString();
-		
-		Log.w("Webservice", "About to send: " + contents);
-		
 		try {
+		
+			String endpoint = new StringBuilder().
+					append(environment.getPreferences().getApiEndpoint()).
+					append('/').append(METHOD).toString();
+			
+			Log.d("Webservice", "Endpoint: " + endpoint);
+			
+			HttpClient httpclient = new DefaultHttpClient();
+			HttpPost httppost = new HttpPost(endpoint);
+			
+			// get messages from send queue
+			List<Message> messages = environment.fetchMessagesFromQueue();
+			JSONArray jsonArray = new JSONArray();
+			
+			for(Message m : messages) {
+				JSONObject json = MessageFormatter.messageToJsonObject(m);
+				jsonArray.put(json);
+			}
+	
+			String contents = jsonArray.toString();
+			
+			Log.d("Webservice", "About to send: " + contents);
+		
 			// send request to webservice
 		    List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
 		    nameValuePairs.add(new BasicNameValuePair("data", contents));
@@ -82,14 +79,17 @@ public class StateInternetConn extends AState {
 		    HttpEntity entity = response.getEntity();
 		    String body = EntityUtils.toString(entity, "UTF-8");
 		    
-		    Log.w("Webservice", "Response: " + response.getStatusLine().getStatusCode());
-		    Log.w("Webservice", "Response body: " + body);
+		    Log.d("Webservice", "Response: " + response.getStatusLine().getStatusCode());
+		    Log.d("Webservice", "Response body: " + body);
 		    
 		    // if messages were successfully inserted, clear the queue
-		    if(response.getStatusLine().getStatusCode() == HTTP_OK)
+		    if(response.getStatusLine().getStatusCode() == HTTP_OK) {
 		    	environment.clearQueue();
+		    }
 		    
-		} catch (Exception e) {}
+		} catch(IOException e) {
+			Log.e("Webservice", "Cannot connect to webservice: " + e.getMessage(), e);
+		}
 
 		if (environment.getLastState() == State.Scanning) {
 			environment.deliverMessage("t_i_con timeout");

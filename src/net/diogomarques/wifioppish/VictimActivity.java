@@ -238,7 +238,7 @@ public class VictimActivity extends Activity {
 			
 			case InternetConn:
 			text = descriptions[3];
-			imgResource = R.drawable.internet;
+			imgResource = R.drawable.internet_available;
 			break;
 			
 			case Providing:
@@ -258,7 +258,7 @@ public class VictimActivity extends Activity {
 			
 			case InternetCheck:
 			text = descriptions[5];
-			imgResource = R.drawable.internet;
+			imgResource = R.drawable.check_internet;
 			break;
 		}
 		
