@@ -35,7 +35,7 @@ public class StateBeaconing extends AState {
 						networking.stopAccessPoint();
 						
 						// goes to internet state if enabled
-						if(environment.internetState() && environment.hasMessages())
+						if(environment.internetState())
 							environment.gotoState(State.InternetCheck);
 						else
 							environment.gotoState(State.Scanning);

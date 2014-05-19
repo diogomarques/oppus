@@ -59,7 +59,6 @@ public class StateStation extends AState {
 						environment.deliverCustomMessage(
 								msg, VictimActivity.StateChangeHandler.MSG_SENT);
 						environment.deliverMessage("message successfully sent");
-						//environment.removeFromQueue(msg);
 					}
 				};
 				

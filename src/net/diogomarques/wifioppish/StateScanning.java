@@ -29,7 +29,7 @@ public class StateScanning extends AState {
 				environment.deliverMessage("t_scan timeout");
 				
 				// goes to internet state if enabled and has messages to send to webservice
-				if(environment.internetState() && environment.hasMessages())
+				if(environment.internetState())
 					environment.gotoState(State.InternetCheck);
 				else
 					environment.gotoState(State.Beaconing);				

@@ -58,8 +58,9 @@ public class StateInternetConn extends AState {
 			HttpClient httpclient = new DefaultHttpClient();
 			HttpPost httppost = new HttpPost(endpoint);
 			
-			// get messages from send queue
+			// get messages from send queue and create auto-message
 			List<Message> messages = environment.fetchMessagesFromQueue();
+			messages.add(environment.createTextMessage(""));
 			JSONArray jsonArray = new JSONArray();
 			
 			for(Message m : messages) {
