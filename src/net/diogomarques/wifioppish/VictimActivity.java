@@ -264,7 +264,7 @@ public class VictimActivity extends Activity {
 		
 		mTextViewStatus.setText(text);
 		mImageStatus.setImageResource(imgResource);
-}
+	}
 	
 	/**
 	 * List item container for a text message with sending status and the 
@@ -273,7 +273,8 @@ public class VictimActivity extends Activity {
 	 */
 	private class TextMessageListItem implements Comparable<TextMessageListItem> {
 		private net.diogomarques.wifioppish.networking.Message msgObject;
-		private boolean sent;
+		private boolean sentNetwork;
+		private boolean sentWebservice;
 		
 		/**
 		 * Creates a new instance
@@ -282,7 +283,7 @@ public class VictimActivity extends Activity {
 		public TextMessageListItem(net.diogomarques.wifioppish.networking.Message envelope) {
 			super();
 			this.msgObject = envelope;
-			this.sent = false;
+			this.sentNetwork = false;
 		}
 		
 		/**
@@ -305,16 +306,16 @@ public class VictimActivity extends Activity {
 		 * Return whenever the message is sent or not
 		 * @return True if already sent; False otherwise
 		 */
-		public boolean isSent() {
-			return sent;
+		public boolean isSentNetwork() {
+			return sentNetwork;
 		}
 
 		/**
 		 * Sets the sending status of message
 		 * @param sent True if already sent; False otherwise
 		 */
-		public void setSent(boolean sent) {
-			this.sent = sent;
+		public void setSentNetwork(boolean sent) {
+			this.sentNetwork = sent;
 		}
 		
 		/**
@@ -340,6 +341,14 @@ public class VictimActivity extends Activity {
 				return 0;
 			
 			return result < 0 ? -1 : 1;
+		}
+
+		public boolean isSentWebservice() {
+			return sentWebservice;
+		}
+
+		public void setSentWebservice(boolean sentWebservice) {
+			this.sentWebservice = sentWebservice;
 		}
 	}
 	
@@ -367,11 +376,13 @@ public class VictimActivity extends Activity {
 	      TextMessageListItem curItem = data.get(position);
 	      textView.setText(curItem.getMessage());
 	      
-	      if(curItem.isSent())
+	      if(curItem.isSentWebservice())
+	    	  textView.setCompoundDrawablesWithIntrinsicBounds(R.drawable.sent_cloud, 0, 0, 0);
+	      else if(curItem.isSentNetwork())
 	    	  textView.setCompoundDrawablesWithIntrinsicBounds(R.drawable.green_check, 0, 0, 0);
 	      else
 	    	  textView.setCompoundDrawablesWithIntrinsicBounds(R.drawable.waiting, 0, 0, 0);
-
+	    	  
 	      return rowView;
 	    }
 	}
@@ -397,6 +408,11 @@ public class VictimActivity extends Activity {
 		 * A new message was sent to the network
 		 */
 		public static final int MSG_SENT = 804;
+		
+		/**
+		 * A Message was sent directly to the webservice
+		 */
+		public static final int MSG_SENT_WS = 805;
 		
 		final WeakReference<VictimActivity> mActivity;
 
@@ -424,7 +440,7 @@ public class VictimActivity extends Activity {
 			        }
 			    }
 				
-			// message successfully sent, mark as sent
+			// message successfully sent to network, mark as sent
 			} else if(msg.what == MSG_SENT) {
 				final net.diogomarques.wifioppish.networking.Message sent = 
 						(net.diogomarques.wifioppish.networking.Message) msg.obj;
@@ -432,7 +448,21 @@ public class VictimActivity extends Activity {
 				for (int i = 0; i < activity.data.size(); i++) {
 					TextMessageListItem tmli = activity.data.get(i);
 					if(tmli.messageEquals(sent)) {
-						tmli.setSent(true);
+						tmli.setSentNetwork(true);
+						activity.adapter.notifyDataSetChanged();
+						break;
+					}
+				}
+			
+			// message successfully sent to webservice
+			} else if(msg.what == MSG_SENT_WS) {
+				final net.diogomarques.wifioppish.networking.Message sent = 
+						(net.diogomarques.wifioppish.networking.Message) msg.obj;
+				
+				for (int i = 0; i < activity.data.size(); i++) {
+					TextMessageListItem tmli = activity.data.get(i);
+					if(tmli.messageEquals(sent)) {
+						tmli.setSentWebservice(true);
 						activity.adapter.notifyDataSetChanged();
 						break;
 					}

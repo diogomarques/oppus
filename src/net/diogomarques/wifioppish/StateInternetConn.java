@@ -85,6 +85,11 @@ public class StateInternetConn extends AState {
 		    
 		    // if messages were successfully inserted, clear the queue
 		    if(response.getStatusLine().getStatusCode() == HTTP_OK) {
+		    	// message sent feedback
+		    	// TODO get operation code (805) from shared/centralized handler
+		    	for(Message m : messages)
+		    		environment.deliverCustomMessage(m, 805);
+		    	
 		    	environment.clearQueue();
 		    }
 		    
