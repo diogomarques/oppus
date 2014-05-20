@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.util.Date;
 
 import net.diogomarques.wifioppish.networking.Message;
+import net.diogomarques.wifioppish.networking.MessageGroup;
 import net.diogomarques.wifioppish.networking.SoftAPDelegate;
 import net.diogomarques.wifioppish.networking.UDPDelegate;
 import net.diogomarques.wifioppish.networking.WiFiDelegate;
@@ -95,6 +96,11 @@ public class AndroidNetworkingFacade implements INetworkingFacade {
 	public void send(Message msg, OnSendListener listener) {
 		mUdp.send(msg, listener);
 	}
+	
+	@Override
+	public void send(MessageGroup msgs, OnSendListener listener) {
+		mUdp.send(msgs, listener);
+	}
 
 	@Override
 	public void receiveFirst(int timeoutMilis, OnReceiveListener listener) {
@@ -176,4 +182,5 @@ public class AndroidNetworkingFacade implements INetworkingFacade {
 		}
 		return str;
 	}
+
 }

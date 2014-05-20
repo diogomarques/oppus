@@ -4,6 +4,7 @@ import android.content.Context;
 import android.util.Log;
 import net.diogomarques.wifioppish.IEnvironment.State;
 import net.diogomarques.wifioppish.networking.Message;
+import net.diogomarques.wifioppish.networking.MessageGroup;
 
 /**
  * Android implementation of state {@link IEnvironment.State#Beaconing}
@@ -44,6 +45,17 @@ public class StateBeaconing extends AState {
 					@Override
 					public void onMessageReceived(Message m) {
 						environment.deliverMessage("message received: " + m.toString());
+						environment.pushMessageToQueue(m);
+						environment.gotoState(State.Providing);
+					}
+
+					@Override
+					public void onMessageReceived(MessageGroup msgs) {
+						for(Message m : msgs) {
+							environment.deliverMessage("message received: " + m.toString());
+							environment.pushMessageToQueue(m);
+						}
+						
 						environment.gotoState(State.Providing);
 					}
 				});

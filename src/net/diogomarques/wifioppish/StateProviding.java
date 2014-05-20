@@ -4,6 +4,7 @@ import android.content.Context;
 import android.util.Log;
 import net.diogomarques.wifioppish.IEnvironment.State;
 import net.diogomarques.wifioppish.networking.Message;
+import net.diogomarques.wifioppish.networking.MessageGroup;
 
 /**
  * Android implementation of state {@link IEnvironment.State#Providing}
@@ -36,7 +37,8 @@ public class StateProviding extends AState {
 					if(environment.internetState())
 						environment.gotoState(State.InternetCheck);
 					else
-						environment.gotoState(State.Scanning);				}
+						environment.gotoState(State.Scanning);
+					}
 				// no connections
 				else {
 					environment.deliverMessage("no connections to provide for");
@@ -53,6 +55,12 @@ public class StateProviding extends AState {
 					environment.pushMessageToQueue(m);
 					environment.storeReceivedMessage(m);
 				}
+			}
+			
+			@Override
+			public void onMessageReceived(MessageGroup msgs) {
+				for(Message m : msgs)
+					onMessageReceived(m);
 			}
 		});
 

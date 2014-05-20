@@ -13,9 +13,9 @@ import org.json.JSONObject;
 import android.util.Log;
 
 /**
- * Encodes/decodes {@link Message Messages} to other formats.
+ * Encodes/decodes {@link Message Messages} and {@link MessageGroup MessageGroups} to other formats.
  * <p>
- * It supports the encode/decode of Messages to/from network, encode to CSV (Comma 
+ * It supports the encode/decode of Message and GroupMessages to/from network, encode to CSV (Comma 
  * Separated Values) and encode to {@link JSONObject}.
  * 
  * @author André Silva <asilva@lasige.di.fc.ul.pt>
@@ -38,10 +38,34 @@ public class MessageFormatter {
 			msg = (Message) ois.readObject();
 			
 		} catch (ClassNotFoundException e) {
-			Log.e("MessageSerializer", "toMsg: Class not found (different app versions?) " + e.getMessage());
+			Log.e("MessageSerializer", "toMsg: Class not found (different app versions?)", e);
 			
 		} catch (IOException e) {
-			Log.e("MessageSerializer", "toMsg: IOException " + e.getMessage());
+			Log.e("MessageSerializer", "toMsg: IOException", e);
+		}
+		
+		return msg;
+	}
+	
+	/**
+	 * Receives a stream of bytes from the network and converts it 
+	 * to a MessageGroup.
+	 * @param stream The byte stream received from the network
+	 * @return MessageGroup instance, if the MessageGroup was successfully extracted; null in 
+	 * 			case of failed conversion
+	 */
+	public static MessageGroup networkToMessageGroup(byte[] stream) {
+		MessageGroup msg = null;
+		try {
+			
+			ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(stream));
+			msg = (MessageGroup) ois.readObject();
+			
+		} catch (ClassNotFoundException e) {
+			Log.e("MessageSerializer", "toMsgGroup: Class not found (different app versions?)", e);
+			
+		} catch (IOException e) {
+			Log.e("MessageSerializer", "toMsgGroup: IOException", e);
 		}
 		
 		return msg;
@@ -66,6 +90,31 @@ public class MessageFormatter {
 			bos.close();
 		} catch (IOException e) {
 			Log.e("MessageSerializer", "toNet: IOException " + e.getMessage());
+		} 
+
+		return buffer;
+	}
+	
+	
+	/**
+	 * Converts a MessageGroup to a streamable format (byte array)
+	 * @param msg The MessageGroup to be converted
+	 * @return stream to send over network if Message was successfully converted; null in 
+	 * 			case of failed conversion
+	 */
+	public static byte[] messageGroupToNetwork(MessageGroup msg) {
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		ObjectOutput out = null;
+		byte[] buffer = null;
+		
+		try {
+			out = new ObjectOutputStream(bos);
+			out.writeObject(msg);		  
+			buffer = bos.toByteArray();
+			out.close();
+			bos.close();
+		} catch (IOException e) {
+			Log.e("MessageSerializer", "MsgGrouptoNet: IOException", e);
 		} 
 
 		return buffer;
