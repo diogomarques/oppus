@@ -1,5 +1,9 @@
 package net.diogomarques.wifioppish;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
@@ -14,20 +18,21 @@ import android.util.Log;
  * Represents a Location Provider to obtain user location as precise 
  * as possible. It uses {@link android.content.SharedPreferences SharedPreferences} to store 
  * the value temporally and allow shared access to other components.
- * 
  * <p>
- * The Location Provider tries to use the 
- * device's GPS to get the current location.
- * </p>
+ * The Location Provider uses the device's GPS to get the current location.
  * 
  * @author André Silva <asilva@lasige.di.fc.ul.pt>
  *
  */
 public class LocationProvider {
 	
+	private static final String TAG = "LocationProvider";
+	private static final int CONFIDENCE_INTERVAL = 5;   // in seconds
 	private Context context;
 	private LocationManager mLocManager;
 	private SharedPreferences sharedPref;
+	private long lastUpdate;
+	private ScheduledExecutorService schedulerConf;
 	
 	/**
 	 * Preference key for the last known latitude
@@ -44,27 +49,57 @@ public class LocationProvider {
 	 */
 	public static final String LAST_TIME_KEY = "gps.lastUpdate";
 	
+	/**
+	 * Preference key for the location confidence
+	 * @see {@link #CONFIDENCE_LAST_KNOWN} Value for poor confidence
+	 * @see {@link #CONFIDENCE_UPDATED} Value for good confidence
+	 */
+	public static final String LAST_CONFIDENCE_KEY = "gps.confidence";
+	
+	/**
+	 * Mediocre confidence level for location update, meaning that the location 
+	 * refers to the previously successfully retrieved location
+	 */
+	public static final int CONFIDENCE_LAST_KNOWN = 0;
+	
+	/**
+	 * Maximum confidence level for location update, meaning that the location 
+	 * was just retrieved from GPS
+	 */
+	public static final int CONFIDENCE_UPDATED = 1;
 	
 	private LocationListener locationListener = new LocationListener() {
 		
 		@Override
-		public void onStatusChanged(String provider, int status, Bundle extras) {}
+		public void onStatusChanged(String provider, int status, Bundle extras) {
+			Log.i(TAG, "Status change: #status=" + status + " for " + provider);
+		}
 		
 		@Override
-		public void onProviderEnabled(String provider) {}
+		public void onProviderEnabled(String provider) {
+			Log.i(TAG, "Provider enabled: " + provider);
+		}
 		
 		@Override
-		public void onProviderDisabled(String provider) {}
+		public void onProviderDisabled(String provider) {
+			Log.i(TAG, "Provider disabled: " + provider);
+		}
 		
 		@Override
 		public void onLocationChanged(Location location) {
+			lastUpdate = System.currentTimeMillis();
+			
 			Editor editor = sharedPref.edit();
 			editor.putString(LAST_LAT_KEY, Double.toString(location.getLatitude()));
 			editor.putString(LAST_LON_KEY, Double.toString(location.getLongitude()));
-			editor.putLong(LAST_TIME_KEY, System.currentTimeMillis());
+			editor.putLong(LAST_TIME_KEY, lastUpdate);
+			editor.putInt(LAST_CONFIDENCE_KEY, CONFIDENCE_UPDATED);
 			editor.commit();
 			
-			Log.w("LocationProvider", "Location records updated! (" +
+			if(schedulerConf == null)
+				initializeScheduler();
+			
+			Log.d(TAG, "Location update (" +
 					location.getLatitude() + "," + location.getLongitude() + ")");
 		}
 	};
@@ -83,6 +118,7 @@ public class LocationProvider {
 		prefEditor.remove(LAST_LAT_KEY);
 		prefEditor.remove(LAST_LON_KEY);
 		prefEditor.remove(LAST_TIME_KEY);
+		prefEditor.remove(LAST_CONFIDENCE_KEY);
 		prefEditor.commit();
 	}
 	
@@ -113,5 +149,25 @@ public class LocationProvider {
 	public void unregisterLocationListener(LocationListener mLocationListener) {
 		if(mLocManager != null)
 			mLocManager.removeUpdates(mLocationListener);
+	}
+	
+	/**
+	 * Initializes the scheduler to check for valid locations
+	 */
+	private void initializeScheduler() {
+		schedulerConf = Executors.newSingleThreadScheduledExecutor();
+		schedulerConf.scheduleAtFixedRate(new Runnable() {
+			
+			@Override
+			public void run() {
+				if((lastUpdate + CONFIDENCE_INTERVAL*1000) < System.currentTimeMillis()) {
+					Editor editor = sharedPref.edit();
+					editor.putInt(LAST_CONFIDENCE_KEY, CONFIDENCE_LAST_KNOWN);
+					editor.commit();
+					
+					Log.i(TAG, "No valid locations for " + CONFIDENCE_INTERVAL + " seconds");
+				}
+			}
+		}, 0, CONFIDENCE_INTERVAL, TimeUnit.SECONDS);
 	}
 }

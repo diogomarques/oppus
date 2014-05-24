@@ -43,7 +43,7 @@
     <string name="key_internet">internet</string>
     <string name="internet_title">Internet mode</string>
     <string name="internet">enable internet state</string>
-    <string name="value_t_api">http://192.168.1.3/wifioppish-map/index.php/rest</string>
+    <string name="value_t_api">http://accessible-serv.lasige.di.fc.ul.pt/~lost/index.php/rest</string>
     <string name="key_t_api">t_api</string>
     <string name="t_api_title">Webservice endpoint</string>
     <string name="t_api_desc">Preferred API webservice endpoint. The methods will be appended to this address.</string>

@@ -305,10 +305,12 @@ public class AndroidEnvironment implements IEnvironment {
 	@Override
 	public double[] getMyLocation() {
 		SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
-		double lat = Double.parseDouble(sharedPref.getString("gps.lastLatitude", "0"));
-		double lon = Double.parseDouble(sharedPref.getString("gps.lastLongitude", "0"));
-		
-		return new double[] { lat, lon };
+		double lat = Double.parseDouble(sharedPref.getString(LocationProvider.LAST_LAT_KEY, "0"));
+		double lon = Double.parseDouble(sharedPref.getString(LocationProvider.LAST_LON_KEY, "0"));
+		double conf = (double) sharedPref.getInt(
+				LocationProvider.LAST_CONFIDENCE_KEY, LocationProvider.CONFIDENCE_LAST_KNOWN);
+				
+		return new double[] { lat, lon, conf };
 	}
 
 	@Override

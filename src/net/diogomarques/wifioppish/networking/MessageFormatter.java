@@ -133,6 +133,7 @@ public class MessageFormatter {
 			json.put("msg", msg.getMessage());
 			json.put("latitude", msg.getLatitude());
 			json.put("longitude", msg.getLongitude());
+			json.put("llconf", msg.getLocationConfidence());
 			json.put("battery", msg.getBattery());
 			json.put("steps", msg.getSteps());
 			json.put("screen", msg.getScreenOn());
@@ -151,12 +152,13 @@ public class MessageFormatter {
 	 */
 	public static String messageToCSV(Message msg) {
 		StringBuilder sb = new StringBuilder(String.format(
-			"\"%s\";%s;%s;%s;%s;%d;%d;%d;%d",
+			"\"%s\";%s;%s;%s;%s;%d;%d;%d;%d;%d",
 			(msg.getMessage() == null ? "" : msg.getMessage()),
 			msg.getNodeId(),
 			msg.getTimestamp(),
 			msg.getLatitude(),
 			msg.getLongitude(),
+			msg.getLocationConfidence(),
 			msg.getBattery(),
 			msg.getSteps(),
 			msg.getScreenOn(),
