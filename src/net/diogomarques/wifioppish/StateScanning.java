@@ -1,6 +1,7 @@
 package net.diogomarques.wifioppish;
 
 import net.diogomarques.wifioppish.IEnvironment.State;
+import net.diogomarques.wifioppish.networking.Message;
 import android.content.Context;
 import android.util.Log;
 
@@ -21,7 +22,12 @@ public class StateScanning extends AState {
 		Log.w("Machine State", "Scanning");
 		
 		final INetworkingFacade networking = environment.getNetworkingFacade();
+		
+		// add auto-message to be accumulated
+		Message autoMessage = environment.createTextMessage("");
+		environment.pushMessageToQueue(autoMessage);
 		environment.deliverMessage("entered scanning state");		
+		
 		networking.scanForAP(timeout, new INetworkingFacade.OnAccessPointScanListener() {
 
 			@Override

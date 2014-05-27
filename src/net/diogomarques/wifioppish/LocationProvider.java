@@ -99,8 +99,8 @@ public class LocationProvider {
 			if(schedulerConf == null)
 				initializeScheduler();
 			
-			Log.d(TAG, "Location update (" +
-					location.getLatitude() + "," + location.getLongitude() + ")");
+			/*Log.d(TAG, "Location update (" +
+					location.getLatitude() + "," + location.getLongitude() + ")");*/
 		}
 	};
 	
@@ -164,8 +164,9 @@ public class LocationProvider {
 					Editor editor = sharedPref.edit();
 					editor.putInt(LAST_CONFIDENCE_KEY, CONFIDENCE_LAST_KNOWN);
 					editor.commit();
-					
-					Log.i(TAG, "No valid locations for " + CONFIDENCE_INTERVAL + " seconds");
+					Log.i(TAG, "No coordinates in the last " + CONFIDENCE_INTERVAL + " seconds, reducing confidence");
+				} else {
+					Log.i(TAG, "Receiving coordinates");
 				}
 			}
 		}, 0, CONFIDENCE_INTERVAL, TimeUnit.SECONDS);

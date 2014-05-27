@@ -17,6 +17,17 @@ public class ScreenOnSensor implements ISensor {
 	
 	private Integer totalActivations;
 	
+	private BroadcastReceiver countScreenActivations = new BroadcastReceiver() {
+		
+	    @Override
+	    public void onReceive(Context context, Intent intent) {
+	        if (intent.getAction().equals(Intent.ACTION_SCREEN_ON)) {
+	        	totalActivations++;
+	        	Log.i(TAG, "Activated " + totalActivations + " times");
+	        }
+	    }
+	};
+	
 	/**
 	 * Creates a new ScreenOn sensor to monitor the device's screen activity
 	 */
@@ -27,18 +38,7 @@ public class ScreenOnSensor implements ISensor {
 	@Override
 	public void startSensor(Context c) {
 		IntentFilter ifilter = new IntentFilter(Intent.ACTION_SCREEN_ON);
-		c.registerReceiver(new BroadcastReceiver() {
-	
-			    @Override
-			    public void onReceive(Context context, Intent intent) {
-			        if (intent.getAction().equals(Intent.ACTION_SCREEN_ON)) {
-			        	totalActivations++;
-			        	Log.i(TAG, "Activated " + totalActivations + " times");
-			        }
-			    }
-			},
-			ifilter
-		);
+		c.registerReceiver(countScreenActivations, ifilter);
 	}
 
 	@Override

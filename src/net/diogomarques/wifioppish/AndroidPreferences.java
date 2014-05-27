@@ -65,7 +65,7 @@ public class AndroidPreferences implements IDomainPreferences {
 	}
 	@Override
 	public int getTInt() {
-		return getRandomTimeFromKey(R.string.key_t_int);
+		return DEBUG ? 5000 : getRandomTimeFromKey(R.string.key_t_int);
 	}
 
 	/**

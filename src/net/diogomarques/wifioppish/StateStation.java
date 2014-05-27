@@ -29,11 +29,9 @@ public class StateStation extends AState {
 		environment.deliverMessage("entered station state");
 		final INetworkingFacade networking = environment.getNetworkingFacade();
 		
-		// prepare messages to be sent to network and add auto-message
+		// prepare messages to be sent to network
 		final MessageGroup toSend = new MessageGroup();
 		toSend.addAllMessages(environment.fetchMessagesFromQueue());
-		Message autoMessage = environment.createTextMessage("");
-		toSend.addMessage(autoMessage);
 		
 		// send messages for the network
 		// TODO: adjust period
