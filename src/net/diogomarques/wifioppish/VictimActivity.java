@@ -126,11 +126,11 @@ public class VictimActivity extends Activity {
 		prefEditor.putString("nodeID", id);
 		prefEditor.commit();
 		
-		try {
+		/*try {
 			log = new TextLog();
 		} catch (IOException e) {
 			Log.e("TextLog", "External Storage not available");
-		}
+		}*/
 		
 		location = new LocationProvider(this);
 		location.startLocationDiscovery();

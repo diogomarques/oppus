@@ -59,7 +59,7 @@ public class AndroidEnvironment implements IEnvironment {
 	private int totalReceived;
 	private int totalSent;
 	
-	private MessageDumper dumper;
+	/*private MessageDumper dumper;*/
 	
 	// duplicates prevention
 	private List<Integer> duplicates;
@@ -151,11 +151,11 @@ public class AndroidEnvironment implements IEnvironment {
 		// stats 
 		environment.totalReceived = environment.totalSent = 0;
 		// message dumper
-		try {
+		/*try {
 			environment.dumper = new MessageDumper("msg-dump");
 		} catch (IOException e) {
 			Log.e("AndroidEnvironment", "Cannot start Dumper: " + e.getMessage());
-		}
+		}*/
 		// duplicate hashes
 		environment.duplicates = new ArrayList<Integer>();
 		
@@ -316,11 +316,11 @@ public class AndroidEnvironment implements IEnvironment {
 	@Override
 	public void storeReceivedMessage(
 			net.diogomarques.wifioppish.networking.Message m) {
-		try {
+		/*try {
 			dumper.addMessage(m);
 		} catch (IOException e) {
 			Log.e("AndroidEnvironment", "Cannot store message into Dumper: " + e.getMessage());
-		}
+		}*/
 	}
 
 	@Override
