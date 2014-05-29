@@ -52,6 +52,7 @@ public class LocationProvider {
 	/**
 	 * Preference key for the location confidence
 	 * @see {@link #CONFIDENCE_LAST_KNOWN} Value for poor confidence
+	 * @see {@link #CONFIDENCE_APPROXIMATE} Value for reasonable confidence
 	 * @see {@link #CONFIDENCE_UPDATED} Value for good confidence
 	 */
 	public static final String LAST_CONFIDENCE_KEY = "gps.confidence";
@@ -63,10 +64,18 @@ public class LocationProvider {
 	public static final int CONFIDENCE_LAST_KNOWN = 0;
 	
 	/**
+	 * Reasonable confidence level, tipically associated with coordinates exchanged by 
+	 * peers geographicaly near the victim.
+	 * <p>
+	 * Reserved for future use.
+	 */
+	public static final int CONFIDENCE_APPROXIMATE = 5;
+	
+	/**
 	 * Maximum confidence level for location update, meaning that the location 
 	 * was just retrieved from GPS
 	 */
-	public static final int CONFIDENCE_UPDATED = 1;
+	public static final int CONFIDENCE_UPDATED = 10;
 	
 	private LocationListener locationListener = new LocationListener() {
 		
