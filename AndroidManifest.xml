@@ -49,6 +49,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        
+        <!-- Messages Provider (Persistent storage) -->
+        <provider android:name="MessagesProvider"
+            	android:exported="true"
+	            android:authorities="net.diogomarques.wifioppish.MessagesProvider">
+	    </provider>
     </application>
 
 </manifest>

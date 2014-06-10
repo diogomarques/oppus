@@ -8,9 +8,12 @@ import java.util.concurrent.Semaphore;
 import net.diogomarques.wifioppish.logging.MessageDumper;
 import net.diogomarques.wifioppish.sensors.SensorGroup;
 import net.diogomarques.wifioppish.sensors.SensorGroup.GroupKey;
+import net.diogomarques.wifioppish.service.LOSTHandler;
 import net.diogomarques.wifioppish.structs.ConcurrentForwardingQueue;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -67,6 +70,9 @@ public class AndroidEnvironment implements IEnvironment {
 	private boolean victimSafe;
 	
 	private SensorGroup sensorGroup;
+	
+	// singleton
+	private static AndroidEnvironment instance;
 
 	/**
 	 * Constructor with all dependencies. Use
@@ -112,7 +118,10 @@ public class AndroidEnvironment implements IEnvironment {
 	 *            handler to send messages to the UI
 	 * @return a new instance with all dependencies set
 	 */
-	public static IEnvironment createInstance(Context c, Handler h) {
+	public static IEnvironment createInstance(Context c, LOSTHandler h) {
+		if(instance != null)
+			return instance;
+		
 		AndroidEnvironment environment = new AndroidEnvironment();
 		// states
 		StateBeaconing beaconing = new StateBeaconing(environment);
@@ -158,6 +167,9 @@ public class AndroidEnvironment implements IEnvironment {
 		}*/
 		// duplicate hashes
 		environment.duplicates = new ArrayList<Integer>();
+		
+		// singleton setup
+		instance = environment;
 		
 		return environment;
 	}
@@ -251,6 +263,9 @@ public class AndroidEnvironment implements IEnvironment {
 			Log.w("SendingQueue", "New message to queue: " + m + " (received by " + myNodeID + ")");
 			Log.w("SendingQueue", "Added message to queue, " + mQueue.size() + " messages remaining");
 			duplicates.add(msgHashcode);
+			
+			// also store Message in Persistent Storage
+			storeMessage(m);
 		}
 	}
 	
@@ -379,4 +394,30 @@ public class AndroidEnvironment implements IEnvironment {
 		return sensorGroup;
 	}
 	
+	/**
+	 * Stores a {@link Message} in a persistent form
+	 * @param msg Message to be stored persistently
+	 */
+	private void storeMessage(net.diogomarques.wifioppish.networking.Message msg) {
+		ContentValues cv = new ContentValues();
+		cv.put(MessagesProvider.COL_ADDED, System.currentTimeMillis());
+		cv.put(MessagesProvider.COL_ID, String.format("%s%d", msg.getNodeId(), msg.getTimestamp()));
+		cv.put(MessagesProvider.COL_NODE, msg.getNodeId());
+		cv.put(MessagesProvider.COL_TIME, msg.getTimestamp());
+		cv.put(MessagesProvider.COL_MSG, msg.getMessage());
+		cv.put(MessagesProvider.COL_LAT, msg.getLatitude());
+		cv.put(MessagesProvider.COL_LON, msg.getLongitude());
+		cv.put(MessagesProvider.COL_CONF, msg.getLocationConfidence());
+		cv.put(MessagesProvider.COL_BATTERY, msg.getBattery());
+		cv.put(MessagesProvider.COL_STEPS, msg.getSteps());
+		cv.put(MessagesProvider.COL_SCREEN, msg.getScreenOn());
+		cv.put(MessagesProvider.COL_DISTANCE, -1);
+		cv.put(MessagesProvider.COL_SAFE, msg.isSafe() ? 1 : 0);
+		cv.put(MessagesProvider.COL_DIRECTION,
+				msg.getNodeId().equals(getMyNodeId()) ? MessagesProvider.MSG_SENT : MessagesProvider.MSG_SENT);
+		
+		Uri uri = context.getContentResolver().insert(MessagesProvider.URI_STORE, cv);
+		
+		Log.i("storeMessage", "Stored message via " + uri.toString());
+	}
 }

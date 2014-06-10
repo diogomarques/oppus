@@ -7,6 +7,7 @@ import java.util.Date;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import net.diogomarques.wifioppish.logging.TextLog;
+import net.diogomarques.wifioppish.service.LOSTHandler;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -38,7 +39,7 @@ public class MainActivity extends Activity {
 	/**
 	 * An handler that prints received messages to the console.
 	 */
-	static class ConsoleHandler extends Handler {
+	static class ConsoleHandler extends LOSTHandler {
 		
 		/**
 		 * Log line to show in the log window
@@ -58,6 +59,7 @@ public class MainActivity extends Activity {
 		final WeakReference<MainActivity> mActivity;
 
 		ConsoleHandler(MainActivity act) {
+			super(act.getMainLooper());
 			mActivity = new WeakReference<MainActivity>(act);
 		}
 

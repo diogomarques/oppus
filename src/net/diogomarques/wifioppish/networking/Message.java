@@ -63,6 +63,19 @@ public class Message implements Serializable {
 		this.steps = -1;
 	}
 	
+	public Message(String nodeId, long timestamp, double[] coords, String message, int battery, int safe, int screen, int steps) {
+		this.nodeId = nodeId;
+		this.timestamp = timestamp;
+		this.latitude = coords[0];
+		this.longitude = coords[1];
+		this.llconfidence = (int) coords[2];
+		this.message = message;
+		this.battery = battery;
+		this.safe = safe == 1;
+		this.screenOn = -screen;
+		this.steps = steps;
+	}
+	
 	/**
 	 * Gets the device battery when this message was sent
 	 * @return the battery

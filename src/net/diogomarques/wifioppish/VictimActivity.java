@@ -11,6 +11,7 @@ import net.diogomarques.wifioppish.sensors.BatterySensor;
 import net.diogomarques.wifioppish.sensors.PedometerSensor;
 import net.diogomarques.wifioppish.sensors.ScreenOnSensor;
 import net.diogomarques.wifioppish.sensors.SensorGroup.GroupKey;
+import net.diogomarques.wifioppish.service.LOSTHandler;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -59,7 +60,7 @@ public class VictimActivity extends Activity {
 	
 	/* state machine */
 	private IEnvironment environment;
-	private Handler updatesHandler;
+	private LOSTHandler updatesHandler;
 	private static TextLog log;
 	private LocationProvider location;
 	private ScreenOnSensor screenOn;
@@ -392,7 +393,7 @@ public class VictimActivity extends Activity {
 	 * 
 	 * @author André Silva <asilva@lasige.di.fc.ul.pt>
 	 */
-	static class StateChangeHandler extends Handler {
+	static class StateChangeHandler extends LOSTHandler {
 		
 		/**
 		 * New log line to show in the log window
@@ -417,6 +418,7 @@ public class VictimActivity extends Activity {
 		final WeakReference<VictimActivity> mActivity;
 
 		StateChangeHandler(VictimActivity act) {
+			super(act.getMainLooper());
 			mActivity = new WeakReference<VictimActivity>(act);
 		}
 
