@@ -12,49 +12,39 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
-        <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.WRITE_SETTINGS" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" /> <!-- txt log file -->
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/> <!-- GPS coordinates -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <!-- txt log file -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <!-- GPS coordinates -->
 
     <application
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
-        
-        <!-- Technical/Debug activity -->
-        <activity
-            android:name="net.diogomarques.wifioppish.MainActivity"
-            android:label="@string/app_name" >
-            <intent-filter>
-                <!-- <action android:name="android.intent.action.MAIN" />
 
-                <category android:name="android.intent.category.LAUNCHER" />  -->
-            </intent-filter>
-        </activity>
-        
         <!-- Preferences activity -->
         <activity android:name="net.diogomarques.wifioppish.MyPreferenceActivity" >
         </activity>
-        
-        <!-- Victim friendly activity -->
-        <activity
-            android:name="net.diogomarques.wifioppish.VictimActivity"
-            android:label="@string/app_name"
-            android:windowSoftInputMode="stateHidden" >
-            <intent-filter>
-               	<action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-        
+
         <!-- Messages Provider (Persistent storage) -->
-        <provider android:name="MessagesProvider"
-            	android:exported="true"
-	            android:authorities="net.diogomarques.wifioppish.MessagesProvider">
-	    </provider>
+        <provider
+            android:name="MessagesProvider"
+            android:authorities="net.diogomarques.wifioppish.MessagesProvider"
+            android:exported="true" >
+        </provider>
+
+        <!-- LOST Service -->
+        <service  android:enabled="true"
+                    android:exported="true"
+                    android:name="net.diogomarques.wifioppish.service.LOSTService" >
+            <intent-filter>
+            <action android:name="net.diogomarques.wifioppish.service.LOSTService.START_SERVICE" />
+        </intent-filter>
+        </service>
+    
     </application>
 
 </manifest>

@@ -8,10 +8,10 @@ import java.util.concurrent.Semaphore;
 import net.diogomarques.wifioppish.logging.MessageDumper;
 import net.diogomarques.wifioppish.sensors.SensorGroup;
 import net.diogomarques.wifioppish.sensors.SensorGroup.GroupKey;
-import net.diogomarques.wifioppish.service.LOSTHandler;
 import net.diogomarques.wifioppish.structs.ConcurrentForwardingQueue;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
@@ -118,7 +118,7 @@ public class AndroidEnvironment implements IEnvironment {
 	 *            handler to send messages to the UI
 	 * @return a new instance with all dependencies set
 	 */
-	public static IEnvironment createInstance(Context c, LOSTHandler h) {
+	public static IEnvironment createInstance(Context c) {
 		if(instance != null)
 			return instance;
 		
@@ -136,7 +136,6 @@ public class AndroidEnvironment implements IEnvironment {
 		IDomainPreferences preferences = new AndroidPreferences(c);
 		
 		// networking
-		environment.mHandler = h;
 		environment.mNetworkingFacade = networkingFacade;
 		environment.mPreferences = preferences;
 		environment.mBeaconing = beaconing;
@@ -191,20 +190,17 @@ public class AndroidEnvironment implements IEnvironment {
 
 	@Override
 	public void deliverMessage(String msg) {
-		mHandler.sendMessage(Message.obtain(mHandler, MainActivity.ConsoleHandler.LOG_MSG, msg));
 	}
 
 	@Override
 	public void gotoState(State state) {
 		semNextState.release();
 		nextState = state;
-		mHandler.sendMessage(Message.obtain(mHandler, MainActivity.ConsoleHandler.ROLE, state.toString()));
 	}
 
 	@Override
 	public void startStateLoop(State first) {
 		nextState = first;
-		mHandler.sendMessage(Message.obtain(mHandler, MainActivity.ConsoleHandler.ROLE, first.toString()));
 		
 		while (true) {
 			
@@ -220,6 +216,13 @@ public class AndroidEnvironment implements IEnvironment {
 			mCurrentState = nextState;
 			AState next = null;
 			int timeout = 0;
+			
+			//send broadcast of state change
+			Intent intent = new Intent();
+			intent.setAction("stateChange");
+			intent.putExtra("State", nextState.toString());
+			context.sendBroadcast(intent);
+			
 			switch (nextState) {
 			case Beaconing:
 				next = mBeaconing;
@@ -305,11 +308,9 @@ public class AndroidEnvironment implements IEnvironment {
 		totalSent += sent;
 		totalReceived += received;
 		
-		Message stats = Message.obtain(mHandler, MainActivity.ConsoleHandler.MSG_COUNT);
 		Bundle b = new Bundle();
 		b.putIntArray("stats", new int[] { totalSent, totalReceived });
-		stats.setData(b);
-		mHandler.sendMessage(stats);
+	
 	}
 
 	@Override

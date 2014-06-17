@@ -54,8 +54,7 @@ public class StateStation extends AState {
 
 					@Override
 					public void onMessageSent(Message msg) {
-						environment.deliverCustomMessage(
-								msg, VictimActivity.StateChangeHandler.MSG_SENT);
+						
 						environment.deliverMessage("message successfully sent");
 					}
 					
