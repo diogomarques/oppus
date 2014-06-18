@@ -6,6 +6,10 @@ import java.util.List;
 import java.util.concurrent.Semaphore;
 
 import net.diogomarques.wifioppish.logging.MessageDumper;
+import net.diogomarques.wifioppish.sensors.BatterySensor;
+import net.diogomarques.wifioppish.sensors.LocationSensor;
+import net.diogomarques.wifioppish.sensors.PedometerSensor;
+import net.diogomarques.wifioppish.sensors.ScreenOnSensor;
 import net.diogomarques.wifioppish.sensors.SensorGroup;
 import net.diogomarques.wifioppish.sensors.SensorGroup.GroupKey;
 import net.diogomarques.wifioppish.structs.ConcurrentForwardingQueue;
@@ -75,36 +79,6 @@ public class AndroidEnvironment implements IEnvironment {
 	private static AndroidEnvironment instance;
 
 	/**
-	 * Constructor with all dependencies. Use
-	 * {@link #createInstance(Context, Handler)} instead.
-	 * 
-	 * @param mHandler
-	 * @param networkingFacade
-	 * @param preferences
-	 * @param beaconing
-	 * @param providing
-	 * @param scanning
-	 * @param station
-	 */
-	private AndroidEnvironment(Handler mHandler,
-			INetworkingFacade networkingFacade, IDomainPreferences preferences,
-			StateBeaconing beaconing, StateProviding providing,
-			StateScanning scanning, StateStation station, StateInternetCheck internet, StateInternetConn sconnect) {
-		super();
-		this.mHandler = mHandler;
-		this.mNetworkingFacade = networkingFacade;
-		this.mPreferences = preferences;
-		this.mBeaconing = beaconing;
-		this.mProviding = providing;
-		this.mScanning = scanning;
-		this.mStation = station;
-		this.mInternet = internet;
-		this.mConnected = sconnect;
-		
-		
-	}
-
-	/**
 	 * Convenience constructor for {@link #createInstance(Context, Handler)}.
 	 */
 	private AndroidEnvironment() { }
@@ -166,6 +140,13 @@ public class AndroidEnvironment implements IEnvironment {
 		}*/
 		// duplicate hashes
 		environment.duplicates = new ArrayList<Integer>();
+		
+		// sensors
+		environment.sensorGroup = new SensorGroup();
+		environment.sensorGroup.addSensor(GroupKey.Location, new LocationSensor(c));
+		environment.sensorGroup.addSensor(GroupKey.Battery, new BatterySensor(c));
+		environment.sensorGroup.addSensor(GroupKey.ScreenOn, new ScreenOnSensor(c));
+		environment.sensorGroup.addSensor(GroupKey.MicroMovements, new PedometerSensor(c));
 		
 		// singleton setup
 		instance = environment;
@@ -320,13 +301,9 @@ public class AndroidEnvironment implements IEnvironment {
 
 	@Override
 	public double[] getMyLocation() {
-		SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
-		double lat = Double.parseDouble(sharedPref.getString(LocationProvider.LAST_LAT_KEY, "0"));
-		double lon = Double.parseDouble(sharedPref.getString(LocationProvider.LAST_LON_KEY, "0"));
-		double conf = (double) sharedPref.getInt(
-				LocationProvider.LAST_CONFIDENCE_KEY, LocationProvider.CONFIDENCE_LAST_KNOWN);
+		double[] values = (double[]) sensorGroup.getSensor(GroupKey.Location).getCurrentValue();
 				
-		return new double[] { lat, lon, conf };
+		return values;
 	}
 
 	@Override
@@ -357,7 +334,7 @@ public class AndroidEnvironment implements IEnvironment {
 			if(battery != null)
 				newMsg.setBattery(battery);
 			
-			Integer steps = (Integer) sensorGroup.getSensorCurrentValue(GroupKey.Steps);
+			Integer steps = (Integer) sensorGroup.getSensorCurrentValue(GroupKey.MicroMovements);
 			if(steps != null)
 				newMsg.setSteps(steps);
 			

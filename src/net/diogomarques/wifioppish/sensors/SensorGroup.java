@@ -12,7 +12,7 @@ import java.util.HashMap;
  */
 public class SensorGroup {
 	
-	private HashMap<GroupKey, ISensor> sensors;
+	private HashMap<GroupKey, AbstractSensor> sensors;
 	
 	/**
 	 * Set of keys to be used to access sensors
@@ -29,19 +29,24 @@ public class SensorGroup {
 		/**
 		 * Victim steps/movement sensor
 		 */
-		Steps,
+		MicroMovements,
 		
 		/**
 		 * User-screen interaction
 		 */
-		ScreenOn
+		ScreenOn,
+		
+		/**
+		 * Geographical location sensor
+		 */
+		Location
 	}
 	
 	/**
 	 * Creates and initializes a new {@link SensorGroup}
 	 */
 	public SensorGroup() {
-		sensors = new HashMap<GroupKey, ISensor>();
+		sensors = new HashMap<GroupKey, AbstractSensor>();
 	}
 
 	/**
@@ -49,7 +54,7 @@ public class SensorGroup {
 	 * @param key Sensor key
 	 * @return sensor instance if exists; null otherwise
 	 */
-	public ISensor getSensor(GroupKey key) {
+	public AbstractSensor getSensor(GroupKey key) {
 		return sensors.get(key);
 	}
 	
@@ -59,7 +64,7 @@ public class SensorGroup {
 	 * @return value for selected sensor; null if no sensor exists with that key
 	 */
 	public Object getSensorCurrentValue(GroupKey key) {
-		ISensor curSensor = getSensor(key);
+		AbstractSensor curSensor = getSensor(key);
 		if(curSensor == null)
 			return null;
 		
@@ -75,17 +80,18 @@ public class SensorGroup {
 	}
 	
 	/**
-	 * Adds a new sensor to this sensor group
+	 * Adds a new sensor to this sensor group and starts it 
 	 * @param key Sensor key
 	 * @param sensor New Sensor to add
 	 * @return true if sensor was added; false otherwise (likely there is already a 
 	 * sensor associated with that key)
 	 */
-	public boolean addSensor(GroupKey key, ISensor sensor) {
+	public boolean addSensor(GroupKey key, AbstractSensor sensor) {
 		if(sensors.containsKey(key))
 			return false;
 		
 		sensors.put(key, sensor);
+		sensor.startSensor();
 		return true;
 	}
 }

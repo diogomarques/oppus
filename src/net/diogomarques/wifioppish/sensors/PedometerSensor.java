@@ -13,8 +13,8 @@ import android.util.Log;
  * @author André Silva <asilva@lasige.di.fc.ul.pt>
  * @see <a href="https://github.com/bagilevi/android-pedometer‎">bagilevi's Android Pedometer</a>‎
  */
-public class PedometerSensor implements IIntervalSensor {
-	
+public class PedometerSensor extends AbstractSensor {
+
 	private static final String TAG = "Pedometer Sensor";
 	
 	private Integer steps;
@@ -33,10 +33,9 @@ public class PedometerSensor implements IIntervalSensor {
 		}
 	};
 	
-	/**
-	 * Creates a new Pedometer Sensor to monitor user steps
-	 */
-	public PedometerSensor() {
+	
+	public PedometerSensor(Context c) {
+		super(c);
 		steps = 0;
 	}
 	
@@ -44,20 +43,10 @@ public class PedometerSensor implements IIntervalSensor {
 	public Object getCurrentValue() {
 		return steps;
 	}
-
-	@Override
-	public Object getIntervalValue() {
-		return steps;
-	}
-
-	@Override
-	public void resetInterval() {
-		steps = 0;
-	}
 	
 	@Override
-	public void startSensor(Context c) {
-		mSensorManager = (SensorManager) c.getSystemService(Context.SENSOR_SERVICE);
+	public void startSensor() {
+		mSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
 		mSensor = mSensorManager.getDefaultSensor(
 	            Sensor.TYPE_ACCELEROMETER);
 		stepDetector = new StepDetector();
@@ -65,6 +54,12 @@ public class PedometerSensor implements IIntervalSensor {
         mSensorManager.registerListener(stepDetector,
 	            mSensor,
 	            SensorManager.SENSOR_DELAY_FASTEST);
+	}
+
+	@Override
+	public void stopSensor() {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

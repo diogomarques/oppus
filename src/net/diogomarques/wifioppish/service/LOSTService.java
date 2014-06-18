@@ -8,6 +8,7 @@ import net.diogomarques.wifioppish.IEnvironment;
 import net.diogomarques.wifioppish.IEnvironment.State;
 import net.diogomarques.wifioppish.NodeIdentification;
 import net.diogomarques.wifioppish.R;
+import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -24,10 +25,13 @@ import android.util.Log;
 
 /**
  * Represents the service that runs on foreground. It uses the Wifioppish
- * business logic to create an opportunistic network.
+ * business logic to create an opportunistic network and exchange messages. 
+ * To start the service, an {@link Intent} 
+ * must be created with the action <tt>net.diogomarques.wifioppish.service.LOSTService.START_SERVICE</tt>, 
+ * followed by a call to {@link Activity#startService(Intent)}.
  * <p>
  * This service creates a {@link Notification} to ensure the service remains
- * active event the system is low on resources.
+ * active event the system is low on resources. 
  * 
  * @author André Silva <asilva@lasige.di.fc.ul.pt>
  */
@@ -37,31 +41,25 @@ public class LOSTService extends Service {
 	private final String TAG = "LOST Service";
 	private NotificationManager notificationManager;
 	private static IEnvironment environment;
+	
 	@Override
 	public void onCreate() {
 		super.onCreate();
-		new ArrayList<Messenger>();
 		Log.i(TAG, "Service created");
-
 	}
 
-	protected void processStart() {
+	/**
+	 * Starts the business logic to create an opportunistic network
+	 */
+	private void processStart() {
 		new AsyncTask<Void, Void, Void>() {
-
-			@Override
-			protected void onPostExecute(Void result) {
-			}
-
-			@Override
-			protected void onPreExecute() {
-			}
 
 			@Override
 			protected Void doInBackground(Void... params) {
 				environment.startStateLoop(State.Scanning);
-
 				return null;
 			}
+			
 		}.execute();
 	}
 

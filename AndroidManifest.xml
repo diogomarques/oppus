@@ -41,10 +41,9 @@
                     android:exported="true"
                     android:name="net.diogomarques.wifioppish.service.LOSTService" >
             <intent-filter>
-            <action android:name="net.diogomarques.wifioppish.service.LOSTService.START_SERVICE" />
-        </intent-filter>
+                <action android:name="net.diogomarques.wifioppish.service.LOSTService.START_SERVICE" />
+            </intent-filter>
         </service>
-    
     </application>
 
 </manifest>

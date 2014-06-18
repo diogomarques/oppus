@@ -11,7 +11,7 @@ import android.util.Log;
  * 
  * @author André Silva <asilva@lasige.di.fc.ul.pt>
  */
-public class ScreenOnSensor implements ISensor {
+public class ScreenOnSensor extends AbstractSensor {
 	
 	private static final String TAG = "ScreenOn Sensor";
 	
@@ -31,19 +31,25 @@ public class ScreenOnSensor implements ISensor {
 	/**
 	 * Creates a new ScreenOn sensor to monitor the device's screen activity
 	 */
-	public ScreenOnSensor() {
+	public ScreenOnSensor(Context c) {
+		super(c);
 		totalActivations = 0;
-	}
-
-	@Override
-	public void startSensor(Context c) {
-		IntentFilter ifilter = new IntentFilter(Intent.ACTION_SCREEN_ON);
-		c.registerReceiver(countScreenActivations, ifilter);
 	}
 
 	@Override
 	public Object getCurrentValue() {
 		return totalActivations;
+	}
+
+	@Override
+	public void startSensor() {
+		IntentFilter ifilter = new IntentFilter(Intent.ACTION_SCREEN_ON);
+		context.registerReceiver(countScreenActivations, ifilter);
+	}
+
+	@Override
+	public void stopSensor() {
+		// TODO Auto-generated method stub
 	}
 
 }

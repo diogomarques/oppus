@@ -1,4 +1,4 @@
-package net.diogomarques.wifioppish;
+package net.diogomarques.wifioppish.sensors;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -15,24 +15,26 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 
 /**
- * Represents a Location Provider to obtain user location as precise 
- * as possible. It uses {@link android.content.SharedPreferences SharedPreferences} to store 
- * the value temporally and allow shared access to other components.
+ * Updates geographical location positioning data. It uses {@link android.content.SharedPreferences SharedPreferences} 
+ * to store the value temporally and allow shared access to other components.
  * <p>
- * The Location Provider uses the device's GPS to get the current location.
- * 
+ * The Location Provider uses the device's GPS to get the current location. 
+ * Each location has an associated confidence level
  * @author André Silva <asilva@lasige.di.fc.ul.pt>
- *
  */
-public class LocationProvider {
+public class LocationSensor extends AbstractSensor {
 	
-	private static final String TAG = "LocationProvider";
+	private static final String TAG = "LocationSensor";
 	private static final int CONFIDENCE_INTERVAL = 5;   // in seconds
 	private Context context;
 	private LocationManager mLocManager;
 	private SharedPreferences sharedPref;
 	private long lastUpdate;
 	private ScheduledExecutorService schedulerConf;
+	
+	// data
+	private double latitude, longitude;
+	private int confidence;
 	
 	/**
 	 * Preference key for the last known latitude
@@ -98,51 +100,44 @@ public class LocationProvider {
 		public void onLocationChanged(Location location) {
 			lastUpdate = System.currentTimeMillis();
 			
-			Editor editor = sharedPref.edit();
-			editor.putString(LAST_LAT_KEY, Double.toString(location.getLatitude()));
-			editor.putString(LAST_LON_KEY, Double.toString(location.getLongitude()));
-			editor.putLong(LAST_TIME_KEY, lastUpdate);
-			editor.putInt(LAST_CONFIDENCE_KEY, CONFIDENCE_UPDATED);
-			editor.commit();
+			latitude = location.getLatitude();
+			longitude = location.getLongitude();
+			confidence = CONFIDENCE_UPDATED;
 			
 			if(schedulerConf == null)
 				initializeScheduler();
-			
-			/*Log.d(TAG, "Location update (" +
-					location.getLatitude() + "," + location.getLongitude() + ")");*/
 		}
 	};
 	
-	/**
-	 * Creates a new Location Provider. To start the location gathering process, invoke the
-	 * {@link #startLocationDiscovery()} method 
-	 * @param c Android context
-	 */
-	public LocationProvider(Context c) {
+	public LocationSensor(Context c) {
+		super(c);
 		context = c;
-		sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
-		
-		// Clean previous location, if any
-		Editor prefEditor = sharedPref.edit();
-		prefEditor.remove(LAST_LAT_KEY);
-		prefEditor.remove(LAST_LON_KEY);
-		prefEditor.remove(LAST_TIME_KEY);
-		prefEditor.remove(LAST_CONFIDENCE_KEY);
-		prefEditor.commit();
+		confidence = CONFIDENCE_LAST_KNOWN;
 	}
-	
-	/**
-	 * Starts the process of discovering the current and future locations
-	 */
-	public void startLocationDiscovery() {
+
+	@Override
+	public void startSensor() {
 		registerLocationListener(locationListener);
+	}
+
+	@Override
+	public Object getCurrentValue() {
+		return new double[] { latitude, longitude, confidence };
+	}
+
+	@Override
+	public void stopSensor() {
+		unregisterLocationListener(locationListener);
 	}
 	
 	/**
 	 * Registers an event listener to get GPS updates
 	 * @param mLocListener location listener to receive coordinate updates
 	 */
-	public void registerLocationListener(LocationListener mLocListener) {
+	private void registerLocationListener(LocationListener mLocListener) {
+		
+		context.hashCode();
+		
 		if(mLocManager == null)
 			mLocManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE); 
 		
@@ -155,7 +150,7 @@ public class LocationProvider {
 	 * Unregisters a previously registered location listener
 	 * @param mLocationListener location listener to remove
 	 */
-	public void unregisterLocationListener(LocationListener mLocationListener) {
+	private void unregisterLocationListener(LocationListener mLocationListener) {
 		if(mLocManager != null)
 			mLocManager.removeUpdates(mLocationListener);
 	}
@@ -170,9 +165,7 @@ public class LocationProvider {
 			@Override
 			public void run() {
 				if((lastUpdate + CONFIDENCE_INTERVAL*1000) < System.currentTimeMillis()) {
-					Editor editor = sharedPref.edit();
-					editor.putInt(LAST_CONFIDENCE_KEY, CONFIDENCE_LAST_KNOWN);
-					editor.commit();
+					confidence = CONFIDENCE_LAST_KNOWN;
 					Log.i(TAG, "No coordinates in the last " + CONFIDENCE_INTERVAL + " seconds, reducing confidence");
 				} else {
 					Log.i(TAG, "Receiving coordinates");
@@ -180,4 +173,5 @@ public class LocationProvider {
 			}
 		}, 0, CONFIDENCE_INTERVAL, TimeUnit.SECONDS);
 	}
+
 }

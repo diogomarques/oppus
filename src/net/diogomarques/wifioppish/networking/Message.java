@@ -1,7 +1,6 @@
 package net.diogomarques.wifioppish.networking;
 
 import java.io.Serializable;
-import net.diogomarques.wifioppish.LocationProvider;
 
 /**
  * Message envelope to be exchanged between devices.
