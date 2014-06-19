@@ -1,12 +1,9 @@
 package net.diogomarques.wifioppish.service;
 
-import java.util.ArrayList;
-
 import net.diogomarques.wifioppish.AndroidEnvironment;
 import net.diogomarques.wifioppish.AndroidPreferences;
 import net.diogomarques.wifioppish.IEnvironment;
 import net.diogomarques.wifioppish.IEnvironment.State;
-import net.diogomarques.wifioppish.NodeIdentification;
 import net.diogomarques.wifioppish.R;
 import android.app.Activity;
 import android.app.Notification;
@@ -15,11 +12,8 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
 import android.os.AsyncTask;
 import android.os.IBinder;
-import android.os.Messenger;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
@@ -80,13 +74,6 @@ public class LOSTService extends Service {
 						.clear().commit();
 			// load default preferences
 			PreferenceManager.setDefaultValues(this, R.xml.preferences, true);
-			// generate unique ID for this node
-			SharedPreferences sp = PreferenceManager
-					.getDefaultSharedPreferences(this);
-			Editor prefEditor = sp.edit();
-			String id = NodeIdentification.getMyNodeId(this);
-			prefEditor.putString("nodeID", id);
-			prefEditor.commit();
 
 			environment = AndroidEnvironment.createInstance(this);
 			processStart();
@@ -104,6 +91,7 @@ public class LOSTService extends Service {
 	 * @return {@link Notification} instance, with default values to tell
 	 *         service is running
 	 */
+	@SuppressWarnings("deprecation")
 	private Notification getNotification() {
 
 		if (notificationManager == null)

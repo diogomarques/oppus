@@ -17,6 +17,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -123,9 +124,15 @@ public class AndroidEnvironment implements IEnvironment {
 		environment.semNextState = new Semaphore(1);
 		// allowing the gathering of shared preferences
 		environment.context = c;
-		// save the node ID
+		// get/generate the node ID
 		SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(c);
-		String nodeID = sharedPref.getString("nodeID", "unknown");
+		String nodeID = sharedPref.getString("nodeID", null);
+		if(nodeID == null) {
+			Editor prefEditor = sharedPref.edit();
+			nodeID = NodeIdentification.getMyNodeId(c);
+			prefEditor.putString("nodeID", nodeID);
+			prefEditor.commit();
+		}
 		environment.myNodeID = nodeID;
 		Log.w("NodeID", "My node id is: " + environment.myNodeID);
 		// start forwarding sending queue
