@@ -1,19 +1,27 @@
 package net.diogomarques.wifioppish.sensors;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.BatteryManager;
 
 /**
- * Sensor to gather device's battery charge level
+ * Sensor to obtain device's battery level
  * 
  * @author André Silva <asilva@lasige.di.fc.ul.pt>
  */
 public class BatterySensor extends AbstractSensor {
 	
-	private Intent batteryStatus;
 	private Integer batteryLevel;
+	private BroadcastReceiver mBatInfoReceiver = new BroadcastReceiver(){
+	    @Override
+	    public void onReceive(Context arg0, Intent intent) {
+	    	int level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
+	        int scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
+	    	batteryLevel = (int) level / (scale / 100);
+	    }
+	  };
 	
 	public BatterySensor(Context c) {
 		super(c);
@@ -23,26 +31,17 @@ public class BatterySensor extends AbstractSensor {
 	@Override
 	public void startSensor() {
 		IntentFilter ifilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
-		batteryStatus = context.registerReceiver(null, ifilter);
-		
-		// get current level
-		/*int level = batteryStatus.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
-		int scale = batteryStatus.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
-		batteryLevel = (int) level / (scale / 100);*/
+		context.registerReceiver(mBatInfoReceiver, ifilter);
 	}
 
 	@Override
 	public Object getCurrentValue() {
-		int level = batteryStatus.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
-		int scale = batteryStatus.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
-		batteryLevel = (int) level / (scale / 100);
-		
 		return batteryLevel;
 	}
 
 	@Override
 	public void stopSensor() {
-		// TODO implementar método de paragem
+		context.unregisterReceiver(mBatInfoReceiver);
 	}
 
 }
