@@ -348,7 +348,7 @@ public class AndroidEnvironment implements IEnvironment {
 
 	@Override
 	public void deliverCustomMessage(Object object, int code) {
-		mHandler.sendMessage(Message.obtain(mHandler, code, object));
+		//mHandler.sendMessage(Message.obtain(mHandler, code, object));
 	}
 	
 	@Override

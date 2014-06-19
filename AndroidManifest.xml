@@ -26,7 +26,14 @@
         android:theme="@style/AppTheme" >
 
         <!-- Preferences activity -->
-        <activity android:name="net.diogomarques.wifioppish.MyPreferenceActivity" >
+        <activity
+            android:name="net.diogomarques.wifioppish.MyPreferenceActivity"
+            android:label="@string/icon_label"
+            >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
         </activity>
 
         <!-- Messages Provider (Persistent storage) -->

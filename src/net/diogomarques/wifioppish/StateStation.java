@@ -34,8 +34,8 @@ public class StateStation extends AState {
 		toSend.addAllMessages(environment.fetchMessagesFromQueue());
 		
 		// send messages for the network
-		// TODO: adjust period
-		int period = 2000; 
+		int period = environment.getPreferences().getSendPeriod(); 
+		
 		new CountDownTimer(environment.getPreferences().getTCon(), period) {
 			
 			@Override

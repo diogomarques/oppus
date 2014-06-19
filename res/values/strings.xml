@@ -1,50 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <!--  branding and titles  -->
     <string name="app_name">LOST</string>
-    <string name="menu_settings">Settings</string>
-    <string name="hello_world">Hello world!</string>
-    <string name="start_sm">Start SM</string>
+    <string name="icon_label">LOST Settings</string>
+    
+    <!-- settings default values -->
     <string name="value_t_beac">10000</string>
     <string name="value_t_pro">40000</string>
     <string name="value_t_scan">300000</string>
     <string name="value_t_con">40000</string>
     <string name="value_t_int">40000</string>
+    <string name="value_t_freq">2000</string>
+    <string name="value_t_api">http://accessible-serv.lasige.di.fc.ul.pt/~lost/index.php/rest</string>
+    
+    <!-- settings keys for storing and retrieving values -->
     <string name="key_t_beac">t_beac</string>
     <string name="key_t_pro">t_pro</string>
     <string name="key_t_scan">t_beac</string>
     <string name="key_t_con">t_pro</string>
     <string name="key_t_int">t_int</string>
+    <string name="key_t_freq">t_freq</string>
+    <string name="key_t_api">t_api</string>
+    <string name="key_internet">internet</string>
+    
+    <!-- settings labels -->
     <string name="t_pro_title">Minimum time (ms) a mobile device is providing access point functionality for connected stations</string>
     <string name="t_beac_title">Minimum time (ms) advertising presence in access point mode</string>
     <string name="t_scan_title">Minimum time (ms) a mobile device scans for access points</string>
     <string name="t_con_title">Minimum time (ms) a station stays connected with a specific access point</string>
     <string name="t_int_title">Minimum time (ms) a mobile device scans for a internet connection</string>
-    <string name="title_activity_main_activity2">MainActivity2</string>
-    <string name="action_settings">Settings</string>
-    <string name="stats_sendrec">S: 0 / R: 0</string>
-	<string name="stats_role">Not started</string>
-	<string name="victim_btnSendTextMessage">Queue message to send</string>
-	<string name="victim_lblSendMessageRecomendations">Your message will only be sent when there is connectivity. Write at least 4 chars.</string>
-	<string name="victim_lblSendMessageHeading">Send a text message</string>
-	<string-array name="victim_lblSystemStatus">
-		<item >Looking for other nodes in reach&#8230;</item>
-		<item >Connected, sending messages</item>
-		<item >Accepting connections&#8230;</item>
-		<item >Connected to the Internet, sending information</item>
-		<item >Clients connected</item>
-		<item >Checking for Internet connection&#8230;</item>
-	</string-array>
-	<string name="victim_lblMessageLogHeading">Message Log</string>
-	<string name="menu_victim_safe_on">Mark yourself as safe&#8230;</string>
-	<string name="menu_victim_safe_off">Already marked as safe</string>
-	<string name="victim_marksafe_title">Mark yourself as safe?</string>
-	<string name="victim_marksafe_contents">You are about to hide yourself from the view of possible rescuers. You should only mark yourself as safe when you are outside of the disaster and authorities know that you are fine. You cannot change this setting once activated.</string>
-    <string name="key_internet">internet</string>
+    <string name="t_freq_title">Time (ms) to wait between sending messages to network while on station mode</string>
     <string name="internet_title">Internet mode</string>
     <string name="internet">enable internet state</string>
-    <string name="value_t_api">http://accessible-serv.lasige.di.fc.ul.pt/~lost/index.php/rest</string>
-    <string name="key_t_api">t_api</string>
     <string name="t_api_title">Webservice endpoint</string>
     <string name="t_api_desc">Preferred API webservice endpoint. The methods will be appended to this address.</string>
+    
 </resources>

@@ -130,4 +130,13 @@ public class AndroidPreferences implements IDomainPreferences {
 		
 		return address;
 	}
+
+	@Override
+	public int getSendPeriod() {
+		SharedPreferences prefs = PreferenceManager
+				.getDefaultSharedPreferences(mContext);
+		String key = mContext.getString(R.string.key_t_freq);
+		int value = Integer.parseInt(prefs.getString(key, "2000"));
+		return value;
+	}
 }

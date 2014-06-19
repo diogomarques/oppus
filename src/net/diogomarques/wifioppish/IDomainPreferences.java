@@ -120,7 +120,7 @@ public interface IDomainPreferences {
 	 * 
 	 * @return the start state.
 	 */
-	public abstract State getStartState();
+	public State getStartState();
 	
 	/**
 	 * Get if the internet state is enable or disabled
@@ -128,10 +128,16 @@ public interface IDomainPreferences {
 	public boolean checkInternetMode();
 	
 	/**
-	 * Gets the preferred API webservice endpoint. 
+	 * Get the preferred API webservice endpoint. 
 	 * The method will be appended to this address.
 	 * @return API endpoint web address
 	 */
-	public abstract String getApiEndpoint(); 
+	public String getApiEndpoint(); 
+	
+	/**
+	 * Get the period to send Messages to the opportunistic network.
+	 * @return Time in milisseconds to wait before resend a Message to network
+	 */
+	public int getSendPeriod();
 
 }
