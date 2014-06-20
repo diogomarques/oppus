@@ -47,7 +47,11 @@ public interface IEnvironment {
 		/**
 		 * Connected to the internet
 		 */
-		InternetConn;
+		InternetConn,
+		/**
+		 * Special state to force environment to free resources and stop
+		 */
+		Stopped
 	}
 
 	/**
@@ -86,6 +90,12 @@ public interface IEnvironment {
 	 * 			  the initial state of State Machine
 	 */
 	public void startStateLoop(State first);
+	
+	/**
+	 * (Tries to) stop the state loop. It also should unregister 
+	 * any sensors defined.
+	 */
+	public void stopStateLoop();
 
 	/**
 	 * Get preferences relating to this state machine.

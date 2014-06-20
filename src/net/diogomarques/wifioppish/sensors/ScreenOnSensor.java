@@ -13,7 +13,7 @@ import android.util.Log;
  */
 public class ScreenOnSensor extends AbstractSensor {
 	
-	private static final String TAG = "ScreenOn Sensor";
+	private static final String TAG = ScreenOnSensor.class.getSimpleName();
 	
 	private Integer totalActivations;
 	
@@ -30,6 +30,7 @@ public class ScreenOnSensor extends AbstractSensor {
 	
 	/**
 	 * Creates a new ScreenOn sensor to monitor the device's screen activity
+	 * @param c Android context
 	 */
 	public ScreenOnSensor(Context c) {
 		super(c);
@@ -49,7 +50,7 @@ public class ScreenOnSensor extends AbstractSensor {
 
 	@Override
 	public void stopSensor() {
-		// TODO Auto-generated method stub
+		context.unregisterReceiver(countScreenActivations);
 	}
 
 }

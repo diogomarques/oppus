@@ -1,17 +1,15 @@
 package net.diogomarques.wifioppish;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 
-import net.diogomarques.wifioppish.logging.MessageDumper;
 import net.diogomarques.wifioppish.sensors.BatterySensor;
 import net.diogomarques.wifioppish.sensors.LocationSensor;
 import net.diogomarques.wifioppish.sensors.PedometerSensor;
 import net.diogomarques.wifioppish.sensors.ScreenOnSensor;
 import net.diogomarques.wifioppish.sensors.SensorGroup;
-import net.diogomarques.wifioppish.sensors.SensorGroup.GroupKey;
+import net.diogomarques.wifioppish.sensors.SensorGroup.SensorGroupKey;
 import net.diogomarques.wifioppish.structs.ConcurrentForwardingQueue;
 import android.content.ContentValues;
 import android.content.Context;
@@ -39,7 +37,6 @@ import android.util.Log;
 public class AndroidEnvironment implements IEnvironment {
 
 	/* Dependencies */
-	private Handler mHandler;
 	private INetworkingFacade mNetworkingFacade;
 	private IDomainPreferences mPreferences;
 	private StateBeaconing mBeaconing;
@@ -139,21 +136,15 @@ public class AndroidEnvironment implements IEnvironment {
 		environment.mQueue = new ConcurrentForwardingQueue();
 		// stats 
 		environment.totalReceived = environment.totalSent = 0;
-		// message dumper
-		/*try {
-			environment.dumper = new MessageDumper("msg-dump");
-		} catch (IOException e) {
-			Log.e("AndroidEnvironment", "Cannot start Dumper: " + e.getMessage());
-		}*/
 		// duplicate hashes
 		environment.duplicates = new ArrayList<Integer>();
 		
 		// sensors
 		environment.sensorGroup = new SensorGroup();
-		environment.sensorGroup.addSensor(GroupKey.Location, new LocationSensor(c));
-		environment.sensorGroup.addSensor(GroupKey.Battery, new BatterySensor(c));
-		environment.sensorGroup.addSensor(GroupKey.ScreenOn, new ScreenOnSensor(c));
-		environment.sensorGroup.addSensor(GroupKey.MicroMovements, new PedometerSensor(c));
+		environment.sensorGroup.addSensor(SensorGroupKey.Location, new LocationSensor(c), true);
+		environment.sensorGroup.addSensor(SensorGroupKey.Battery, new BatterySensor(c), true);
+		environment.sensorGroup.addSensor(SensorGroupKey.ScreenOn, new ScreenOnSensor(c), true);
+		environment.sensorGroup.addSensor(SensorGroupKey.MicroMovements, new PedometerSensor(c), true);
 		
 		// singleton setup
 		instance = environment;
@@ -236,6 +227,8 @@ public class AndroidEnvironment implements IEnvironment {
 				next = mConnected;
 				timeout = mPreferences.getTInt();
 				break;
+			case Stopped:
+				return;
 			}
 			
 			synchronized(next) {
@@ -308,7 +301,7 @@ public class AndroidEnvironment implements IEnvironment {
 
 	@Override
 	public double[] getMyLocation() {
-		double[] values = (double[]) sensorGroup.getSensor(GroupKey.Location).getCurrentValue();
+		double[] values = (double[]) sensorGroup.getSensor(SensorGroupKey.Location).getCurrentValue();
 				
 		return values;
 	}
@@ -337,15 +330,15 @@ public class AndroidEnvironment implements IEnvironment {
 		newMsg.setSafe(victimSafe);
 		
 		if(sensorGroup != null) {
-			Integer battery = (Integer) sensorGroup.getSensorCurrentValue(GroupKey.Battery);
+			Integer battery = (Integer) sensorGroup.getSensorCurrentValue(SensorGroupKey.Battery);
 			if(battery != null)
 				newMsg.setBattery(battery);
 			
-			Integer steps = (Integer) sensorGroup.getSensorCurrentValue(GroupKey.MicroMovements);
+			Integer steps = (Integer) sensorGroup.getSensorCurrentValue(SensorGroupKey.MicroMovements);
 			if(steps != null)
 				newMsg.setSteps(steps);
 			
-			Integer screen = (Integer) sensorGroup.getSensorCurrentValue(GroupKey.ScreenOn);
+			Integer screen = (Integer) sensorGroup.getSensorCurrentValue(SensorGroupKey.ScreenOn);
 			if(screen != null)
 				newMsg.setScreenOn(screen);
 		}
@@ -405,4 +398,15 @@ public class AndroidEnvironment implements IEnvironment {
 		
 		Log.i("storeMessage", "Stored message via " + uri.toString());
 	}
+
+	@Override
+	public void stopStateLoop() {
+		// send signal to stop the state loop
+		gotoState(State.Stopped);
+		
+		// disable sensors and remote hotspot feature
+		sensorGroup.removeAllSensors(true);
+		mNetworkingFacade.stopAccessPoint();
+	}
+	
 }

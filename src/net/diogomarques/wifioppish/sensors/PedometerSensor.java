@@ -15,7 +15,7 @@ import android.util.Log;
  */
 public class PedometerSensor extends AbstractSensor {
 
-	private static final String TAG = "Pedometer Sensor";
+	private static final String TAG = PedometerSensor.class.getSimpleName();
 	
 	private Integer steps;
 	private Sensor mSensor;
@@ -24,19 +24,22 @@ public class PedometerSensor extends AbstractSensor {
 	private StepListener stepListener = new StepListener() {
 		
 		@Override
-		public void passValue() { }
-		
-		@Override
 		public void onStep() {
 			steps++;
-			Log.i(TAG, steps + " steps");
+			Log.i(TAG, steps + " movements");
 		}
 	};
 	
-	
+	/**
+	 * Creates a pedometer to count user steps/micro-movements
+	 * @param c Android context
+	 */
 	public PedometerSensor(Context c) {
 		super(c);
 		steps = 0;
+		mSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
+		mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+		stepDetector = new StepDetector();
 	}
 	
 	@Override
@@ -46,10 +49,6 @@ public class PedometerSensor extends AbstractSensor {
 	
 	@Override
 	public void startSensor() {
-		mSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
-		mSensor = mSensorManager.getDefaultSensor(
-	            Sensor.TYPE_ACCELEROMETER);
-		stepDetector = new StepDetector();
 		stepDetector.addStepListener(stepListener);
         mSensorManager.registerListener(stepDetector,
 	            mSensor,
@@ -58,8 +57,7 @@ public class PedometerSensor extends AbstractSensor {
 
 	@Override
 	public void stopSensor() {
-		// TODO Auto-generated method stub
-		
+		mSensorManager.unregisterListener(stepDetector);
 	}
 
 }

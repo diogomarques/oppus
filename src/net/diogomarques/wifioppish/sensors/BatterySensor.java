@@ -14,15 +14,19 @@ import android.os.BatteryManager;
 public class BatterySensor extends AbstractSensor {
 	
 	private Integer batteryLevel;
-	private BroadcastReceiver mBatInfoReceiver = new BroadcastReceiver(){
+	private BroadcastReceiver mBatInfoReceiver = new BroadcastReceiver() {
 	    @Override
 	    public void onReceive(Context arg0, Intent intent) {
 	    	int level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
 	        int scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
 	    	batteryLevel = (int) level / (scale / 100);
 	    }
-	  };
+	};
 	
+	/**
+	 * Creates a new Battery sensor to receive battery level updates
+	 * @param c Android context
+	 */
 	public BatterySensor(Context c) {
 		super(c);
 		batteryLevel = -1;

@@ -22,9 +22,16 @@ import android.util.Log;
  * business logic to create an opportunistic network and exchange messages. 
  * To start the service, an {@link Intent} 
  * must be created with the action <tt>net.diogomarques.wifioppish.service.LOSTService.START_SERVICE</tt>, 
- * followed by a call to {@link Activity#startService(Intent)}.
- * <p>
- * This service creates a {@link Notification} to ensure the service remains
+ * followed by a call to {@link Activity#startService(Intent)}. Example:
+ * 
+ * <pre>
+ * {@code
+ * Intent i = new Intent("net.diogomarques.wifioppish.service.LOSTService.START_SERVICE"); 
+ * startService(i);
+ * }
+ * </pre>
+ * 
+ * This service also creates a {@link Notification} to ensure the service remains
  * active event the system is low on resources. 
  * 
  * @author André Silva <asilva@lasige.di.fc.ul.pt>
@@ -40,6 +47,13 @@ public class LOSTService extends Service {
 	public void onCreate() {
 		super.onCreate();
 		Log.i(TAG, "Service created");
+	}
+
+	@Override
+	public void onDestroy() {
+		super.onDestroy();
+		if(environment != null)
+			environment.stopStateLoop();
 	}
 
 	/**
@@ -69,11 +83,8 @@ public class LOSTService extends Service {
 		if (environment == null) {
 			Log.i(TAG, "Creating new instance");
 
-			if (AndroidPreferences.DEBUG)
-				PreferenceManager.getDefaultSharedPreferences(this).edit()
-						.clear().commit();
-			// load default preferences
-			PreferenceManager.setDefaultValues(this, R.xml.preferences, true);
+			// populate default preferences that may be missing
+			PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
 
 			environment = AndroidEnvironment.createInstance(this);
 			processStart();

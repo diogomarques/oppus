@@ -5,13 +5,10 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import android.content.Context;
-import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.util.Log;
 
 /**
@@ -28,9 +25,9 @@ public class LocationSensor extends AbstractSensor {
 	private static final int CONFIDENCE_INTERVAL = 5;   // in seconds
 	private Context context;
 	private LocationManager mLocManager;
-	private SharedPreferences sharedPref;
 	private long lastUpdate;
 	private ScheduledExecutorService schedulerConf;
+	private boolean gpsConnected;
 	
 	// data
 	private double latitude, longitude;
@@ -109,10 +106,15 @@ public class LocationSensor extends AbstractSensor {
 		}
 	};
 	
+	/**
+	 * Creates a new LocationSensor to gather geographical location updates
+	 * @param c Android context
+	 */
 	public LocationSensor(Context c) {
 		super(c);
 		context = c;
 		confidence = CONFIDENCE_LAST_KNOWN;
+		gpsConnected = false;
 	}
 
 	@Override
@@ -156,7 +158,8 @@ public class LocationSensor extends AbstractSensor {
 	}
 	
 	/**
-	 * Initializes the scheduler to check for valid locations
+	 * Initializes the scheduler to check for valid locations and update 
+	 * lcoation confidence level
 	 */
 	private void initializeScheduler() {
 		schedulerConf = Executors.newSingleThreadScheduledExecutor();
@@ -166,9 +169,13 @@ public class LocationSensor extends AbstractSensor {
 			public void run() {
 				if((lastUpdate + CONFIDENCE_INTERVAL*1000) < System.currentTimeMillis()) {
 					confidence = CONFIDENCE_LAST_KNOWN;
-					Log.i(TAG, "No coordinates in the last " + CONFIDENCE_INTERVAL + " seconds, reducing confidence");
-				} else {
-					Log.i(TAG, "Receiving coordinates");
+					if(gpsConnected) {
+						Log.i(TAG, "No coordinates in the last " + CONFIDENCE_INTERVAL + " seconds, confidence=" + confidence);
+						gpsConnected = false;
+					}
+				} else if(!gpsConnected) {
+					Log.i(TAG, "Receiving coordinates, confidence=" + confidence);
+					gpsConnected = true;
 				}
 			}
 		}, 0, CONFIDENCE_INTERVAL, TimeUnit.SECONDS);

@@ -1,7 +1,6 @@
 package net.diogomarques.wifioppish.sensors;
 
 import android.content.Context;
-import android.util.Log;
 
 /**
  * Abstract class that defines a basic sensor. Each sensor is responsable for 
@@ -24,7 +23,6 @@ public abstract class AbstractSensor {
 	 */
 	public AbstractSensor(Context c) {
 		this.context = c;
-		Log.d("Abtract Sensor", "Receiving context: " + context);
 	}
 	
 	/**
