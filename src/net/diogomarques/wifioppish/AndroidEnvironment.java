@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 
+import net.diogomarques.wifioppish.networking.Message;
 import net.diogomarques.wifioppish.sensors.BatterySensor;
 import net.diogomarques.wifioppish.sensors.LocationSensor;
 import net.diogomarques.wifioppish.sensors.PedometerSensor;
@@ -11,15 +12,17 @@ import net.diogomarques.wifioppish.sensors.ScreenOnSensor;
 import net.diogomarques.wifioppish.sensors.SensorGroup;
 import net.diogomarques.wifioppish.sensors.SensorGroup.SensorGroupKey;
 import net.diogomarques.wifioppish.structs.ConcurrentForwardingQueue;
+import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.database.ContentObserver;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Message;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
@@ -59,6 +62,7 @@ public class AndroidEnvironment implements IEnvironment {
 	private ConcurrentForwardingQueue mQueue;
 	
 	private String myNodeID;
+	private boolean victimSafe;
 	
 	// stats
 	private int totalReceived;
@@ -69,9 +73,9 @@ public class AndroidEnvironment implements IEnvironment {
 	// duplicates prevention
 	private List<Integer> duplicates;
 	
-	private boolean victimSafe;
-	
 	private SensorGroup sensorGroup;
+	
+	private CustomMessagesObserver cmo;
 	
 	// singleton
 	private static AndroidEnvironment instance;
@@ -145,6 +149,11 @@ public class AndroidEnvironment implements IEnvironment {
 		environment.sensorGroup.addSensor(SensorGroupKey.Battery, new BatterySensor(c), true);
 		environment.sensorGroup.addSensor(SensorGroupKey.ScreenOn, new ScreenOnSensor(c), true);
 		environment.sensorGroup.addSensor(SensorGroupKey.MicroMovements, new PedometerSensor(c), true);
+		
+		// custom client Messages
+		environment.cmo = new CustomMessagesObserver(null, environment);
+		environment.getAndroidContext().getContentResolver().registerContentObserver(
+				Uri.parse("content://net.diogomarques.wifioppish.MessagesProvider/customsend"), true, environment.cmo);
 		
 		// singleton setup
 		instance = environment;
@@ -239,7 +248,7 @@ public class AndroidEnvironment implements IEnvironment {
 	}
 
 	@Override
-	public void pushMessageToQueue(net.diogomarques.wifioppish.networking.Message m) {
+	public void pushMessageToQueue(Message m) {
 		// duplicate check
 		Integer msgHashcode = Integer.valueOf(m.hashCode());
 		if( !duplicates.contains(msgHashcode) ) {
@@ -254,11 +263,10 @@ public class AndroidEnvironment implements IEnvironment {
 	}
 	
 	@Override
-	public List<net.diogomarques.wifioppish.networking.Message> fetchMessagesFromQueue() {
-		ArrayList<net.diogomarques.wifioppish.networking.Message> messages =
-				new ArrayList<net.diogomarques.wifioppish.networking.Message>();
+	public List<Message> fetchMessagesFromQueue() {
+		ArrayList<Message> messages = new ArrayList<Message>();
 		
-		for(net.diogomarques.wifioppish.networking.Message m : mQueue)
+		for(Message m : mQueue)
 			messages.add(m);
 		
 		return messages;
@@ -276,7 +284,7 @@ public class AndroidEnvironment implements IEnvironment {
 	}
 	
 	@Override
-	public boolean removeFromQueue(net.diogomarques.wifioppish.networking.Message msg) {
+	public boolean removeFromQueue(Message msg) {
 		boolean removed = mQueue.remove(msg);
 		if(removed)
 			Log.w("SendingQueue", "Removed message from queue, " + mQueue.size() + " messages remaining");
@@ -307,8 +315,7 @@ public class AndroidEnvironment implements IEnvironment {
 	}
 
 	@Override
-	public void storeReceivedMessage(
-			net.diogomarques.wifioppish.networking.Message m) {
+	public void storeReceivedMessage(Message m) {
 		/*try {
 			dumper.addMessage(m);
 		} catch (IOException e) {
@@ -317,14 +324,11 @@ public class AndroidEnvironment implements IEnvironment {
 	}
 
 	@Override
-	public net.diogomarques.wifioppish.networking.Message createTextMessage(
-			String contents) {
+	public Message createTextMessage(String contents) {
 		double[] location = getMyLocation();
 		String nodeID = getMyNodeId();
 		
-		net.diogomarques.wifioppish.networking.Message newMsg =
-			new net.diogomarques.wifioppish.networking.Message(
-				nodeID, System.currentTimeMillis(), location, contents);
+		Message newMsg = new Message(nodeID, System.currentTimeMillis(), location, contents);
 		
 		// set other attributes
 		newMsg.setSafe(victimSafe);
@@ -376,11 +380,13 @@ public class AndroidEnvironment implements IEnvironment {
 	 * Stores a {@link Message} in a persistent form
 	 * @param msg Message to be stored persistently
 	 */
-	private void storeMessage(net.diogomarques.wifioppish.networking.Message msg) {
+	private void storeMessage(Message msg) {
+		String author =  msg.getNodeId();
+		
 		ContentValues cv = new ContentValues();
 		cv.put(MessagesProvider.COL_ADDED, System.currentTimeMillis());
 		cv.put(MessagesProvider.COL_ID, String.format("%s%d", msg.getNodeId(), msg.getTimestamp()));
-		cv.put(MessagesProvider.COL_NODE, msg.getNodeId());
+		cv.put(MessagesProvider.COL_NODE, author);
 		cv.put(MessagesProvider.COL_TIME, msg.getTimestamp());
 		cv.put(MessagesProvider.COL_MSG, msg.getMessage());
 		cv.put(MessagesProvider.COL_LAT, msg.getLatitude());
@@ -391,12 +397,16 @@ public class AndroidEnvironment implements IEnvironment {
 		cv.put(MessagesProvider.COL_SCREEN, msg.getScreenOn());
 		cv.put(MessagesProvider.COL_DISTANCE, -1);
 		cv.put(MessagesProvider.COL_SAFE, msg.isSafe() ? 1 : 0);
-		cv.put(MessagesProvider.COL_DIRECTION,
-				msg.getNodeId().equals(getMyNodeId()) ? MessagesProvider.MSG_SENT : MessagesProvider.MSG_SENT);
 		
-		Uri uri = context.getContentResolver().insert(MessagesProvider.URI_STORE, cv);
+		// check Message author and save accordingly
+		if(!author.equals(getMyNodeId()))
+			context.getContentResolver().insert(MessagesProvider.URI_RECEIVED, cv);
 		
-		Log.i("storeMessage", "Stored message via " + uri.toString());
+		// message to be sent later
+		cv.put(MessagesProvider.COL_STATUS, MessagesProvider.OUT_WAIT);
+		Uri uri = context.getContentResolver().insert(MessagesProvider.URI_SENT, cv);
+		
+		Log.i("storeMessage", "Message persistently stored via " + uri.toString());
 	}
 
 	@Override
@@ -407,6 +417,60 @@ public class AndroidEnvironment implements IEnvironment {
 		// disable sensors and remote hotspot feature
 		sensorGroup.removeAllSensors(true);
 		mNetworkingFacade.stopAccessPoint();
+	}
+	
+	/**
+	 * Gets the Android {@link Context} associated with this instance
+	 * @return Android Context
+	 */
+	public Context getAndroidContext() {
+		return context;
+	}
+	
+	/**
+	 * Class to allow observing custom text {@link Message Messages} from clients
+	 * @author André Silva <asilva@lasige.di.fc.ul.pt>
+	 */
+	private static class CustomMessagesObserver extends ContentObserver {
+		
+		private AndroidEnvironment environment;
+		
+		/**
+		 * Creates a new CustomMessagesObserver
+		 * @param h Handler (optional)
+		 * @param env Environment to add new Messages to sending queue
+		 */
+		public CustomMessagesObserver(Handler h, AndroidEnvironment env) {
+			super(h);
+			environment = env;
+		}
+		
+		// This method is called by old Android versions
+		@Override
+		public void onChange(boolean selfChange) {
+			this.onChange(selfChange, null);
+		}		
+
+		// Newer Android versions call this method
+		@Override
+		public void onChange(boolean selfChange, Uri uri) {
+			ContentResolver cr = environment.getAndroidContext().getContentResolver();
+			Cursor c = cr.query(
+					Uri.parse("content://net.diogomarques.wifioppish.MessagesProvider/customsend"), null, "", null, "");
+
+			if(c.moveToFirst()) {
+				// get Messages and put them into sending queue
+				Log.i("CustomMessagesObserver", "Found " + c.getCount() + " custom Messages");
+				do {
+					String custom = c.getString(c.getColumnIndex("customMessage"));
+					Message m = environment.createTextMessage(custom);
+					environment.pushMessageToQueue(m);
+				} while(c.moveToNext());
+				
+				// delete custom Messages
+				cr.delete(Uri.parse("content://net.diogomarques.wifioppish.MessagesProvider/customsend"), "", null);
+			}
+		}		
 	}
 	
 }
