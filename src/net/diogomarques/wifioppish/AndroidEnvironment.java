@@ -399,14 +399,18 @@ public class AndroidEnvironment implements IEnvironment {
 		cv.put(MessagesProvider.COL_SAFE, msg.isSafe() ? 1 : 0);
 		
 		// check Message author and save accordingly
-		if(!author.equals(getMyNodeId()))
-			context.getContentResolver().insert(MessagesProvider.URI_RECEIVED, cv);
+		if(!author.equals(getMyNodeId())) {
+			Uri uriRec = context.getContentResolver().insert(MessagesProvider.URI_RECEIVED, cv);
+			if(uriRec != null)
+				Log.i("storeMessage", "Message persistently stored via " + uriRec.toString());
+		}
 		
 		// message to be sent later
 		cv.put(MessagesProvider.COL_STATUS, MessagesProvider.OUT_WAIT);
 		Uri uri = context.getContentResolver().insert(MessagesProvider.URI_SENT, cv);
 		
-		Log.i("storeMessage", "Message persistently stored via " + uri.toString());
+		if(uri != null)
+			Log.i("storeMessage", "Message persistently stored via " + uri.toString());
 	}
 
 	@Override

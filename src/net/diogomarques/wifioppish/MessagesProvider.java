@@ -7,6 +7,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.UriMatcher;
 import android.database.Cursor;
+import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteQueryBuilder;
@@ -32,6 +33,8 @@ public class MessagesProvider extends ContentProvider {
 	public static final String METHOD_RECEIVED = "received";
 	public static final Uri URI_RECEIVED = Uri.parse(PROVIDER_URL + METHOD_RECEIVED);
 	public static final int URI_RECEIVED_CODE = 1;
+	public static final Uri URI_RECEIVED_ID = Uri.parse(PROVIDER_URL + METHOD_RECEIVED + "/#");
+	public static final int URI_RECEIVED_ID_CODE = 5;
 	
 	public static final String METHOD_SENT = "sent";
 	public static final Uri URI_SENT = Uri.parse(PROVIDER_URL + METHOD_SENT);
@@ -71,12 +74,13 @@ public class MessagesProvider extends ContentProvider {
 
 	private DBHelper dbHelper;
 	static final UriMatcher uriMatcher;
-	static{
+	static {
 		uriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
 		uriMatcher.addURI(PROVIDER, METHOD_RECEIVED, URI_RECEIVED_CODE);
 		uriMatcher.addURI(PROVIDER, METHOD_SENT, URI_SENT_CODE);
 		uriMatcher.addURI(PROVIDER, METHOD_CUSTOM, URI_CUSTOM_CODE);
 		uriMatcher.addURI(PROVIDER, METHOD_CUSTOM + "/#", URI_CUSTOM_ID_CODE);
+		uriMatcher.addURI(PROVIDER, METHOD_RECEIVED + "/#", URI_RECEIVED_ID_CODE);
 	}
 
 	// database declarations
@@ -164,26 +168,33 @@ public class MessagesProvider extends ContentProvider {
 	public Uri insert(Uri uri, ContentValues values) {
 		long row = -1;
 		
-		switch(uriMatcher.match(uri)) {
-			case URI_CUSTOM_CODE:
-			row = database.insert(TABLE_TOSEND, "", values);
-			break;
-			
-			case URI_RECEIVED_CODE:
-			row = database.insert(TABLE_INCOMING, "", values);
-			break;
-			
-			case URI_SENT_CODE:
-			row = database.insert(TABLE_OUTGOING, "", values);
-			break;
+		try {
+			switch(uriMatcher.match(uri)) {
+				case URI_CUSTOM_CODE:
+				row = database.insertOrThrow(TABLE_TOSEND, "", values);
+				break;
+				
+				case URI_RECEIVED_CODE:
+				row = database.insertOrThrow(TABLE_INCOMING, "", values);
+				break;
+				
+				case URI_SENT_CODE:
+				row = database.insertOrThrow(TABLE_OUTGOING, "", values);
+				break;
+			}
+		} catch(SQLException e) {
+			Log.w(TAG, "Tried to insert duplicate data, records not changed");
+			row = -1;
 		}
 		
 		if(row > 0) {
 			Uri newUri = ContentUris.withAppendedId(uri, row);
+			Log.d(TAG, "Generating notification for " + newUri);
 			getContext().getContentResolver().notifyChange(newUri, null);
 			return newUri;
 		}
 		
+		Log.d(TAG, "No notification for " + uri);
 		return null;
 	}
 	
@@ -198,6 +209,12 @@ public class MessagesProvider extends ContentProvider {
 			queryBuilder.setTables(TABLE_INCOMING);
 			break;
 			
+			case URI_RECEIVED_ID_CODE:
+			queryBuilder.setTables(TABLE_INCOMING);
+			String receivedId = uri.getLastPathSegment();
+			queryBuilder.appendWhere("rowid = " + receivedId);
+			break;
+			
 			case URI_SENT_CODE:
 			queryBuilder.setTables(TABLE_OUTGOING);
 			break;
@@ -208,12 +225,12 @@ public class MessagesProvider extends ContentProvider {
 			queryBuilder.setTables(TABLE_TOSEND);
 			break;
 			
-			// TODO obter mensagens custom com o id único
 			case URI_CUSTOM_ID_CODE:
 			queryBuilder.setTables(TABLE_TOSEND);
-			String id = uri.getLastPathSegment();
-			queryBuilder.appendWhere("rowid = " + id);
+			String toSendId = uri.getLastPathSegment();
+			queryBuilder.appendWhere("rowid = " + toSendId);
 			break;
+				
 			
 			default:
 			Log.w(TAG, "Unknown URI to query:" + uri);
@@ -222,7 +239,7 @@ public class MessagesProvider extends ContentProvider {
 		
 		Cursor cursor = queryBuilder.query(
 			database, projection, selection, selectionArgs, null, null, sortOrder);
-		cursor.setNotificationUri(getContext().getContentResolver(), uri);
+		//cursor.setNotificationUri(getContext().getContentResolver(), uri);
 		
 		return cursor;
 	}
