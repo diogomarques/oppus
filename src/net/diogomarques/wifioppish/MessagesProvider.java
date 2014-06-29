@@ -33,7 +33,7 @@ public class MessagesProvider extends ContentProvider {
 	public static final String METHOD_RECEIVED = "received";
 	public static final Uri URI_RECEIVED = Uri.parse(PROVIDER_URL + METHOD_RECEIVED);
 	public static final int URI_RECEIVED_CODE = 1;
-	public static final Uri URI_RECEIVED_ID = Uri.parse(PROVIDER_URL + METHOD_RECEIVED + "/#");
+	public static final Uri URI_RECEIVED_ID = Uri.parse(PROVIDER_URL + METHOD_RECEIVED + "/*");
 	public static final int URI_RECEIVED_ID_CODE = 5;
 	
 	public static final String METHOD_SENT = "sent";
@@ -80,7 +80,7 @@ public class MessagesProvider extends ContentProvider {
 		uriMatcher.addURI(PROVIDER, METHOD_SENT, URI_SENT_CODE);
 		uriMatcher.addURI(PROVIDER, METHOD_CUSTOM, URI_CUSTOM_CODE);
 		uriMatcher.addURI(PROVIDER, METHOD_CUSTOM + "/#", URI_CUSTOM_ID_CODE);
-		uriMatcher.addURI(PROVIDER, METHOD_RECEIVED + "/#", URI_RECEIVED_ID_CODE);
+		uriMatcher.addURI(PROVIDER, METHOD_RECEIVED + "/*", URI_RECEIVED_ID_CODE);
 	}
 
 	// database declarations
@@ -167,6 +167,7 @@ public class MessagesProvider extends ContentProvider {
 	@Override
 	public Uri insert(Uri uri, ContentValues values) {
 		long row = -1;
+		boolean received = false;
 		
 		try {
 			switch(uriMatcher.match(uri)) {
@@ -176,6 +177,7 @@ public class MessagesProvider extends ContentProvider {
 				
 				case URI_RECEIVED_CODE:
 				row = database.insertOrThrow(TABLE_INCOMING, "", values);
+				received = true;
 				break;
 				
 				case URI_SENT_CODE:
@@ -188,7 +190,15 @@ public class MessagesProvider extends ContentProvider {
 		}
 		
 		if(row > 0) {
-			Uri newUri = ContentUris.withAppendedId(uri, row);
+			Uri newUri;
+			
+			if(received) {
+				String id = String.format("%s%s", values.getAsString(COL_NODE), values.getAsString(COL_TIME));
+				newUri = Uri.withAppendedPath(uri, id);
+			} else {
+				newUri = ContentUris.withAppendedId(uri, row);
+			}
+			
 			Log.d(TAG, "Generating notification for " + newUri);
 			getContext().getContentResolver().notifyChange(newUri, null);
 			return newUri;
@@ -212,7 +222,7 @@ public class MessagesProvider extends ContentProvider {
 			case URI_RECEIVED_ID_CODE:
 			queryBuilder.setTables(TABLE_INCOMING);
 			String receivedId = uri.getLastPathSegment();
-			queryBuilder.appendWhere("rowid = " + receivedId);
+			queryBuilder.appendWhere( COL_ID + "=\"" + receivedId + "\"");
 			break;
 			
 			case URI_SENT_CODE:
