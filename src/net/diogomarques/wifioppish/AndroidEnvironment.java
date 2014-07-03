@@ -190,6 +190,12 @@ public class AndroidEnvironment implements IEnvironment {
 	public void startStateLoop(State first) {
 		nextState = first;
 		
+		// indicate that service is connected
+		ContentValues contentvalues = new ContentValues();
+		contentvalues.put(MessagesProvider.COL_STATUSKEY, "service");
+		contentvalues.put(MessagesProvider.COL_STATUSVALUE, "Enabled");
+		context.getContentResolver().insert(MessagesProvider.URI_STATUS, contentvalues);
+		
 		while (true) {
 			
 			try {
@@ -205,11 +211,17 @@ public class AndroidEnvironment implements IEnvironment {
 			AState next = null;
 			int timeout = 0;
 			
-			//send broadcast of state change
+			// send broadcast of state change...
 			Intent intent = new Intent();
 			intent.setAction("stateChange");
 			intent.putExtra("State", nextState.toString());
 			context.sendBroadcast(intent);
+			
+			// ... and also register state update to persistent storage
+			ContentValues cv = new ContentValues();
+			cv.put(MessagesProvider.COL_STATUSKEY, "state");
+			cv.put(MessagesProvider.COL_STATUSVALUE, nextState.toString());
+			context.getContentResolver().insert(MessagesProvider.URI_STATUS, cv);
 			
 			switch (nextState) {
 			case Beaconing:
@@ -234,7 +246,7 @@ public class AndroidEnvironment implements IEnvironment {
 				break;
 			case InternetConn:
 				next = mConnected;
-				timeout = mPreferences.getTInt();
+				timeout = mPreferences.getTWeb();
 				break;
 			case Stopped:
 				return;
@@ -400,12 +412,14 @@ public class AndroidEnvironment implements IEnvironment {
 		
 		// check Message author and save accordingly
 		if(!author.equals(getMyNodeId())) {
+			cv.put(MessagesProvider.COL_ORIGIN, "network");  // message origin is always network inside service
 			Uri uriRec = context.getContentResolver().insert(MessagesProvider.URI_RECEIVED, cv);
 			if(uriRec != null)
 				Log.i("storeMessage", "Message persistently stored via " + uriRec.toString());
 		}
 		
 		// message to be sent later
+		cv.remove(MessagesProvider.COL_ORIGIN);
 		cv.put(MessagesProvider.COL_STATUS, MessagesProvider.OUT_WAIT);
 		Uri uri = context.getContentResolver().insert(MessagesProvider.URI_SENT, cv);
 		
@@ -418,9 +432,15 @@ public class AndroidEnvironment implements IEnvironment {
 		// send signal to stop the state loop
 		gotoState(State.Stopped);
 		
+		// indicate that service is now stopped connected
+		ContentValues cv = new ContentValues();
+		cv.put(MessagesProvider.COL_STATUSKEY, "service");
+		cv.put(MessagesProvider.COL_STATUSVALUE, "Disabled");
+		context.getContentResolver().insert(MessagesProvider.URI_STATUS, cv);
+		
 		// disable sensors and remote hotspot feature
 		sensorGroup.removeAllSensors(true);
-		mNetworkingFacade.stopAccessPoint();
+		//mNetworkingFacade.stopAccessPoint();
 	}
 	
 	/**

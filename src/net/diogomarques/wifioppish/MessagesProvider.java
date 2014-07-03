@@ -46,6 +46,12 @@ public class MessagesProvider extends ContentProvider {
 	public static final Uri URI_CUSTOM_ID = Uri.parse(PROVIDER_URL + METHOD_CUSTOM + "/#");
 	public static final int URI_CUSTOM_ID_CODE = 4;
 	
+	public static final String METHOD_STATUS = "status";
+	public static final Uri URI_STATUS = Uri.parse(PROVIDER_URL + METHOD_STATUS);
+	public static final int URI_STATUS_CODE = 6;
+	public static final Uri URI_STATUS_CUSTOM = Uri.parse(PROVIDER_URL + METHOD_STATUS + "/*");
+	public static final int URI_STATUS_CUSTOM_CODE = 7;
+	
 	// database fields
 	public static final String COL_ID = "_id";
 	public static final String COL_NODE = "nodeid";
@@ -62,12 +68,15 @@ public class MessagesProvider extends ContentProvider {
 	public static final String COL_ADDED = "local_added";
 	public static final String COL_DIRECTION = "direction";
 	public static final String COL_STATUS = "status";
+	public static final String COL_ORIGIN = "origin";
+	public static final String COL_STATUSKEY = "statuskey";
+	public static final String COL_STATUSVALUE = "statusvalue";
 	
 	// constants - direction
 	public static final String MSG_SENT = "sent";
 	public static final String MSG_REC = "received";
 	
-	// constants - status
+	// constants - message status
 	public static final String OUT_WAIT = "waiting";
 	public static final String OUT_NET = "sentNet";
 	public static final String OUT_WS = "sentWS";
@@ -81,6 +90,8 @@ public class MessagesProvider extends ContentProvider {
 		uriMatcher.addURI(PROVIDER, METHOD_CUSTOM, URI_CUSTOM_CODE);
 		uriMatcher.addURI(PROVIDER, METHOD_CUSTOM + "/#", URI_CUSTOM_ID_CODE);
 		uriMatcher.addURI(PROVIDER, METHOD_RECEIVED + "/*", URI_RECEIVED_ID_CODE);
+		uriMatcher.addURI(PROVIDER, METHOD_STATUS, URI_STATUS_CODE);
+		uriMatcher.addURI(PROVIDER, METHOD_STATUS + "/*", URI_STATUS_CUSTOM_CODE);
 	}
 
 	// database declarations
@@ -89,7 +100,8 @@ public class MessagesProvider extends ContentProvider {
 	static final String TABLE_OUTGOING = "outgoing";
 	static final String TABLE_INCOMING = "incoming";
 	static final String TABLE_TOSEND = "tosend";
-	static final int DATABASE_VERSION = 1;
+	static final String TABLE_STATUS = "status";
+	static final int DATABASE_VERSION = 2;
 	static final String CREATE_TABLE_OUTGOING = 
 			" CREATE TABLE " + TABLE_OUTGOING +
 			" (" + COL_ID + " TEXT PRIMARY KEY, " + 
@@ -120,10 +132,15 @@ public class MessagesProvider extends ContentProvider {
 			" " + COL_SCREEN + " INTEGER," + 
 			" " + COL_DISTANCE + " INTEGER," + 
 			" " + COL_SAFE + " INTEGER," +
+			" " + COL_ORIGIN + " TEXT," + 
 			" " + COL_ADDED + " DOUBLE);";
 	static final String CREATE_TABLE_TOSEND = 
 			" CREATE TABLE " + TABLE_TOSEND +
-			" (customMessage TEXT PRIMARY KEY);"; 
+			" (customMessage TEXT PRIMARY KEY);";
+	static final String CREATE_TABLE_STATUS =
+			" CREATE TABLE " + TABLE_STATUS + 
+			" (" + COL_STATUSKEY + " TEXT," + 
+			" " + COL_STATUSVALUE + " TEXT)";
 
 	// class that creates and manages the provider's database 
 	private static class DBHelper extends SQLiteOpenHelper {
@@ -137,6 +154,7 @@ public class MessagesProvider extends ContentProvider {
 			db.execSQL(CREATE_TABLE_INCOMING);
 			db.execSQL(CREATE_TABLE_OUTGOING);
 			db.execSQL(CREATE_TABLE_TOSEND);
+			db.execSQL(CREATE_TABLE_STATUS);
 		}
 
 		@Override
@@ -148,6 +166,7 @@ public class MessagesProvider extends ContentProvider {
 			db.execSQL("DROP TABLE IF EXISTS " +  TABLE_INCOMING);
 			db.execSQL("DROP TABLE IF EXISTS " +  TABLE_OUTGOING);
 			db.execSQL("DROP TABLE IF EXISTS " +  TABLE_TOSEND);
+			db.execSQL("DROP TABLE IF EXISTS " +  TABLE_STATUS);
 
 			onCreate(db);
 		}
@@ -168,6 +187,7 @@ public class MessagesProvider extends ContentProvider {
 	public Uri insert(Uri uri, ContentValues values) {
 		long row = -1;
 		boolean received = false;
+		boolean status = false;
 		
 		try {
 			switch(uriMatcher.match(uri)) {
@@ -183,9 +203,19 @@ public class MessagesProvider extends ContentProvider {
 				case URI_SENT_CODE:
 				row = database.insertOrThrow(TABLE_OUTGOING, "", values);
 				break;
+				
+				case URI_STATUS_CODE:
+				try {
+					row = database.insert(TABLE_STATUS, "", values);
+					status = true;
+				} catch(SQLException e) {
+					// key already exists, fallback to update
+					update(uri, values, COL_STATUSKEY + "=\"" + values.getAsString(COL_STATUSKEY) + "\"", null);
+				}
+				break;
 			}
 		} catch(SQLException e) {
-			Log.w(TAG, "Tried to insert duplicate data, records not changed");
+			Log.w(TAG, "Tried to insert duplicate data, records not changed", e);
 			row = -1;
 		}
 		
@@ -195,6 +225,8 @@ public class MessagesProvider extends ContentProvider {
 			if(received) {
 				String id = String.format("%s%s", values.getAsString(COL_NODE), values.getAsString(COL_TIME));
 				newUri = Uri.withAppendedPath(uri, id);
+			} else if(status) {
+				newUri =  Uri.withAppendedPath(URI_STATUS, values.getAsString(COL_STATUSKEY));
 			} else {
 				newUri = ContentUris.withAppendedId(uri, row);
 			}
@@ -240,7 +272,16 @@ public class MessagesProvider extends ContentProvider {
 			String toSendId = uri.getLastPathSegment();
 			queryBuilder.appendWhere("rowid = " + toSendId);
 			break;
-				
+			
+			case URI_STATUS_CODE:
+			queryBuilder.setTables(TABLE_STATUS);
+			break;
+			
+			case URI_STATUS_CUSTOM_CODE:
+			queryBuilder.setTables(TABLE_STATUS);
+			String key = uri.getLastPathSegment();
+			queryBuilder.appendWhere(COL_STATUSKEY + "=\"" + key + "\"");
+			break;
 			
 			default:
 			Log.w(TAG, "Unknown URI to query:" + uri);
@@ -249,19 +290,31 @@ public class MessagesProvider extends ContentProvider {
 		
 		Cursor cursor = queryBuilder.query(
 			database, projection, selection, selectionArgs, null, null, sortOrder);
-		//cursor.setNotificationUri(getContext().getContentResolver(), uri);
 		
 		return cursor;
 	}
 	
 	@Override
 	public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+		int rows = -1;
+		
 		switch(uriMatcher.match(uri)) {
+		
+			// TODO ter em conta o id da mensagem outgoing na atualização + update notifiers
 			case URI_SENT_CODE:
-			database.update(TABLE_OUTGOING, values, selection, selectionArgs);
-			// TODO ter em conta o id da mensagem outgoing na atualização
+			rows = database.update(TABLE_OUTGOING, values, selection, selectionArgs);
+			break;
+		
+			case URI_STATUS_CODE:
+			rows = database.update(TABLE_STATUS, values, selection, selectionArgs);
+			if(rows > 0) {
+				Uri newUri = Uri.withAppendedPath(URI_STATUS, values.getAsString(COL_STATUSKEY));
+				getContext().getContentResolver().notifyChange(newUri, null);
+			}
+			break;
 		}
-		return 0;
+		
+		return rows;
 	}
 	
 	@Override

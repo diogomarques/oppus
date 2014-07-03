@@ -93,7 +93,7 @@ public class SensorGroup {
 	public List<AbstractSensor> removeAllSensors(boolean stop) {
 		List<AbstractSensor> removed = new ArrayList<AbstractSensor>();
 		
-		for(SensorGroupKey k : sensors.keySet())
+		for(SensorGroupKey k : SensorGroupKey.values())
 			removed.add(removeSensor(k, stop));
 		
 		return removed;

@@ -4,6 +4,7 @@ import net.diogomarques.wifioppish.AndroidEnvironment;
 import net.diogomarques.wifioppish.AndroidPreferences;
 import net.diogomarques.wifioppish.IEnvironment;
 import net.diogomarques.wifioppish.IEnvironment.State;
+import net.diogomarques.wifioppish.MyPreferenceActivity;
 import net.diogomarques.wifioppish.R;
 import android.app.Activity;
 import android.app.Notification;
@@ -119,7 +120,7 @@ public class LOSTService extends Service {
 		note.flags |= Notification.FLAG_FOREGROUND_SERVICE;
 
 		PendingIntent intent = PendingIntent.getActivity(this, 0, new Intent(
-				this, LOSTService.class), 0);
+				this, MyPreferenceActivity.class), 0);
 
 		note.setLatestEventInfo(this, contentTitle, contentText, intent);
 		return note;

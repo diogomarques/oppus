@@ -13,6 +13,7 @@
     <string name="value_t_int">40000</string>
     <string name="value_t_freq">2000</string>
     <string name="value_t_api">http://accessible-serv.lasige.di.fc.ul.pt/~lost/index.php/rest</string>
+    <string name="value_t_web">5000</string>
     
     <!-- settings keys for storing and retrieving values -->
     <string name="key_t_beac">t_beac</string>
@@ -23,6 +24,7 @@
     <string name="key_t_freq">t_freq</string>
     <string name="key_t_api">t_api</string>
     <string name="key_internet">internet</string>
+    <string name="key_t_web">t_web</string>
     
     <!-- settings labels -->
     <string name="t_pro_title">Minimum time (ms) a mobile device is providing access point functionality for connected stations</string>
@@ -35,5 +37,7 @@
     <string name="internet">enable internet state</string>
     <string name="t_api_title">Webservice endpoint</string>
     <string name="t_api_desc">Preferred API webservice endpoint. The methods will be appended to this address.</string>
+    <string name="t_web_title">Min. Internet time</string>
+    <string name="t_web_desc">Minimum time (ms) to stay connected to Internet before changing to next state.</string>
     
 </resources>

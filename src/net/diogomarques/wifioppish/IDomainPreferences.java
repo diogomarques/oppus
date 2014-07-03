@@ -136,8 +136,15 @@ public interface IDomainPreferences {
 	
 	/**
 	 * Get the period to send Messages to the opportunistic network.
-	 * @return Time in milisseconds to wait before resend a Message to network
+	 * @return Time in milliseconds to wait before resend a Message to network
 	 */
 	public int getSendPeriod();
+
+	/**
+	 * Get the period of time to wait before exiting the Internet Connected state. This 
+	 * delay is useful to allow clients to use the actual Internet connection.
+	 * @return Time in milliseconds to wait before exiting Internet Connected state
+	 */
+	public int getTWeb();
 
 }

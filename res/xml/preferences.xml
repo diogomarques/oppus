@@ -33,6 +33,11 @@
             android:dialogMessage="@string/t_freq_title"
             android:key="@string/key_t_freq"
             android:title="Message send period" />
+         <EditTextPreference 
+            android:defaultValue="@string/value_t_web"
+            android:dialogMessage="@string/t_web_desc"
+            android:key="@string/key_t_web"
+            android:title="@string/t_web_title" /> 
      </PreferenceCategory>
      
     <!-- webservice connection preferences -->

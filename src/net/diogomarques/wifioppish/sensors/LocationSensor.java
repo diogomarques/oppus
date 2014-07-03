@@ -34,29 +34,6 @@ public class LocationSensor extends AbstractSensor {
 	private int confidence;
 	
 	/**
-	 * Preference key for the last known latitude
-	 */
-	public static final String LAST_LAT_KEY = "gps.lastLatitude";
-	
-	/**
-	 * Preference key for the last known longitude
-	 */
-	public static final String LAST_LON_KEY = "gps.lastLongitude";
-	
-	/**
-	 * Preference key for the last update
-	 */
-	public static final String LAST_TIME_KEY = "gps.lastUpdate";
-	
-	/**
-	 * Preference key for the location confidence
-	 * @see {@link #CONFIDENCE_LAST_KNOWN} Value for poor confidence
-	 * @see {@link #CONFIDENCE_APPROXIMATE} Value for reasonable confidence
-	 * @see {@link #CONFIDENCE_UPDATED} Value for good confidence
-	 */
-	public static final String LAST_CONFIDENCE_KEY = "gps.confidence";
-	
-	/**
 	 * Mediocre confidence level for location update, meaning that the location 
 	 * refers to the previously successfully retrieved location
 	 */
@@ -101,7 +78,7 @@ public class LocationSensor extends AbstractSensor {
 			longitude = location.getLongitude();
 			confidence = CONFIDENCE_UPDATED;
 			
-			if(schedulerConf == null)
+			if(schedulerConf.isShutdown())
 				initializeScheduler();
 		}
 	};
@@ -115,6 +92,7 @@ public class LocationSensor extends AbstractSensor {
 		context = c;
 		confidence = CONFIDENCE_LAST_KNOWN;
 		gpsConnected = false;
+		schedulerConf = Executors.newSingleThreadScheduledExecutor();
 	}
 
 	@Override
@@ -129,6 +107,7 @@ public class LocationSensor extends AbstractSensor {
 
 	@Override
 	public void stopSensor() {
+		schedulerConf.shutdown();
 		unregisterLocationListener(locationListener);
 	}
 	
@@ -159,10 +138,9 @@ public class LocationSensor extends AbstractSensor {
 	
 	/**
 	 * Initializes the scheduler to check for valid locations and update 
-	 * lcoation confidence level
+	 * location confidence level
 	 */
 	private void initializeScheduler() {
-		schedulerConf = Executors.newSingleThreadScheduledExecutor();
 		schedulerConf.scheduleAtFixedRate(new Runnable() {
 			
 			@Override

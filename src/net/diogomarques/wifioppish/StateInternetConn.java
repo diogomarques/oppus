@@ -2,8 +2,10 @@ package net.diogomarques.wifioppish;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
+import net.diogomarques.utils.CountDownTimer;
 import net.diogomarques.wifioppish.IEnvironment.State;
 import net.diogomarques.wifioppish.networking.Message;
 import net.diogomarques.wifioppish.networking.MessageFormatter;
@@ -46,6 +48,9 @@ public class StateInternetConn extends AState {
 		
 		context = c;
 		environment.deliverMessage("entered Internet connected state");
+		
+		boolean timePassed = false;
+		long startTime = new Date().getTime();
 		
 		try {
 		
@@ -96,6 +101,10 @@ public class StateInternetConn extends AState {
 		} catch(IOException e) {
 			Log.e("Webservice", "Cannot connect to webservice: " + e.getMessage(), e);
 		}
+		
+		
+		// wait until time limit reached before changing state
+		while(new Date().getTime() < startTime + timeout);
 
 		if (environment.getLastState() == State.Scanning) {
 			environment.deliverMessage("t_i_con timeout");

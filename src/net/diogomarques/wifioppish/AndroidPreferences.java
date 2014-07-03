@@ -139,4 +139,13 @@ public class AndroidPreferences implements IDomainPreferences {
 		int value = Integer.parseInt(prefs.getString(key, "2000"));
 		return value;
 	}
+
+	@Override
+	public int getTWeb() {
+		SharedPreferences prefs = PreferenceManager
+				.getDefaultSharedPreferences(mContext);
+		String key = mContext.getString(R.string.key_t_web);
+		int value = Integer.parseInt(prefs.getString(key, "5000"));
+		return value;
+	}
 }
