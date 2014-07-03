@@ -1,5 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+    
+    <!-- Device identification -->
+    <PreferenceCategory android:title="Device identification" >
+		<EditTextPreference 
+		   android:defaultValue=""
+		   android:dialogMessage="@string/t_nodeid_desc"
+		   android:key="@string/key_t_nodeid"
+		   android:title="@string/t_nodeid_title" /> 
+    </PreferenceCategory>
 
     <!-- time constants configuration according experiments and scientific paper -->
     <PreferenceCategory android:title="Time constants" >

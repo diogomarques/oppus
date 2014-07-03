@@ -125,17 +125,15 @@ public class AndroidEnvironment implements IEnvironment {
 		environment.semNextState = new Semaphore(1);
 		// allowing the gathering of shared preferences
 		environment.context = c;
-		// get/generate the node ID
-		SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(c);
-		String nodeID = sharedPref.getString("nodeID", null);
-		if(nodeID == null) {
-			Editor prefEditor = sharedPref.edit();
-			nodeID = NodeIdentification.getMyNodeId(c);
-			prefEditor.putString("nodeID", nodeID);
-			prefEditor.commit();
-		}
-		environment.myNodeID = nodeID;
-		Log.w("NodeID", "My node id is: " + environment.myNodeID);
+		
+		// get/generate the node ID and spread the word
+		environment.myNodeID = environment.mPreferences.getNodeId();
+		ContentValues contentvalues = new ContentValues();
+		contentvalues.put(MessagesProvider.COL_STATUSKEY, "nodeid");
+		contentvalues.put(MessagesProvider.COL_STATUSVALUE, environment.myNodeID);
+		c.getContentResolver().insert(MessagesProvider.URI_STATUS, contentvalues);
+		Log.i("NodeID", "My node id is: " + environment.myNodeID);
+		
 		// start forwarding sending queue
 		environment.mQueue = new ConcurrentForwardingQueue();
 		// stats 

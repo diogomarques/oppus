@@ -5,6 +5,7 @@ import java.util.Random;
 import net.diogomarques.wifioppish.IEnvironment.State;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.preference.PreferenceManager;
 
 /**
@@ -147,5 +148,23 @@ public class AndroidPreferences implements IDomainPreferences {
 		String key = mContext.getString(R.string.key_t_web);
 		int value = Integer.parseInt(prefs.getString(key, "5000"));
 		return value;
+	}
+
+	@Override
+	public String getNodeId() {
+		SharedPreferences prefs = PreferenceManager
+				.getDefaultSharedPreferences(mContext);
+		String key = mContext.getString(R.string.key_t_nodeid);
+		String nodeid = prefs.getString(key, null);
+		
+		// generate if invalid
+		if(nodeid == null || nodeid.equals("")) {
+			nodeid = NodeIdentification.getMyNodeId(mContext);
+			Editor prefEditor = prefs.edit();
+			prefEditor.putString(key, nodeid);
+			prefEditor.commit();
+		}
+		
+		return nodeid;
 	}
 }

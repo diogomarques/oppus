@@ -146,5 +146,12 @@ public interface IDomainPreferences {
 	 * @return Time in milliseconds to wait before exiting Internet Connected state
 	 */
 	public int getTWeb();
+	
+	/**
+	 * Get the Node ID in use. The Node ID may be choosen from the preferences screen or 
+	 * may be generated if there is no one assigned.
+	 * @return NodeID in use
+	 */
+	public String getNodeId();
 
 }
