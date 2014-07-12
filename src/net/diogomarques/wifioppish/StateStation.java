@@ -5,7 +5,9 @@ import net.diogomarques.wifioppish.IEnvironment.State;
 import net.diogomarques.wifioppish.INetworkingFacade.OnSendListener;
 import net.diogomarques.wifioppish.networking.Message;
 import net.diogomarques.wifioppish.networking.MessageGroup;
+import android.content.ContentValues;
 import android.content.Context;
+import android.net.Uri;
 import android.util.Log;
 
 
@@ -54,6 +56,15 @@ public class StateStation extends AState {
 
 					@Override
 					public void onMessageSent(Message msg) {
+						// indicate that message was sent in content provider
+						ContentValues cv = new ContentValues();
+						cv.put("status", MessagesProvider.OUT_NET);
+						Uri sentUri = Uri.parse(
+								MessagesProvider.PROVIDER_URL +
+								MessagesProvider.METHOD_SENT + "/" +
+								msg.getNodeId() + msg.getTimestamp()
+						);
+						context.getContentResolver().update(sentUri, cv, null, null);
 						
 						environment.deliverMessage("message successfully sent");
 					}

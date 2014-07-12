@@ -22,7 +22,10 @@ import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Context;
+import android.net.Uri;
 import android.util.Log;
 
 
@@ -91,9 +94,22 @@ public class StateInternetConn extends AState {
 		    // if messages were successfully inserted, clear the queue
 		    if(response.getStatusLine().getStatusCode() == HTTP_OK) {
 		    	// message sent feedback
-		    	// TODO get operation code (805) from shared/centralized handler
-		    	for(Message m : messages)
+		    	ContentResolver cr = context.getContentResolver();
+		    	
+		    	for(Message m : messages) {
+		    		// TODO get operation code (805) from shared/centralized handler
 		    		environment.deliverCustomMessage(m, 805);
+		    		
+		    		// update content provider to tell messages were sucessfully sent to webservice
+		    		ContentValues cv = new ContentValues();
+					cv.put("status", MessagesProvider.OUT_WS);
+					Uri sentUri = Uri.parse(
+							MessagesProvider.PROVIDER_URL +
+							MessagesProvider.METHOD_SENT + "/" +
+							m.getNodeId() + m.getTimestamp()
+					);
+					context.getContentResolver().update(sentUri, cv, null, null);
+		    	}
 		    	
 		    	environment.clearQueue();
 		    }

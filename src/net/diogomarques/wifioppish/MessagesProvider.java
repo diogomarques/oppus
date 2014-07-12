@@ -39,6 +39,8 @@ public class MessagesProvider extends ContentProvider {
 	public static final String METHOD_SENT = "sent";
 	public static final Uri URI_SENT = Uri.parse(PROVIDER_URL + METHOD_SENT);
 	public static final int URI_SENT_CODE = 2;
+	public static final Uri URI_SENT_ID = Uri.parse(PROVIDER_URL + METHOD_SENT + "/*");
+	public static final int URI_SENT_ID_CODE = 8;
 	
 	public static final String METHOD_CUSTOM = "customsend";
 	public static final Uri URI_CUSTOM = Uri.parse(PROVIDER_URL + METHOD_CUSTOM);
@@ -92,6 +94,7 @@ public class MessagesProvider extends ContentProvider {
 		uriMatcher.addURI(PROVIDER, METHOD_RECEIVED + "/*", URI_RECEIVED_ID_CODE);
 		uriMatcher.addURI(PROVIDER, METHOD_STATUS, URI_STATUS_CODE);
 		uriMatcher.addURI(PROVIDER, METHOD_STATUS + "/*", URI_STATUS_CUSTOM_CODE);
+		uriMatcher.addURI(PROVIDER, METHOD_SENT + "/*",  URI_SENT_ID_CODE);
 	}
 
 	// database declarations
@@ -261,7 +264,11 @@ public class MessagesProvider extends ContentProvider {
 			queryBuilder.setTables(TABLE_OUTGOING);
 			break;
 			
-			// TODO obter mensagens outgoing dos 3 tipos (wait, sentnet, sentws)
+			case URI_SENT_ID_CODE:
+			queryBuilder.setTables(TABLE_OUTGOING);
+			String sentId = uri.getLastPathSegment();
+			queryBuilder.appendWhere("_id = " + sentId);
+			break;
 			
 			case URI_CUSTOM_CODE:
 			queryBuilder.setTables(TABLE_TOSEND);
@@ -300,9 +307,14 @@ public class MessagesProvider extends ContentProvider {
 		
 		switch(uriMatcher.match(uri)) {
 		
-			// TODO ter em conta o id da mensagem outgoing na atualização + update notifiers
-			case URI_SENT_CODE:
+			case URI_SENT_ID_CODE:
+			String id = uri.getLastPathSegment();
+			selection = "_id = \"" + id + "\"";
 			rows = database.update(TABLE_OUTGOING, values, selection, selectionArgs);
+			if(rows > 0) {
+				Log.i(TAG, "Generating notification for " + uri);
+				getContext().getContentResolver().notifyChange(uri, null);
+			}
 			break;
 		
 			case URI_STATUS_CODE:
@@ -336,7 +348,6 @@ public class MessagesProvider extends ContentProvider {
 		
 		if(count > 0)
 			getContext().getContentResolver().notifyChange(uri, null);
-		
 		
 		return count;
 	}
