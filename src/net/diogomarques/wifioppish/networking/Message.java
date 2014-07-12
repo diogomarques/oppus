@@ -2,6 +2,8 @@ package net.diogomarques.wifioppish.networking;
 
 import java.io.Serializable;
 
+import net.diogomarques.wifioppish.sensors.LocationSensor;
+
 /**
  * Message envelope to be exchanged between devices.
  * 
@@ -40,7 +42,7 @@ public class Message implements Serializable {
 	private boolean safe;
 	
 	/**
-	 * Creates a new read-only Message
+	 * Creates a new Message envelope with information regarding external conditions
 	 * 
 	 * @param message Text to be sent
 	 * @param timestamp Timestamp from when the Message was created 
@@ -62,6 +64,19 @@ public class Message implements Serializable {
 		this.steps = -1;
 	}
 	
+	/**
+	 * Creates a new Message envelope with information regarding external conditions
+	 * 
+	 * @param message Text to be sent
+	 * @param timestamp Timestamp from when the Message was created 
+	 * @param coords Geographical coordinates associated with this Message. The first position 
+	 * 	should represent the latitude, and the second position of array should represent the longitude
+	 * @param nodeId Identificator of the node who sent the message
+	 * @param battery Battery level [0-100] of the device
+	 * @param safe True if the victim is currently marked as safe; false otherwise
+	 * @param screen Total number of screen activations
+	 * @param steps Total number of micro-movements done measured
+	 */
 	public Message(String nodeId, long timestamp, double[] coords, String message, int battery, int safe, int screen, int steps) {
 		this.nodeId = nodeId;
 		this.timestamp = timestamp;
@@ -70,8 +85,8 @@ public class Message implements Serializable {
 		this.llconfidence = (int) coords[2];
 		this.message = message;
 		this.battery = battery;
-		this.safe = safe == 1;
-		this.screenOn = -screen;
+		this.safe = (safe == 1);
+		this.screenOn = screen;
 		this.steps = steps;
 	}
 	
@@ -174,9 +189,9 @@ public class Message implements Serializable {
 	/**
 	 * Gets the confidence associated with the location
 	 * @return location confidence
-	 * @see {@link LocationProvider#CONFIDENCE_LAST_KNOWN}
+	 * @see {@link LocationSensor#CONFIDENCE_LAST_KNOWN}
 	 * 		Value for poor confidence
-	 * @see {@link LocationProvider#CONFIDENCE_UPDATED}
+	 * @see {@link LocationSensor#CONFIDENCE_UPDATED}
 	 * 		Value for good confidence
 	 */
 	public int getLocationConfidence() {
