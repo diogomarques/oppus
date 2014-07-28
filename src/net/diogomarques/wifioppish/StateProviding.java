@@ -13,6 +13,10 @@ import net.diogomarques.wifioppish.networking.MessageGroup;
  */
 public class StateProviding extends AState {
 
+	/**
+	 * Creates a new Providing state
+	 * @param environment Environment running the state machine
+	 */
 	public StateProviding(IEnvironment environment) {
 		super(environment);
 	}

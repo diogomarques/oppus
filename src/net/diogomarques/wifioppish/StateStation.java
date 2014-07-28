@@ -18,6 +18,10 @@ import android.util.Log;
  */
 public class StateStation extends AState {
 
+	/**
+	 * Creates a new Station state
+	 * @param environment Environment running the state machine
+	 */
 	public StateStation(IEnvironment environment) {
 		super(environment);
 	}

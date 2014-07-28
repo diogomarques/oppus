@@ -22,7 +22,7 @@ public interface IDomainPreferences {
 	 * <p>
 	 * "Increasing the beaconing time in AP mode has a negative impact on the
 	 * performance". <footer>Trifunovic et al, 2011, <a
-	 * href="http://202.194.20.8/proc/MOBICOM2011/chants/p37.pdf"
+	 * href="http://dl.acm.org/citation.cfm?id=2030664"
 	 * >PDF</a></footer></blockquote>
 	 * 
 	 * @return t_beac
@@ -38,7 +38,7 @@ public interface IDomainPreferences {
 	 * "The performance of the Flexible STA and Flexible AP variants of WiFi-Opp
 	 * is largely independent of the connection times (if ≥
 	 * 40s)".<footer>Trifunovic et al, 2011, <a
-	 * href="http://202.194.20.8/proc/MOBICOM2011/chants/p37.pdf"
+	 * href="http://dl.acm.org/citation.cfm?id=2030664"
 	 * >PDF</a></footer></blockquote>
 	 * 
 	 * @return t_pro
@@ -52,7 +52,7 @@ public interface IDomainPreferences {
 	 * <p>
 	 * "The WiFi-Opp performance is almost independent of the scanning time,
 	 * thus permitting long scanning times of 5-15 minutes".<footer>Trifunovic et
-	 * al, 2011, <a href="http://202.194.20.8/proc/MOBICOM2011/chants/p37.pdf"
+	 * al, 2011, <a href="http://dl.acm.org/citation.cfm?id=2030664"
 	 * >PDF</a></footer></blockquote>
 	 * 
 	 * @return t_scan
@@ -67,14 +67,15 @@ public interface IDomainPreferences {
 	 * "The performance of the Flexible STA and Flexible AP variants of WiFi-Opp
 	 * is largely independent of the connection times (if ≥ 40s)"
 	 * <footer>Trifunovic et al, 2011, <a
-	 * href="http://202.194.20.8/proc/MOBICOM2011/chants/p37.pdf"
+	 * href="http://dl.acm.org/citation.cfm?id=2030664"
 	 * >PDF</a></footer></blockquote>
 	 * 
 	 * @return t_con
 	 */
 	public int getTCon();
+	
 	/**
-	 * Get t_int (TODO).
+	 * Get t_int (5 seconds by default).
 	 * 
 	 * "t_int is the time a mobile device scans for a internet connection".
 	 * 
@@ -87,7 +88,7 @@ public interface IDomainPreferences {
 	 * 
 	 * <blockquote>
 	 * "We assume that scans are triggered every 5s".<footer>Trifunovic et al,
-	 * 2011, <a href="http://202.194.20.8/proc/MOBICOM2011/chants/p37.pdf"
+	 * 2011, <a href="http://dl.acm.org/citation.cfm?id=2030664"
 	 * >PDF</a></footer></blockquote>
 	 * 
 	 * @return the scanning period in ms

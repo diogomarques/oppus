@@ -15,7 +15,7 @@ import android.util.Log;
 /**
  * Encodes/decodes {@link Message Messages} and {@link MessageGroup MessageGroups} to other formats.
  * <p>
- * It supports the encode/decode of Message and GroupMessages to/from network, encode to CSV (Comma 
+ * It supports the encode/decode of Message and MessageGroups to/from network, encode to CSV (Comma 
  * Separated Values) and encode to {@link JSONObject}.
  * 
  * @author André Silva <asilva@lasige.di.fc.ul.pt>

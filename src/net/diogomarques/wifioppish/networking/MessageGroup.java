@@ -6,13 +6,14 @@ import java.util.Collection;
 import java.util.Iterator;
 
 /**
- * Represents a group of {@link Message Messages} ready to 
+ * Represents a group of {@link Message Messages} ready to be
  * sent/received to/from a network. It uses Java's Serialization 
  * to ensure the compatibility with network format.
  * <p>
  * The advantage of using MessageGroup over sending several Messages 
  * is that you only need to send a single packet instead of sending 
- * multiple ones.
+ * multiple ones. Usually, a large number of Messages is still capable 
+ * of fitting into a single UDP datagram.
  * 
  * @author André Silva <asilva@lasige.di.fc.ul.pt>
  */

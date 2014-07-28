@@ -11,6 +11,10 @@ import net.diogomarques.wifioppish.IEnvironment.State;
  */
 public class StateInternetCheck extends AState {
 
+	/**
+	 * Creates a new InternetCheck state
+	 * @param environment Environment running the state machine
+	 */
 	public StateInternetCheck(IEnvironment env) {
 		super(env);
 	}

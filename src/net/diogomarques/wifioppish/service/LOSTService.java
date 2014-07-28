@@ -19,7 +19,7 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 
 /**
- * Represents the service that runs on foreground. It uses the Wifioppish
+ * Represents the service that runs on foreground. It uses the LOST-OppNet
  * business logic to create an opportunistic network and exchange messages. 
  * To start the service, an {@link Intent} 
  * must be created with the action <tt>net.diogomarques.wifioppish.service.LOSTService.START_SERVICE</tt>, 

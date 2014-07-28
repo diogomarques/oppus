@@ -9,8 +9,7 @@ import net.diogomarques.wifioppish.networking.Message;
 
 /**
  * Represents a Queue which supports concurrency and removes repeated messages. 
- * It is intended to use with {@link #net.diogomarques.wifioppish.networking.Message} 
- * instances.
+ * It is intended to use with {@link Message} instances.
  * 
  * @author André Silva <asilva@lasige.di.fc.ul.pt>
  *

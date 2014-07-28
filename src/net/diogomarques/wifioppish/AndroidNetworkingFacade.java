@@ -49,6 +49,15 @@ public class AndroidNetworkingFacade implements INetworkingFacade {
 				new WiFiDelegate(c, env), new UDPDelegate(c, env));
 	}
 
+	/**
+	 * Convenience method to create an {@link AndroidNetworkingFacade} instance with 
+	 * some default values
+	 * @param context Android context
+	 * @param environment LOST-OppNet Environment
+	 * @param softAP Software AccessPoint controller
+	 * @param wiFi WiFi controller
+	 * @param udp UDP network manager to establish connections
+	 */
 	private AndroidNetworkingFacade(Context context, IEnvironment environment,
 			SoftAPDelegate softAP, WiFiDelegate wiFi, UDPDelegate udp) {
 		this.mContext = context;
@@ -58,6 +67,10 @@ public class AndroidNetworkingFacade implements INetworkingFacade {
 		this.mUdp = udp;
 	}
 
+	/**
+	 * Gets the current Android context
+	 * @return Android context
+	 */
 	protected Context getContext() {
 		return mContext;
 	}
@@ -151,12 +164,23 @@ public class AndroidNetworkingFacade implements INetworkingFacade {
 		}
 		
 	}
+	
+	/**
+	 * Checks if an Internet connection is available
+	 * @return True if connection is available; false otherwise
+	 */
 	private boolean isNetworkAvailable() {
 	    ConnectivityManager connectivityManager 
 	          = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
 	    NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
 	    return activeNetworkInfo != null && activeNetworkInfo.isConnectedOrConnecting();
 	}
+	
+	/**
+	 * Does a network ping to a given hostname 
+	 * @param url Hostname to ping
+	 * @return Ping command output
+	 */
 	private String ping(String url) {
 
 		//int count = 0;

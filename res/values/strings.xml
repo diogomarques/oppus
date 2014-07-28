@@ -2,7 +2,7 @@
 <resources>
 
     <!--  branding and titles  -->
-    <string name="app_name">LOST</string>
+    <string name="app_name">LOST-OppNet</string>
     <string name="icon_label">LOST Settings</string>
     
     <!-- settings default values -->

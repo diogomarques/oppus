@@ -13,6 +13,10 @@ import net.diogomarques.wifioppish.networking.MessageGroup;
  */
 public class StateBeaconing extends AState {
 
+	/**
+	 * Creates a new Beaconing state
+	 * @param environment Environment running the state machine
+	 */
 	public StateBeaconing(IEnvironment environment) {
 		super(environment);
 	}

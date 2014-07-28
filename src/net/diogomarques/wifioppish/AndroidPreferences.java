@@ -36,6 +36,10 @@ public class AndroidPreferences implements IDomainPreferences {
 		mContext = ctx;
 	}
 
+	/**
+	 * Gets the Android context
+	 * @return Android Context
+	 */
 	protected Context getContext() {
 		return mContext;
 	}
@@ -76,7 +80,7 @@ public class AndroidPreferences implements IDomainPreferences {
 	 * <p>
 	 * <blockquote>"The respective maximum times are always 3 times the min
 	 * times." (p. 39)<footer>Trifunovic et al, 2011, <a
-	 * href="http://202.194.20.8/proc/MOBICOM2011/chants/p37.pdf"
+	 * href="http://dl.acm.org/citation.cfm?id=2030664"
 	 * >PDF</a></footer></blockquote>
 	 * 
 	 * @param resId

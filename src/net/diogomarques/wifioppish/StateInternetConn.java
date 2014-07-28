@@ -40,6 +40,10 @@ public class StateInternetConn extends AState {
 	private final int HTTP_OK = 200;
 	private final String METHOD = "victims";
 
+	/**
+	 * Creates a new InternetConnected state
+	 * @param environment Environment running the state machine
+	 */
 	public StateInternetConn(IEnvironment env) {
 		super(env);
 	}

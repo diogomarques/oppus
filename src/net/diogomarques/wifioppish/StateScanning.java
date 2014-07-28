@@ -12,6 +12,10 @@ import android.util.Log;
  */
 public class StateScanning extends AState {
 
+	/**
+	 * Creates a new Scanning state
+	 * @param environment Environment running the state machine
+	 */
 	public StateScanning(IEnvironment environment) {
 		super(environment);
 	}
