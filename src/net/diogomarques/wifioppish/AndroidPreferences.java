@@ -5,6 +5,7 @@ import java.util.Random;
 import net.diogomarques.wifioppish.IEnvironment.State;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.preference.PreferenceManager;
 
 /**
@@ -35,6 +36,10 @@ public class AndroidPreferences implements IDomainPreferences {
 		mContext = ctx;
 	}
 
+	/**
+	 * Gets the Android context
+	 * @return Android Context
+	 */
 	protected Context getContext() {
 		return mContext;
 	}
@@ -65,7 +70,7 @@ public class AndroidPreferences implements IDomainPreferences {
 	}
 	@Override
 	public int getTInt() {
-		return getRandomTimeFromKey(R.string.key_t_int);
+		return DEBUG ? 5000 : getRandomTimeFromKey(R.string.key_t_int);
 	}
 
 	/**
@@ -75,7 +80,7 @@ public class AndroidPreferences implements IDomainPreferences {
 	 * <p>
 	 * <blockquote>"The respective maximum times are always 3 times the min
 	 * times." (p. 39)<footer>Trifunovic et al, 2011, <a
-	 * href="http://202.194.20.8/proc/MOBICOM2011/chants/p37.pdf"
+	 * href="http://dl.acm.org/citation.cfm?id=2030664"
 	 * >PDF</a></footer></blockquote>
 	 * 
 	 * @param resId
@@ -119,5 +124,51 @@ public class AndroidPreferences implements IDomainPreferences {
 				.getDefaultSharedPreferences(mContext);
 		boolean internetState = prefs.getBoolean("internet",false);
 		return internetState;
+	}
+
+	@Override
+	public String getApiEndpoint() {
+		SharedPreferences prefs = PreferenceManager
+				.getDefaultSharedPreferences(mContext);
+		String key = mContext.getString(R.string.key_t_api);
+		String address = prefs.getString(key, null);
+		
+		return address;
+	}
+
+	@Override
+	public int getSendPeriod() {
+		SharedPreferences prefs = PreferenceManager
+				.getDefaultSharedPreferences(mContext);
+		String key = mContext.getString(R.string.key_t_freq);
+		int value = Integer.parseInt(prefs.getString(key, "2000"));
+		return value;
+	}
+
+	@Override
+	public int getTWeb() {
+		SharedPreferences prefs = PreferenceManager
+				.getDefaultSharedPreferences(mContext);
+		String key = mContext.getString(R.string.key_t_web);
+		int value = Integer.parseInt(prefs.getString(key, "5000"));
+		return value;
+	}
+
+	@Override
+	public String getNodeId() {
+		SharedPreferences prefs = PreferenceManager
+				.getDefaultSharedPreferences(mContext);
+		String key = mContext.getString(R.string.key_t_nodeid);
+		String nodeid = prefs.getString(key, null);
+		
+		// generate if invalid
+		if(nodeid == null || nodeid.equals("")) {
+			nodeid = NodeIdentification.getMyNodeId(mContext);
+			Editor prefEditor = prefs.edit();
+			prefEditor.putString(key, nodeid);
+			prefEditor.commit();
+		}
+		
+		return nodeid;
 	}
 }

@@ -9,7 +9,6 @@ import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.Date;
 
-import net.diogomarques.wifioppish.ConcurrentForwardingQueue;
 import net.diogomarques.wifioppish.IDomainPreferences;
 import net.diogomarques.wifioppish.IEnvironment;
 import net.diogomarques.wifioppish.INetworkingFacade.OnReceiveListener;
@@ -38,8 +37,6 @@ public class UDPDelegate {
 	 * Single UDP socket for messaging i/o
 	 */
 	private DatagramSocket mSocket;
-	
-	protected ConcurrentForwardingQueue mQueue;
 
 	/* Dependencies */
 	private final Context mContext;
@@ -48,7 +45,6 @@ public class UDPDelegate {
 	public UDPDelegate(Context context, IEnvironment environment) {
 		mContext = context;
 		mEnvironment = environment;
-		mQueue = new ConcurrentForwardingQueue();
 	}
 
 	private InetAddress getBroadcastAddress() throws UnknownHostException {
@@ -70,7 +66,7 @@ public class UDPDelegate {
 	}
 
 	public void send(Message msg, OnSendListener listener) {
-		byte[] netMessage = MessageSerializer.messageToNetwork(msg);
+		byte[] netMessage = MessageFormatter.messageToNetwork(msg);
 		
 		IDomainPreferences preferences = mEnvironment.getPreferences();
 		try {
@@ -78,7 +74,7 @@ public class UDPDelegate {
 					netMessage.length, getBroadcastAddress(), preferences.getPort());
 			getBroadcastSocket().send(packet);
 			if(listener != null)
-				listener.onMessageSent(msg);	
+				listener.onMessageSent(msg);
 			
 			mEnvironment.updateStats(1, 0);
 		} catch (UnknownHostException e) {
@@ -100,6 +96,44 @@ public class UDPDelegate {
 			}
 		}
 	}
+	
+	public void send(MessageGroup msgs, OnSendListener listener) {
+		byte[] netMessage = MessageFormatter.messageGroupToNetwork(msgs);
+		
+		IDomainPreferences preferences = mEnvironment.getPreferences();
+		try {
+			DatagramPacket packet = new DatagramPacket(netMessage,
+					netMessage.length, getBroadcastAddress(), preferences.getPort());
+			
+			int length = packet.getLength();
+			int max = MAX_UDP_DATAGRAM_SIZE;
+			double perc = ((double) length / max) * 100;
+			Log.i(TAG,
+				"About to send MessageGroup, size: " + length + " of " + 
+				max + " bytes (" + String.format("%1$.2f", perc) + "%)"
+			);
+			
+			getBroadcastSocket().send(packet);
+			if(listener != null)
+				listener.onMessageSent(msgs);
+			
+			mEnvironment.updateStats(msgs.totalMessages(), 0);
+		} catch (UnknownHostException e) {
+			listener.onSendError("Unknown host\n\t" + e.getMessage());
+		} catch (SocketException e) {
+			// Connection to softAP not available
+			Log.w(TAG, e.getMessage(), e);
+			if(listener != null)
+				listener.onSendError("lost connection to AP\n\t" + e.getMessage());
+		} catch (IOException e) {
+			// wtf - e comes up null sometimes
+			if (e != null) {
+				Log.e(TAG, e.getMessage(), e);
+				if(listener != null)
+					listener.onSendError(e.getMessage());
+			}
+		}
+	}
 
 	public void receiveFirst(int timeoutMilis, OnReceiveListener listener) {
 		byte[] buffer = new byte[MAX_UDP_DATAGRAM_SIZE];
@@ -111,9 +145,7 @@ public class UDPDelegate {
 			// blocks for t_beac
 			socket.receive(packet);
 			//String received = getMessageIn(buffer);
-			Message m = MessageSerializer.networkToMessage(buffer);
-			mEnvironment.pushMessageToQueue(m);
-			mEnvironment.storeReceivedMessage(m);
+			MessageGroup m = MessageFormatter.networkToMessageGroup(buffer);
 			String received = m.toString();
 			Log.w(TAG,
 					"Received packet! " + received + " from "
@@ -121,7 +153,7 @@ public class UDPDelegate {
 							+ packet.getPort());
 			releaseBroadcastSocket();
 			listener.onMessageReceived(m);
-			mEnvironment.updateStats(0, 1);
+			mEnvironment.updateStats(0, m.totalMessages());
 		} catch (SocketTimeoutException e) {
 			// t_beac timed out, go to scanning
 			releaseBroadcastSocket();
@@ -150,10 +182,7 @@ public class UDPDelegate {
 				// blocks for t_beac
 				socket.setSoTimeout(timeoutMilis);
 				socket.receive(packet);
-				//String received = getMessageIn(buffer);
-				Message m = MessageSerializer.networkToMessage(buffer);
-				mEnvironment.pushMessageToQueue(m);
-				mEnvironment.storeReceivedMessage(m);
+				MessageGroup m = MessageFormatter.networkToMessageGroup(buffer);
 				String received = m.toString();
 				Log.w(TAG,
 						"Received packet! " + received + " from "
@@ -161,7 +190,7 @@ public class UDPDelegate {
 								+ packet.getPort());
 				releaseBroadcastSocket();
 				listener.onMessageReceived(m);
-				mEnvironment.updateStats(0, 1);
+				mEnvironment.updateStats(0, m.totalMessages());
 			}
 		} catch (SocketTimeoutException e) {
 			// no connections received

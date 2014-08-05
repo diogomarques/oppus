@@ -2,6 +2,8 @@ package net.diogomarques.wifioppish.networking;
 
 import java.io.Serializable;
 
+import net.diogomarques.wifioppish.sensors.LocationSensor;
+
 /**
  * Message envelope to be exchanged between devices.
  * 
@@ -30,6 +32,7 @@ public class Message implements Serializable {
 	private long timestamp;
 	private double latitude;
 	private double longitude;
+	private int llconfidence;
 	private String message;
 	
 	/* Victim status attributes */
@@ -39,7 +42,7 @@ public class Message implements Serializable {
 	private boolean safe;
 	
 	/**
-	 * Creates a new read-only Message
+	 * Creates a new Message envelope with information regarding external conditions
 	 * 
 	 * @param message Text to be sent
 	 * @param timestamp Timestamp from when the Message was created 
@@ -53,11 +56,38 @@ public class Message implements Serializable {
 		this.timestamp = timestamp;
 		this.latitude = coords[0];
 		this.longitude = coords[1];
+		this.llconfidence = (int) coords[2];
 		this.message = message;
 		this.battery = -1;
 		this.safe = false;
 		this.screenOn = -1;
 		this.steps = -1;
+	}
+	
+	/**
+	 * Creates a new Message envelope with information regarding external conditions
+	 * 
+	 * @param message Text to be sent
+	 * @param timestamp Timestamp from when the Message was created 
+	 * @param coords Geographical coordinates associated with this Message. The first position 
+	 * 	should represent the latitude, and the second position of array should represent the longitude
+	 * @param nodeId Identificator of the node who sent the message
+	 * @param battery Battery level [0-100] of the device
+	 * @param safe True if the victim is currently marked as safe; false otherwise
+	 * @param screen Total number of screen activations
+	 * @param steps Total number of micro-movements done measured
+	 */
+	public Message(String nodeId, long timestamp, double[] coords, String message, int battery, int safe, int screen, int steps) {
+		this.nodeId = nodeId;
+		this.timestamp = timestamp;
+		this.latitude = coords[0];
+		this.longitude = coords[1];
+		this.llconfidence = (int) coords[2];
+		this.message = message;
+		this.battery = battery;
+		this.safe = (safe == 1);
+		this.screenOn = screen;
+		this.steps = steps;
 	}
 	
 	/**
@@ -76,8 +106,6 @@ public class Message implements Serializable {
 		this.battery = battery;
 	}
 
-
-
 	/**
 	 * Gets the total of steps the victims made until the message was sent
 	 * @return the steps
@@ -85,8 +113,6 @@ public class Message implements Serializable {
 	public int getSteps() {
 		return steps;
 	}
-
-
 
 	/**
 	 * Sets the total number of steps for the victim
@@ -120,8 +146,6 @@ public class Message implements Serializable {
 		return safe;
 	}
 
-
-
 	/**
 	 * Sets the safe victim status
 	 * @param safe the safe to set
@@ -137,7 +161,6 @@ public class Message implements Serializable {
 	public String getNodeId() {
 		return nodeId;
 	}
-
 
 	/**
 	 * Gets the time when the message was sent
@@ -162,6 +185,18 @@ public class Message implements Serializable {
 	public double getLongitude() {
 		return longitude;
 	}
+	
+	/**
+	 * Gets the confidence associated with the location
+	 * @return location confidence
+	 * @see {@link LocationSensor#CONFIDENCE_LAST_KNOWN}
+	 * 		Value for poor confidence
+	 * @see {@link LocationSensor#CONFIDENCE_UPDATED}
+	 * 		Value for good confidence
+	 */
+	public int getLocationConfidence() {
+		return llconfidence;
+	}
 
 	/**
 	 * Gets the textual message sent by the victim, if any
@@ -170,32 +205,12 @@ public class Message implements Serializable {
 	public String getMessage() {
 		return message;
 	}
-	
-	/**
-	 * Gets the CSV (Comma Separated Values) for this message
-	 * @return String containing information about the Message in CSV format
-	 */
-	public String getMessageCsv() {
-		StringBuilder sb = new StringBuilder(String.format(
-			"\"%s\";%s;%s;%s;%s;%d;%d;%d;%d",
-			(message == null ? "" : message),
-			nodeId,
-			timestamp,
-			latitude,
-			longitude,
-			battery,
-			steps,
-			screenOn,
-			safe ? 1 : 0
-		));
-		
-		return sb.toString();
-	}
 
 	@Override
 	public String toString() {
 		return "Message [nodeId=" + nodeId + ", timestamp=" + timestamp
 				+ ", latitude=" + latitude + ", longitude=" + longitude
+				+ ", llconfidence=" + llconfidence
 				+ ", message=" + message + ", battery=" + battery + ", steps="
 				+ steps + ", screenOn=" + screenOn + ", safe=" + safe + "]";
 	}
@@ -208,6 +223,7 @@ public class Message implements Serializable {
 		long temp;
 		temp = Double.doubleToLongBits(latitude);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
+		result = prime * result + llconfidence;
 		temp = Double.doubleToLongBits(longitude);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
 		result = prime * result + ((message == null) ? 0 : message.hashCode());
@@ -232,6 +248,8 @@ public class Message implements Serializable {
 			return false;
 		if (Double.doubleToLongBits(latitude) != Double
 				.doubleToLongBits(other.latitude))
+			return false;
+		if (llconfidence != other.llconfidence)
 			return false;
 		if (Double.doubleToLongBits(longitude) != Double
 				.doubleToLongBits(other.longitude))

@@ -3,6 +3,7 @@ package net.diogomarques.wifioppish;
 import java.util.List;
 
 import net.diogomarques.wifioppish.networking.Message;
+import net.diogomarques.wifioppish.sensors.SensorGroup;
 
 
 /**
@@ -40,13 +41,17 @@ public interface IEnvironment {
 		 */
 		Station,
 		/**
-		 * Internet is avaliable
+		 * Checking if Internet is available
 		 */
-		Internet,
+		InternetCheck,
 		/**
 		 * Connected to the internet
 		 */
-		Connected;
+		InternetConn,
+		/**
+		 * Special state to force environment to free resources and stop
+		 */
+		Stopped
 	}
 
 	/**
@@ -85,6 +90,12 @@ public interface IEnvironment {
 	 * 			  the initial state of State Machine
 	 */
 	public void startStateLoop(State first);
+	
+	/**
+	 * (Tries to) stop the state loop. It also should unregister 
+	 * any sensors defined.
+	 */
+	public void stopStateLoop();
 
 	/**
 	 * Get preferences relating to this state machine.
@@ -186,4 +197,10 @@ public interface IEnvironment {
 	 * @return true if internet state is part of the cycle, false if not
 	 */
 	public boolean internetState();
+	
+	/**
+	 * Gets the SensorGroup instance
+	 * @return SensorGroup instance
+	 */
+	public abstract SensorGroup getSensorGroup();
 }

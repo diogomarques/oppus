@@ -1,12 +1,13 @@
 package net.diogomarques.wifioppish;
 
-import java.util.List;
-
 import net.diogomarques.utils.CountDownTimer;
 import net.diogomarques.wifioppish.IEnvironment.State;
 import net.diogomarques.wifioppish.INetworkingFacade.OnSendListener;
 import net.diogomarques.wifioppish.networking.Message;
+import net.diogomarques.wifioppish.networking.MessageGroup;
+import android.content.ContentValues;
 import android.content.Context;
+import android.net.Uri;
 import android.util.Log;
 
 
@@ -17,6 +18,10 @@ import android.util.Log;
  */
 public class StateStation extends AState {
 
+	/**
+	 * Creates a new Station state
+	 * @param environment Environment running the state machine
+	 */
 	public StateStation(IEnvironment environment) {
 		super(environment);
 	}
@@ -30,14 +35,13 @@ public class StateStation extends AState {
 		environment.deliverMessage("entered station state");
 		final INetworkingFacade networking = environment.getNetworkingFacade();
 		
-		// prepare messages to be sent to network and add auto-message
-		final List<Message> toSend = environment.fetchMessagesFromQueue();
-		Message autoMessage = environment.createTextMessage("");
-		toSend.add(autoMessage);
+		// prepare messages to be sent to network
+		final MessageGroup toSend = new MessageGroup();
+		toSend.addAllMessages(environment.fetchMessagesFromQueue());
 		
 		// send messages for the network
-		// TODO: adjust period
-		int period = 2000; 
+		int period = environment.getPreferences().getSendPeriod(); 
+		
 		new CountDownTimer(environment.getPreferences().getTCon(), period) {
 			
 			@Override
@@ -56,17 +60,28 @@ public class StateStation extends AState {
 
 					@Override
 					public void onMessageSent(Message msg) {
-						environment.deliverCustomMessage(
-								msg, VictimActivity.StateChangeHandler.MSG_SENT);
+						// indicate that message was sent in content provider
+						ContentValues cv = new ContentValues();
+						cv.put("status", MessagesProvider.OUT_NET);
+						Uri sentUri = Uri.parse(
+								MessagesProvider.PROVIDER_URL +
+								MessagesProvider.METHOD_SENT + "/" +
+								msg.getNodeId() + msg.getTimestamp()
+						);
+						context.getContentResolver().update(sentUri, cv, null, null);
+						
 						environment.deliverMessage("message successfully sent");
-						environment.removeFromQueue(msg);
+					}
+					
+					@Override
+					public void onMessageSent(MessageGroup msgs) {
+						for(Message m : msgs)
+							onMessageSent(m);
 					}
 				};
 				
-				for(Message msg : toSend) {
-					Log.w("Station", "About to send message: " + msg.toString());
-					networking.send(msg, listener);
-				}
+				Log.w("Station", "About to send message group: " + toSend.toString());
+				networking.send(toSend, listener);
 			}
 
 			@Override
@@ -74,7 +89,6 @@ public class StateStation extends AState {
 				environment
 						.deliverMessage("t_con finished, exiting station mode");
 				environment.gotoState(State.Scanning);
-				toSend.clear();
 			}
 		}.start();
 	}

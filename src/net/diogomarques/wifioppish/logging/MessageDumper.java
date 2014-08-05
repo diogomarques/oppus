@@ -10,6 +10,7 @@ import java.util.Locale;
 import android.os.Environment;
 
 import net.diogomarques.wifioppish.networking.Message;
+import net.diogomarques.wifioppish.networking.MessageFormatter;
 
 /**
  * Dumps Messages to a text file for future analysis
@@ -47,7 +48,7 @@ public class MessageDumper {
 	 * @throws IOException File inaccessible, SD card removed
 	 */
 	public void addMessage(Message m) throws IOException {
-		fos.write(m.getMessageCsv().getBytes());
+		fos.write(MessageFormatter.messageToCSV(m).getBytes());
 		fos.write(LINE_BREAK.getBytes());
 		fos.flush();
 	}

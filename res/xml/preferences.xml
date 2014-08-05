@@ -1,7 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+    
+    <!-- Device identification -->
+    <PreferenceCategory android:title="Device identification" >
+		<EditTextPreference 
+		   android:defaultValue=""
+		   android:dialogMessage="@string/t_nodeid_desc"
+		   android:key="@string/key_t_nodeid"
+		   android:title="@string/t_nodeid_title" /> 
+    </PreferenceCategory>
 
-    <PreferenceCategory android:title="Domain preferences" >
+    <!-- time constants configuration according experiments and scientific paper -->
+    <PreferenceCategory android:title="Time constants" >
         <EditTextPreference
             android:defaultValue="@string/value_t_beac"
             android:dialogMessage="@string/t_beac_title"
@@ -27,16 +37,31 @@
             android:dialogMessage="@string/t_int_title"
             android:key="@string/key_t_int"
             android:title="t_int" />
-        
+         <EditTextPreference
+            android:defaultValue="@string/value_t_freq"
+            android:dialogMessage="@string/t_freq_title"
+            android:key="@string/key_t_freq"
+            android:title="Message send period" />
+         <EditTextPreference 
+            android:defaultValue="@string/value_t_web"
+            android:dialogMessage="@string/t_web_desc"
+            android:key="@string/key_t_web"
+            android:title="@string/t_web_title" /> 
+     </PreferenceCategory>
+     
+    <!-- webservice connection preferences -->
+     <PreferenceCategory android:title="Webservice" >  
         <CheckBoxPreference
             android:defaultValue="false"
             android:enabled="true"
             android:key="@string/key_internet"
             android:summary="@string/internet"
             android:title="@string/internet_title" />
+        <EditTextPreference
+            android:defaultValue="@string/value_t_api"
+            android:dialogMessage="@string/t_api_desc"
+            android:key="@string/key_t_api"
+            android:title="@string/t_api_title" />
     </PreferenceCategory>
-    <PreferenceCategory android:title="UI Preferences" >
-    </PreferenceCategory>
-
     
 </PreferenceScreen>

@@ -1,6 +1,7 @@
 package net.diogomarques.wifioppish;
 
 import net.diogomarques.wifioppish.IEnvironment.State;
+import net.diogomarques.wifioppish.networking.Message;
 import android.content.Context;
 import android.util.Log;
 
@@ -11,6 +12,10 @@ import android.util.Log;
  */
 public class StateScanning extends AState {
 
+	/**
+	 * Creates a new Scanning state
+	 * @param environment Environment running the state machine
+	 */
 	public StateScanning(IEnvironment environment) {
 		super(environment);
 	}
@@ -21,16 +26,21 @@ public class StateScanning extends AState {
 		Log.w("Machine State", "Scanning");
 		
 		final INetworkingFacade networking = environment.getNetworkingFacade();
+		
+		// add auto-message to be accumulated
+		Message autoMessage = environment.createTextMessage("");
+		environment.pushMessageToQueue(autoMessage);
 		environment.deliverMessage("entered scanning state");		
+		
 		networking.scanForAP(timeout, new INetworkingFacade.OnAccessPointScanListener() {
 
 			@Override
 			public void onScanTimeout() {
 				environment.deliverMessage("t_scan timeout");
 				
-				//goes to internet state if enabled
+				// goes to internet state if enabled and has messages to send to webservice
 				if(environment.internetState())
-					environment.gotoState(State.Internet);
+					environment.gotoState(State.InternetCheck);
 				else
 					environment.gotoState(State.Beaconing);				
 			}

@@ -13,7 +13,9 @@ import android.util.Log;
  * @author André Silva <asilva@lasige.di.fc.ul.pt>
  * @see <a href="https://github.com/bagilevi/android-pedometer‎">bagilevi's Android Pedometer</a>‎
  */
-public class PedometerSensor implements IIntervalSensor {
+public class PedometerSensor extends AbstractSensor {
+
+	private static final String TAG = PedometerSensor.class.getSimpleName();
 	
 	private Integer steps;
 	private Sensor mSensor;
@@ -22,43 +24,40 @@ public class PedometerSensor implements IIntervalSensor {
 	private StepListener stepListener = new StepListener() {
 		
 		@Override
-		public void passValue() { }
-		
-		@Override
 		public void onStep() {
 			steps++;
-			Log.i("PedometerSensor", steps + " steps");
+			Log.i(TAG, steps + " movements");
 		}
 	};
 	
 	/**
-	 * Creates a new Pedometer Sensor to monitor user steps
+	 * Creates a pedometer to count user steps/micro-movements
+	 * @param c Android context
 	 */
-	public PedometerSensor() {
+	public PedometerSensor(Context c) {
+		super(c);
 		steps = 0;
+		mSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
+		mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+		stepDetector = new StepDetector();
 	}
 	
+	@Override
 	public Object getCurrentValue() {
 		return steps;
 	}
-
-	public Object getIntervalValue() {
-		return steps;
-	}
-
-	public void resetInterval() {
-		steps = 0;
-	}
 	
-	public void startSensor(Context c) {
-		mSensorManager = (SensorManager) c.getSystemService(Context.SENSOR_SERVICE);
-		mSensor = mSensorManager.getDefaultSensor(
-	            Sensor.TYPE_ACCELEROMETER);
-		stepDetector = new StepDetector();
+	@Override
+	public void startSensor() {
 		stepDetector.addStepListener(stepListener);
         mSensorManager.registerListener(stepDetector,
 	            mSensor,
 	            SensorManager.SENSOR_DELAY_FASTEST);
+	}
+
+	@Override
+	public void stopSensor() {
+		mSensorManager.unregisterListener(stepDetector);
 	}
 
 }

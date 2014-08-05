@@ -4,6 +4,7 @@ import android.content.Context;
 import android.util.Log;
 import net.diogomarques.wifioppish.IEnvironment.State;
 import net.diogomarques.wifioppish.networking.Message;
+import net.diogomarques.wifioppish.networking.MessageGroup;
 
 /**
  * Android implementation of state {@link IEnvironment.State#Beaconing}
@@ -12,6 +13,10 @@ import net.diogomarques.wifioppish.networking.Message;
  */
 public class StateBeaconing extends AState {
 
+	/**
+	 * Creates a new Beaconing state
+	 * @param environment Environment running the state machine
+	 */
 	public StateBeaconing(IEnvironment environment) {
 		super(environment);
 	}
@@ -34,9 +39,9 @@ public class StateBeaconing extends AState {
 						// stop ap and go to scanning
 						networking.stopAccessPoint();
 						
-						//goes to internet state if enabled
+						// goes to internet state if enabled
 						if(environment.internetState())
-							environment.gotoState(State.Internet);
+							environment.gotoState(State.InternetCheck);
 						else
 							environment.gotoState(State.Scanning);
 					}
@@ -44,6 +49,17 @@ public class StateBeaconing extends AState {
 					@Override
 					public void onMessageReceived(Message m) {
 						environment.deliverMessage("message received: " + m.toString());
+						environment.pushMessageToQueue(m);
+						environment.gotoState(State.Providing);
+					}
+
+					@Override
+					public void onMessageReceived(MessageGroup msgs) {
+						for(Message m : msgs) {
+							environment.deliverMessage("message received: " + m.toString());
+							environment.pushMessageToQueue(m);
+						}
+						
 						environment.gotoState(State.Providing);
 					}
 				});
